@@ -10,6 +10,7 @@ using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain;
 using Fuyu.Backend.EFTMain.Services;
+using Fuyu.Common.Collections;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.DependencyInjection;
@@ -17,29 +18,46 @@ using Fuyu.Modding;
 
 public class GenerateFleaMarketOffersMod : AbstractMod
 {
-    public override string Id { get; } = "com.project-fika.generatefleamarketoffers";
+    public override string Id { get; } = "Fuyu.Devtool.GenerateFleaMarketOffers";
 
-    public override string Name { get; } = "GenerateFleaMarketOffers";
+    public override string Name { get; } = "Fuyu-GenerateFleaMarketOffers";
+
+    private HandbookService _handbookService;
+
+    private EftOrm _eftOrm;
+
+    private ItemFactoryService _itemFactoryService;
+
+    private RagfairService _ragfairService;
 
     private Thread _generateOffersThread;
 
     public override Task OnLoad(DependencyContainer container)
     {
-        _generateOffersThread = new Thread(GenerateOffers);
+        _eftOrm = EftOrm.Instance;
+        _handbookService = HandbookService.Instance;
+        _itemFactoryService = ItemFactoryService.Instance;
+        _ragfairService = RagfairService.Instance;
+        _generateOffersThread = new Thread(GenerateOffers)
+        {
+            // This thread will not keep the application alive
+            IsBackground = true
+        };
+
         _generateOffersThread.Start();
 
         return Task.CompletedTask;
     }
 
-    static void GenerateOffers()
+    private void GenerateOffers()
     {
-        var player = new RagfairPlayerUser(MongoId.Generate(), 344, EMemberCategory.Developer, EMemberCategory.Developer,
-            "b1gdeveloper", 69.420f, true);
+        var player = new RagfairPlayerUser(MongoId.Generate(), 301, EMemberCategory.Developer, EMemberCategory.Developer,
+            "GenerateFleaMarketOffers", 1f, true);
         Terminal.WriteLine("Generating offers...");
 
         var sw = Stopwatch.StartNew();
-        var templates = EftOrm.Instance.GetItemTemplates()["data"]!.ToObject<Dictionary<MongoId, ItemTemplate>>();
-        var handbook = EftOrm.Instance.GetHandbook();
+        var templates = _eftOrm.GetItemTemplates()["data"]!.ToObject<Dictionary<MongoId, ItemTemplate>>();
+        var handbook = _eftOrm.GetHandbook();
         var success = 0;
         var failed = 0;
 
@@ -50,28 +68,28 @@ public class GenerateFleaMarketOffersMod : AbstractMod
                 continue;
             }
 
-            int price = HandbookService.Instance.GetPrice(tid, 100).Value;
+            int price = _handbookService.GetPrice(tid, 100).Value;
 
             try
             {
-                var items = ItemFactoryService.Instance.CreateItem(template);
+                var items = _itemFactoryService.CreateItem(template);
 
-                if (items[0].Updatable == null)
-                {
-                    items[0].Updatable = new ItemUpdatable();
-                }
-
+                items[0].Updatable ??= new ItemUpdatable();
                 items[0].Updatable.StackObjectsCount = Random.Shared.Next(100, 100000);
 
-                var createdOffer = RagfairService.Instance.CreateAndAddOffer(
+                var createdOffer = _ragfairService.CreateAndAddOffer(
                     user: player,
                     items: items,
                     isBatch: false,
                     requirements: [
-                        new HandoverRequirement() { Count = price, TemplateId = "5449016a4bdc2d6f028b456f" }
+                        new HandoverRequirement
+                        {
+                            TemplateId = "5449016a4bdc2d6f028b456f",
+                            Count = price
+                        }
                     ],
-                    lifetime: TimeSpan.FromHours(30d),
-                    unlimitedCount: true
+                    lifetime: TimeSpan.FromDays(1d),
+                    unlimitedCount: false
                 );
 
                 if (createdOffer == null)
