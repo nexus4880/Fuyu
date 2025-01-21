@@ -206,7 +206,7 @@ public class AccountService
         // register game
         var request = new FuyuGameRegisterRequest()
         {
-            Username = game,
+            Username = account.Username,
             Edition = edition
         };
         var response = _requestService.Post<FuyuGameRegisterResponse>(game, "/fuyu/game/register", request);
