@@ -8,6 +8,7 @@ using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
+using Newtonsoft.Json;
 
 namespace Fuyu.Backend.BSG.Services;
 
@@ -40,7 +41,21 @@ public class ItemFactoryService
     /// <returns>The <see cref="ItemProperties"/> class defined</returns>
     public T GetItemProperties<T>(MongoId templateId) where T : ItemProperties
     {
-        return ItemTemplates[templateId].Props.ToObject<T>();
+        return GetItemProperties<T>(ItemTemplates[templateId]);
+    }
+
+    /// <summary>
+    /// Gets an <see cref="ItemProperties"/> from a <see cref="ItemTemplate"/> Template
+    /// </summary>
+    /// <typeparam name="T">The <see cref="ItemProperties"/> class to return</typeparam>
+    /// <param name="template">The <see cref="ItemTemplate"/> Template to get the <see cref="ItemProperties"/> from</param>
+    /// <returns>The <see cref="ItemProperties"/> class defined</returns>
+    public T GetItemProperties<T>(ItemTemplate template) where T : ItemProperties
+    {
+        var reader = template.Props.CreateReader();
+        var serializer = JsonSerializer.Create(Json.jsonSerializerSettings);
+        
+        return serializer.Deserialize<T>(reader);
     }
 
     public List<ItemInstance> CreateItem(ItemTemplate template, int? count = null, MongoId? id = null, string parentId = null,
@@ -70,7 +85,7 @@ public class ItemFactoryService
             // Handle child items - these are created once per root item
             if (compoundItemProperties.Slots != null)
             {
-                foreach (var slot in compoundItemProperties.Slots.Where(s => s.Required && s.Properties.Filters.Length > 0))
+                foreach (var slot in compoundItemProperties.Slots.Where(s => s.Required && s.Properties.Filters.Count > 0))
                 {
                     if (!slot.Properties.Filters[0].Plate.HasValue)
                     {

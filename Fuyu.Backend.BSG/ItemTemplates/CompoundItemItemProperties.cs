@@ -78,7 +78,7 @@ public class Slot
 public class SlotProperties
 {
     [DataMember(Name = "filters")]
-    public SlotPropertiesFilter[] Filters { get; set; }
+    public List<SlotPropertiesFilter> Filters { get; set; }
 }
 
 [DataContract]
@@ -129,7 +129,7 @@ public class Grid
 public class GridProperties
 {
     [DataMember(Name = "filters")]
-    public GridPropertiesFilter[] Filters { get; set; }
+    public List<GridPropertiesFilter> Filters { get; set; }
 
     [DataMember(Name = "cellsH")]
     public int CellsHorizontal { get; set; }

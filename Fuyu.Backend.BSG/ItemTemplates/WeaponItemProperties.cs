@@ -251,7 +251,7 @@ public class WeaponItemProperties : CompoundItemItemProperties
 
     [DataMember(Name = "AimSensitivity")]
     [UnionMappings(JTokenType.Float, JTokenType.Array)]
-    public Union<float, float[][]> AimSensitivity = 1f;
+    public Union<float, float[][]> AimSensitivity { get; set; } = 1f;
 
     [DataMember(Name = "DurabilityBurnRatio")]
     public float DurabilityBurnRatio = 1f;
