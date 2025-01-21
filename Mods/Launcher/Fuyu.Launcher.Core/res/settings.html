@@ -21,40 +21,19 @@
         <div class="container-fluid">
             <div class="row">
 
-                <!-- sidebar -->
                 <div class="col-3">
                     <aside class="bd-aside sticky-xl-top text-body-secondary align-self-start mb-3 mb-xl-5 px-2">
                         <nav class="small" id="toc">
-                            <ul class="list-unstyled">
-                                <li class="my-2">
-                                    
-                                    <!-- sidebar section -->
-                                    <button type="button" class="btn d-inline-flex align-items-center collapsed border-0" data-bs-toggle="collapse" data-bs-target="#contents-collapse">Contents</button>
-                                    <ul class="list-unstyled ps-3 collapse" id="contents-collapse">
-                                        <!-- sidebar subsection -->
-                                        <li><a class="text-decoration-none" href="#typography">Typography</a></li>
-                                        <li><a class="text-decoration-none" href="#images">Images</a></li>
-                                        <li><a class="text-decoration-none" href="#tables">Tables</a></li>
-                                        <li><a class="text-decoration-none" href="#figures">Figures</a></li>
-                                    </ul>
 
-                                </li>
-                            </ul>
+                            <!-- __TOC __ -->
+
                         </nav>
                     </aside>
                 </div>
 
-                <div class="col-7 border-left">
+                <div class="col-7 mt-3 border-left">
 
-                    <!-- page content -->
-                    <div>
-                        <p class="display-1">Display 1</p>
-                        <p class="display-2">Display 2</p>
-                        <p class="display-3">Display 3</p>
-                        <p class="display-4">Display 4</p>
-                        <p class="display-5">Display 5</p>
-                        <p class="display-6">Display 6</p>
-                    </div>
+                    <!-- __CONTENT __ -->
 
                 </div>
             </div>
@@ -72,7 +51,10 @@
 
         function navigateBack() {
             const data = {
-                type: "SAVE_SETTINGS"
+                type: "SAVE_SETTINGS",
+                data: [
+                    // __MESSAGE__
+                ]
             }
 
             sendMessage(data);

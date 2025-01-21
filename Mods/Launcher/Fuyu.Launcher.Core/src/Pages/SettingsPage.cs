@@ -1,6 +1,10 @@
+using System.IO;
+using System.Text;
 using Fuyu.Common.Serialization;
 using Fuyu.Common.Launcher.Models.Messages;
 using Fuyu.Common.Launcher.Models.Pages;
+using Fuyu.Common.Launcher.Services;
+using Fuyu.Common.IO;
 
 namespace Fuyu.Launcher.Core.Pages;
 
@@ -8,6 +12,14 @@ public class SettingsPage : AbstractPage
 {
     protected override string Id { get; } = "Fuyu.Launcher.Core";
     protected override string Path { get; } = "settings.html";
+
+    protected override Stream LoadContent(string path)
+    {
+        var template = Resx.GetText(Id, Path);
+        var html = SettingsService.Instance.GeneratePage(template);
+        var bytes = Encoding.UTF8.GetBytes(html);
+        return new MemoryStream(bytes);
+    }
 
     protected override void HandleMessage(string message)
     {

@@ -2,7 +2,7 @@ namespace Fuyu.Common.Launcher.Models.Settings;
 
 public class GeneratedSettingItem
 {
-    public string Section;
+    public string TableOfContents;
     public string Content;
-    public string Js;
+    public string Message;
 }

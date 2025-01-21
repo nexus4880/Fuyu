@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fuyu.Common.IO;
 using Fuyu.Common.Launcher.Models.Settings;
 
 namespace Fuyu.Common.Launcher.Services;
@@ -36,13 +37,30 @@ public class SettingsService
     public string GeneratePage(string htmlTemplate)
     {
         var items = new List<GeneratedSettingItem>();
-        var page = htmlTemplate;
 
         foreach (var section in _settings)
         {
             var sectionItems = GenerateSection(section);
             items.AddRange(sectionItems);
         }
+
+        var tocHtml = string.Empty;
+        var contentHtml = string.Empty;
+        var messageJson = string.Empty;
+
+        foreach (var item in items)
+        {
+            tocHtml += item.TableOfContents;
+            contentHtml += item.Content;
+            messageJson += item.Message; 
+        }
+
+        var page = htmlTemplate
+            .Replace("<!-- __TOC __ -->", tocHtml)
+            .Replace("<!-- __CONTENT __ -->", contentHtml)
+            .Replace("// __MESSAGE__", messageJson);
+
+        Terminal.WriteLine(page);
 
         return page;
     }
@@ -51,15 +69,8 @@ public class SettingsService
     {
         var items = new List<GeneratedSettingItem>();
 
-        // add list subsection
-        var listSectionItem = GenerateSectionList(section);
-        items.Add(listSectionItem);
-
         // add subsection start
-        var beginSectionitem = new GeneratedSettingItem()
-        {
-            Content = $"<div id=\"{section.Id}\">"
-        }; 
+        var beginSectionitem = GenerateSectionStart(section);
         items.Add(beginSectionitem);
 
         // add subsection items 
@@ -67,43 +78,67 @@ public class SettingsService
         {
             switch (setting.Type)
             {
-                case ESettingType.Filepath:
-                    var item = GenerateFilepathChunk(section, (FileSetting)setting);
+                case ESettingType.Text:
+                    var item = GenerateTextChunk(section, (TextSetting)setting);
                     items.Add(item);
                     break;
             }
         }
 
+        // add subsection end
+        var endSectionitem = GenerateSectionEnd(section);
+        items.Add(endSectionitem);
+
         return [.. items];
     }
 
-    GeneratedSettingItem GenerateSectionList(SettingSection section)
+    GeneratedSettingItem GenerateSectionStart(SettingSection section)
     {
-        var item = new GeneratedSettingItem();
+        var item = new GeneratedSettingItem()
+        {
+            TableOfContents = string.Empty
+                + $"<h6 class=\"mt-3\"><a class=\"text-decoration-none\" href=\"#{section.Id}\">{section.Name}</a></h6>\n"
+                + $"<ul class=\"list-unstyled ps-3\">\n",
 
-        //
+            Content = string.Empty
+                + $"<h3 id=\"{section.Id}\">{section.Name}</h3>\n"
+        };
 
         return item;
     }
 
-    GeneratedSettingItem GenerateFilepathChunk(SettingSection section, FileSetting setting)
+    GeneratedSettingItem GenerateSectionEnd(SettingSection section)
     {
-        var item = new GeneratedSettingItem();
+        var item = new GeneratedSettingItem()
+        {
+            TableOfContents = string.Empty
+                + $"</ul>\n",
+        };
+
+        return item;
+    }
+
+    GeneratedSettingItem GenerateTextChunk(SettingSection section, TextSetting setting)
+    {
         var id = $"{section.Id}_{setting.Id}";
+        var item = new GeneratedSettingItem()
+        {
+            TableOfContents = string.Empty
+                + $"<li><a class=\"text-decoration-none\" href=\"#{id}\">{setting.Name}</a></li>\n",
 
-        item.Section = 
+            Content = string.Empty
+                +  "<div class=\"mb-3\">\n"
+                + $"    <label for=\"{id}\" class=\"form-label\">{setting.Name}</label>\n"
+                + $"    <input class=\"form-control\" type=\"text\" value=\"{setting.Value}\" id=\"{id}\">\n"
+                + $"    <div class=\"form-text\">{setting.Description}</div>\n"
+                +  "</div>\n",
 
-        item.Content = string.Empty
-            +  "<div class=\"mb-3\">"
-            + $"    <label for=\"formFile\" class=\"form-label\">{setting.Description}</label>"
-            + $"    <input class=\"form-control\" type=\"file\" value=\"{setting.Value}\" id=\"{id}\">"
-            +  "</div>";
-
-        item.Js = string.Empty
-            +  "{"
-            +  "    type: \"file\","
-            + $"    value: document.getElementById(\"{id}\").value"
-            +  "},";
+            Message = string.Empty
+                +  "{\n"
+                +  "    type: \"file\",\n"
+                + $"    value: document.getElementById(\"{id}\").value\n"
+                +  "},\n"
+        };
 
         return item;
     }

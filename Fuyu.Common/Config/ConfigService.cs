@@ -6,6 +6,7 @@ using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
 
 namespace Fuyu.Common.Config;
+
 public class ConfigService
 {
     private static readonly Lazy<Dictionary<string, ConfigService>> instances = new(() => new());
