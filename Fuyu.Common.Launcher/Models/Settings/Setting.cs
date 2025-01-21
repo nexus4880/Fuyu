@@ -1,4 +1,5 @@
 using System.Runtime.Serialization;
+using Fuyu.Common.Launcher.Delegates;
 
 namespace Fuyu.Common.Launcher.Models.Settings;
 
@@ -12,4 +13,6 @@ public class Setting
 
     [DataMember(Name = "name")]
     public string Name;
+
+    public SaveCallback OnSave;
 }

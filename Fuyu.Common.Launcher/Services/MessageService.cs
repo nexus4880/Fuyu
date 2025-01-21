@@ -15,7 +15,7 @@ public class MessageService
     private CoreWebView2 _webview;
 
     /// <summary>
-    /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
+    /// The construction of this class is handled in the <see cref="_instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
     private MessageService()
     {

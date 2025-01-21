@@ -35,7 +35,9 @@ public class SettingsPage : AbstractPage
 
     void OnSaveSettingsMessage(string message)
     {
-        //var body = Json.Parse<SaveSettingsMessage>(message);
+        var body = Json.Parse<SaveSettingsMessage>(message);
+
+        SettingsService.Instance.SaveSettings(body);
         NavigationService.NavigatePrevious();
     }
 }

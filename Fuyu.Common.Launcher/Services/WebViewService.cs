@@ -15,6 +15,9 @@ public class WebViewService
 
     private CoreWebView2 _webview;
 
+    /// <summary>
+    /// The construction of this class is handled in the <see cref="_instance"/> (<see cref="Lazy{T}"/>)
+    /// </summary>
     private WebViewService()
     {
         _contentService = ContentService.Instance;

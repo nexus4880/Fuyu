@@ -13,7 +13,7 @@ public class ContentService
     private readonly Dictionary<string, Func<string, Stream>> _loadCallbacks;
 
     /// <summary>
-    /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
+    /// The construction of this class is handled in the <see cref="_instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
     private ContentService()
     {

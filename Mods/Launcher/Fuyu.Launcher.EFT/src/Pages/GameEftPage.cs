@@ -44,7 +44,7 @@ public class GameEftPage : AbstractPage
 
         // TODO: Keep track of game lifecycle
         // -- seionmoya, 2025-01-11
-        var process = GetEftProcess(_eftPath, gameSessionId, "http://localhost:8010/");
+        var process = GetEftProcess(ModConfig.Instance.GamePath, gameSessionId, ModConfig.Instance.Address);
         process.Start();
 
         ReplyLaunchSuccess();

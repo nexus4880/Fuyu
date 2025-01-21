@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Fuyu.Common.IO;
+using Fuyu.Common.Launcher.Models.Messages;
 using Fuyu.Common.Launcher.Models.Settings;
 
 namespace Fuyu.Common.Launcher.Services;
@@ -60,8 +60,6 @@ public class SettingsService
             .Replace("<!-- __CONTENT __ -->", contentHtml)
             .Replace("// __MESSAGE__", messageJson);
 
-        Terminal.WriteLine(page);
-
         return page;
     }
 
@@ -120,7 +118,7 @@ public class SettingsService
 
     GeneratedSettingItem GenerateTextChunk(SettingSection section, TextSetting setting)
     {
-        var id = $"{section.Id}_{setting.Id}";
+        var id = $"{section.Id}-{setting.Id}";
         var item = new GeneratedSettingItem()
         {
             TableOfContents = string.Empty
@@ -135,11 +133,50 @@ public class SettingsService
 
             Message = string.Empty
                 +  "{\n"
-                +  "    type: \"file\",\n"
+                + $"    id: \"{id}\","
                 + $"    value: document.getElementById(\"{id}\").value\n"
                 +  "},\n"
         };
 
         return item;
+    }
+
+    public void SaveSettings(SaveSettingsMessage message)
+    {
+        foreach (var entry in message.Data)
+        {
+            SaveSetting(entry);
+        }
+    }
+
+    void SaveSetting(SaveSettingsEntry entry)
+    {
+        var splitted = entry.Id.Split('-');
+        var sectionId = splitted[0];
+        var settingId = splitted[1];
+        Setting target = null;
+
+        foreach (var section in _settings)
+        {
+            if (section.Id == sectionId)
+            {
+                foreach (var setting in section.Settings)
+                {
+                    if (setting.Id == settingId)
+                    {
+                        target = setting;
+                        goto search_end;
+                    }
+                }
+            }
+        }
+        search_end:
+
+        if (target == null)
+        {
+            throw new Exception($"Could not find setting {settingId} in section {sectionId}");
+        }
+
+        target.OnSave(entry.Value);
     }
 }

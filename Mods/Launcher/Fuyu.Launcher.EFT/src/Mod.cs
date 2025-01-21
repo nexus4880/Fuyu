@@ -9,7 +9,6 @@ using Fuyu.DependencyInjection;
 using Fuyu.Launcher.EFT.Pages;
 using Fuyu.Modding;
 
-
 namespace Fuyu.Launcher.EFT;
 
 public class Mod : AbstractMod
@@ -34,8 +33,13 @@ public class Mod : AbstractMod
         // Register resources
         Resx.SetSource(Id, this.GetType().Assembly);
 
+        // Load config
+        ModConfig.Instance.Load();
+        var address = ModConfig.Instance.Address;
+        var gamepath = ModConfig.Instance.GamePath;
+
         // Add launcher request client
-        var eftHttpClient = new HttpClient("http://localhost:8010");
+        var eftHttpClient = new HttpClient(address);
         _requestService.AddOrSetClient("eft", eftHttpClient);
 
         // Add settings
@@ -49,14 +53,16 @@ public class Mod : AbstractMod
                     Id = "address",
                     Name = "Backend address",
                     Description = "Game server address",
-                    Value = "http://localhost:8010"
+                    Value = address,
+                    OnSave = OnSaveAddress
                 },
                 new TextSetting()
                 {
                     Id = "gamepath",
-                    Name = "Game path",
-                    Description = "Path to EscapeFromTarkov.exe",
-                    Value = "C:/Games/EFT-Live/EscapeFromTarkov.exe"
+                    Name = "Game directory",
+                    Description = "Full path to the directory where EscapeFromTarkov.exe resides",
+                    Value = gamepath,
+                    OnSave = OnSaveGamePath
                 }
             ]
         };
@@ -93,5 +99,17 @@ public class Mod : AbstractMod
             "assets/img/logo-eft.png"   => Resx.GetStream(Id, "assets.img.logo-eft.png"),
             _                           => throw new FileNotFoundException()
         };
+    }
+
+    void OnSaveAddress(string value)
+    {
+        ModConfig.Instance.Address = value;
+        ModConfig.Instance.Save();
+    }
+
+    void OnSaveGamePath(string value)
+    {
+        ModConfig.Instance.GamePath = value;
+        ModConfig.Instance.Save();
     }
 }
