@@ -1,10 +1,10 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Fuyu.Common.IO;
-using Fuyu.Common.Networking;
-using Fuyu.Common.Services;
 using Fuyu.Common.Launcher.Models.Settings;
 using Fuyu.Common.Launcher.Services;
+using Fuyu.Common.Networking;
+using Fuyu.Common.Services;
 using Fuyu.DependencyInjection;
 using Fuyu.Launcher.EFT.Pages;
 using Fuyu.Modding;
@@ -84,9 +84,9 @@ public class Mod : AbstractMod
     void InitializeAssets()
     {
         //                              http://launcher.fuyu.api/* callback
-        _contentService.SetOrAddLoader("assets/css/game-eft.css",  LoadContent);
-        _contentService.SetOrAddLoader("assets/img/bg-eft.png",    LoadContent);
-        _contentService.SetOrAddLoader("assets/img/logo-eft.png",  LoadContent);
+        _contentService.SetOrAddLoader("assets/css/game-eft.css", LoadContent);
+        _contentService.SetOrAddLoader("assets/img/bg-eft.png", LoadContent);
+        _contentService.SetOrAddLoader("assets/img/logo-eft.png", LoadContent);
     }
 
     Stream LoadContent(string path)
@@ -94,10 +94,10 @@ public class Mod : AbstractMod
         return path switch
         {
             // filepath                    stream
-            "assets/css/game-eft.css"   => Resx.GetStream(Id, "assets.css.game-eft.css"),
-            "assets/img/bg-eft.png"     => Resx.GetStream(Id, "assets.img.bg-eft.png"),
-            "assets/img/logo-eft.png"   => Resx.GetStream(Id, "assets.img.logo-eft.png"),
-            _                           => throw new FileNotFoundException()
+            "assets/css/game-eft.css" => Resx.GetStream(Id, "assets.css.game-eft.css"),
+            "assets/img/bg-eft.png" => Resx.GetStream(Id, "assets.img.bg-eft.png"),
+            "assets/img/logo-eft.png" => Resx.GetStream(Id, "assets.img.logo-eft.png"),
+            _ => throw new FileNotFoundException()
         };
     }
 

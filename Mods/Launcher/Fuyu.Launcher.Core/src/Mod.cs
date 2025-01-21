@@ -1,10 +1,10 @@
 using System.IO;
 using System.Threading.Tasks;
 using Fuyu.Common.IO;
+using Fuyu.Common.Launcher.Services;
 using Fuyu.Common.Networking;
 using Fuyu.Common.Services;
 using Fuyu.DependencyInjection;
-using Fuyu.Common.Launcher.Services;
 using Fuyu.Launcher.Core.Pages;
 using Fuyu.Modding;
 
@@ -48,10 +48,10 @@ public class Mod : AbstractMod
     void InitializeAssets()
     {
         //                              http://launcher.fuyu.api/*      callback
-        _contentService.SetOrAddLoader("assets/css/bootstrap.min.css",  LoadContent);
-        _contentService.SetOrAddLoader("assets/css/styles.css",         LoadContent);
-        _contentService.SetOrAddLoader("assets/js/bootstrap.min.js",    LoadContent);
-        _contentService.SetOrAddLoader("assets/js/popper.min.js",       LoadContent);
+        _contentService.SetOrAddLoader("assets/css/bootstrap.min.css", LoadContent);
+        _contentService.SetOrAddLoader("assets/css/styles.css", LoadContent);
+        _contentService.SetOrAddLoader("assets/js/bootstrap.min.js", LoadContent);
+        _contentService.SetOrAddLoader("assets/js/popper.min.js", LoadContent);
     }
 
     Stream LoadContent(string path)
@@ -59,11 +59,11 @@ public class Mod : AbstractMod
         return path switch
         {
             // filepath                        stream
-            "assets/css/bootstrap.min.css"  => Resx.GetStream(Id, "assets.css.bootstrap.min.css"),
-            "assets/css/styles.css"         => Resx.GetStream(Id, "assets.css.styles.css"),
-            "assets/js/bootstrap.min.js"    => Resx.GetStream(Id, "assets.js.bootstrap.min.js"),
-            "assets/js/popper.min.js"       => Resx.GetStream(Id, "assets.js.popper.min.js"),
-            _                               => throw new FileNotFoundException()
+            "assets/css/bootstrap.min.css" => Resx.GetStream(Id, "assets.css.bootstrap.min.css"),
+            "assets/css/styles.css" => Resx.GetStream(Id, "assets.css.styles.css"),
+            "assets/js/bootstrap.min.js" => Resx.GetStream(Id, "assets.js.bootstrap.min.js"),
+            "assets/js/popper.min.js" => Resx.GetStream(Id, "assets.js.popper.min.js"),
+            _ => throw new FileNotFoundException()
         };
     }
 }

@@ -1,9 +1,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Fuyu.Common.Client.Reflection;
 using Fuyu.Client.EFT.Patches;
 using Fuyu.Client.EFT.Utils;
+using Fuyu.Common.Client.Reflection;
 using Fuyu.DependencyInjection;
 using Fuyu.Modding;
 using Microsoft.Win32;

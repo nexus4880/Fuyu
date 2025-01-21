@@ -1,6 +1,6 @@
 using System;
-using Microsoft.Web.WebView2.Core;
 using Fuyu.Common.IO;
+using Microsoft.Web.WebView2.Core;
 
 namespace Fuyu.Common.Launcher.Services;
 
@@ -38,10 +38,10 @@ public class NavigationService
         var headers = ext switch
         {
             ".html" => "Content-Type: text/html",
-            ".css"  => "Content-Type: text/css",
-            ".js"   => "Content-Type: application/javascript",
-            ".ico"  => "Content-Type: image/x-icon",
-            ".png"  => "Content-Type: image/png",
+            ".css" => "Content-Type: text/css",
+            ".js" => "Content-Type: application/javascript",
+            ".ico" => "Content-Type: image/x-icon",
+            ".png" => "Content-Type: image/png",
             _ => throw new NotSupportedException(ext)
         };
 
@@ -61,16 +61,16 @@ public class NavigationService
     }
 
     public string GetInternalUrl(string path)
-    {            
+    {
         return $"{INTERNAL_DOMAIN}/{path}";
     }
 
     void Navigate(string url)
     {
-        #if DEBUG
+#if DEBUG
         // show received message
         Terminal.WriteLine($"Backend redirect: {url}");
-        #endif
+#endif
 
         _webview.Navigate(url);
     }

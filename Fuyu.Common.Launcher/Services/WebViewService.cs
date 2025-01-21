@@ -1,6 +1,6 @@
 using System;
-using Microsoft.Web.WebView2.Core;
 using Fuyu.Common.IO;
+using Microsoft.Web.WebView2.Core;
 
 namespace Fuyu.Common.Launcher.Services;
 
@@ -49,9 +49,9 @@ public class WebViewService
     {
         var url = args.Uri;
 
-        #if DEBUG
+#if DEBUG
         Terminal.WriteLine($"Navigating to: {url}");
-        #endif
+#endif
 
         if (!_navigationService.IsInternalRequest(url))
         {
@@ -69,9 +69,9 @@ public class WebViewService
     {
         var url = args.Request.Uri;
 
-        #if DEBUG
+#if DEBUG
         Terminal.WriteLine($"Requested resource: {url}");
-        #endif
+#endif
 
         if (_navigationService.IsInternalRequest(url))
         {

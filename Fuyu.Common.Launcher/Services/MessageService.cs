@@ -42,10 +42,10 @@ public class MessageService
 
     public void HandleMessage(string path, string message)
     {
-        #if DEBUG
+#if DEBUG
         // show received message
         Terminal.WriteLine($"[{path}]: {message}");
-        #endif
+#endif
 
         if (_messageCallbacks.TryGetValue(path, out var callback))
         {
@@ -59,10 +59,10 @@ public class MessageService
     // can be intercepted in JS by window.chrome._webview.addEventListener('message', onMessage)
     public void SendMessage(string text)
     {
-        #if DEBUG
+#if DEBUG
         // show received message
         Terminal.WriteLine($"Backend message: {text}");
-        #endif
+#endif
 
         _webview.PostWebMessageAsString(text);
     }

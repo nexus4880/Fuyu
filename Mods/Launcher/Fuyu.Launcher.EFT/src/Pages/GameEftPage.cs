@@ -1,12 +1,12 @@
 using System.Diagnostics;
-using Fuyu.Common.Serialization;
 using Fuyu.Common.Launcher.Models.Messages;
 using Fuyu.Common.Launcher.Models.Pages;
+using Fuyu.Common.Serialization;
 using Fuyu.Launcher.EFT.Models.Configs;
 using Fuyu.Launcher.EFT.Models.Messages;
 using Fuyu.Launcher.EFT.Models.Replies;
-using Fuyu.Launcher.EFT.Models.Responses;
 using Fuyu.Launcher.EFT.Models.Requests;
+using Fuyu.Launcher.EFT.Models.Responses;
 
 namespace Fuyu.Launcher.EFT.Pages;
 
@@ -118,7 +118,7 @@ public class GameEftPage : AbstractPage
         };
         var json = Json.Stringify(config);
 
-        processStartInfo.ArgumentList.Add($"-config={json}");        
+        processStartInfo.ArgumentList.Add($"-config={json}");
 
         // create process
         return new Process()

@@ -54,7 +54,7 @@ public class StateService
         {
             _states.Add(state);
         }
-        
+
     }
 
     public T Get<T>(string id)

@@ -52,7 +52,7 @@ public class SettingsService
         {
             tocHtml += item.TableOfContents;
             contentHtml += item.Content;
-            messageJson += item.Message; 
+            messageJson += item.Message;
         }
 
         var page = htmlTemplate
@@ -125,17 +125,17 @@ public class SettingsService
                 + $"<li><a class=\"text-decoration-none\" href=\"#{id}\">{setting.Name}</a></li>\n",
 
             Content = string.Empty
-                +  "<div class=\"mb-3\">\n"
+                + "<div class=\"mb-3\">\n"
                 + $"    <label for=\"{id}\" class=\"form-label\">{setting.Name}</label>\n"
                 + $"    <input class=\"form-control\" type=\"text\" value=\"{setting.Value}\" id=\"{id}\">\n"
                 + $"    <div class=\"form-text\">{setting.Description}</div>\n"
-                +  "</div>\n",
+                + "</div>\n",
 
             Message = string.Empty
-                +  "{\n"
+                + "{\n"
                 + $"    id: \"{id}\","
                 + $"    value: document.getElementById(\"{id}\").value\n"
-                +  "},\n"
+                + "},\n"
         };
 
         return item;
@@ -170,7 +170,7 @@ public class SettingsService
                 }
             }
         }
-        search_end:
+    search_end:
 
         if (target == null)
         {

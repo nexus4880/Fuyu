@@ -1,9 +1,9 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 using Fuyu.Common.IO;
+using Fuyu.Common.Launcher.Services;
 using Fuyu.DependencyInjection;
 using Fuyu.Modding;
-using Fuyu.Common.Launcher.Services;
-using System.IO;
 
 namespace Fuyu.Launcher;
 
@@ -66,9 +66,9 @@ public partial class MainWindow : Window
     {
         return path switch
         {
-            "index.html"  => Resx.GetStream("Fuyu.Launcher", "index.html"),
+            "index.html" => Resx.GetStream("Fuyu.Launcher", "index.html"),
             "favicon.ico" => Resx.GetStream("Fuyu.Launcher", "icon.ico"),
-            _             => throw new FileNotFoundException()
+            _ => throw new FileNotFoundException()
         };
     }
 }
