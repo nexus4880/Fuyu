@@ -55,7 +55,6 @@ public class HttpServer
     {
         var context = new HttpContext(listenerContext.Request, listenerContext.Response);
 
-        var time = DateTime.UtcNow.ToString();
         Terminal.WriteLine($"[{Name}][HTTP] {context.Path}");
 
         try

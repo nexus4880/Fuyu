@@ -15,13 +15,6 @@ public class GameEftPage : AbstractPage
     protected override string Id { get; } = "Fuyu.Launcher.EFT";
     protected override string Path { get; } = "game-eft.html";
 
-    private readonly string _eftPath;
-
-    public GameEftPage() : base()
-    {
-        _eftPath = @"C:\Games\EFT-Live";
-    }
-
     protected override void HandleMessage(string message)
     {
         var data = Json.Parse<Message>(message);
@@ -44,7 +37,9 @@ public class GameEftPage : AbstractPage
 
         // TODO: Keep track of game lifecycle
         // -- seionmoya, 2025-01-11
-        var process = GetEftProcess(ModConfig.Instance.GamePath, gameSessionId, ModConfig.Instance.Address);
+        var gamepath = ModConfig.Instance.GamePath;
+        var address = ModConfig.Instance.Address;
+        var process = GetEftProcess(gamepath, gameSessionId, address);
         process.Start();
 
         ReplyLaunchSuccess();

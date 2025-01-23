@@ -6,5 +6,5 @@ namespace Fuyu.Launcher.EFT.Models.Responses;
 public class FuyuGameLoginResponse
 {
     [DataMember]
-    public string SessionId;
+    public string SessionId { get; set; }
 }

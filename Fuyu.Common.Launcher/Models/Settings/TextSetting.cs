@@ -5,10 +5,10 @@ namespace Fuyu.Common.Launcher.Models.Settings;
 public class TextSetting : Setting
 {
     [DataMember(Name = "description")]
-    public string Description;
+    public string Description { get; set; }
 
     [DataMember(Name = "value")]
-    public string Value;
+    public string Value { get; set; }
 
     public TextSetting()
     {

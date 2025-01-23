@@ -21,6 +21,7 @@ public sealed class FuyuClient : TargetWithLayout
 
         // setup logging
         _logService.SetLogConfig("Fuyu.Client", "Fuyu/Logs/Client.log");
+        AppDomain.CurrentDomain.UnhandledException += LogException;
 
         // verify game directory
         CheckIncompatibleSoftware();
@@ -54,5 +55,10 @@ public sealed class FuyuClient : TargetWithLayout
                 throw ex;
             }
         }
+    }
+
+    private void LogException(object sender, UnhandledExceptionEventArgs e)
+    {
+        _logService.WriteLine(e.ExceptionObject);
     }
 }

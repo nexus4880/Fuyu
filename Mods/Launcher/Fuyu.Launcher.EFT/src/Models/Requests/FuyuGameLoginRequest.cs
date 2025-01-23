@@ -6,5 +6,5 @@ namespace Fuyu.Launcher.EFT.Models.Requests;
 public class FuyuGameLoginRequest
 {
     [DataMember]
-    public int AccountId;
+    public int AccountId { get; set; }
 }

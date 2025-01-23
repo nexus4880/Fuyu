@@ -59,9 +59,7 @@ public abstract class AbstractPatch
                 return;
 
             default:
-                var ex = new NotImplementedException("Patch type");
-                LogService.WriteLine(ex);
-                throw ex;
+                throw new NotImplementedException("Patch type");
         }
     }
 
