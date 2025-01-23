@@ -1,9 +1,5 @@
 using System.Collections.Generic;
-#if NET9_0_OR_GREATER
-using Lock = System.Threading.Lock;
-#else
-using Lock = object;
-#endif
+using System.Threading;
 
 namespace Fuyu.Common.Collections;
 

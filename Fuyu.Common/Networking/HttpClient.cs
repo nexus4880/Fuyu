@@ -27,6 +27,10 @@ public class HttpClient : IDisposable
         Httpv = new System.Net.Http.HttpClient(handler);
     }
 
+    public HttpClient()
+    {
+    }
+
     protected virtual HttpRequestMessage GetNewRequest(HttpMethod method, string path)
     {
         return new HttpRequestMessage()
@@ -66,7 +70,7 @@ public class HttpClient : IDisposable
         if (!response.IsSuccessStatusCode)
         {
             // response error
-            throw new Exception($"Code {response.StatusCode}");
+            throw new Exception($"Code {(int)response.StatusCode}");
         }
 
         var body = Array.Empty<byte>();

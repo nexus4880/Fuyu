@@ -1,24 +1,23 @@
 using System;
-#if NET9_0_OR_GREATER
-using Lock = System.Threading.Lock;
-#else
-using Lock = object;
-#endif
+using System.Threading;
 
 namespace Fuyu.Common.IO;
 
 public static class Terminal
 {
     private static readonly Lock _lock = new Lock();
+    private static string _prefix;
     private static string _filepath;
 
     static Terminal()
     {
+        _prefix = "Fuyu";
         _filepath = "./Fuyu/Logs/trace.log";
     }
 
-    public static void SetLogFile(string filepath)
+    public static void SetLogConfig(string prefix, string filepath)
     {
+        _prefix = prefix;
         _filepath = filepath;
     }
 
@@ -29,7 +28,8 @@ public static class Terminal
 
     public static void WriteLine(string text)
     {
-        var line = $"{text}\n";
+        var time = DateTime.UtcNow;
+        var line = $"[{_prefix}][{time}]{text}\n";
 
         lock (_lock)
         {

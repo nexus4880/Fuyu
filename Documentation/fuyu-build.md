@@ -67,10 +67,9 @@ Terminal > Run Task... > Fuyu: Test
 ### 2. Putting everything in place
 
 1. Copy-paste `Fuyu.Backend/bin/Release/net9.0/win-x64/publish/Fuyu.Backend.exe` into `<gamedir>`
-2. Copy-paste `Fuyu.Launcher/bin/Release/net9.0/win-x64/publish/Fuyu.Launcher.exe` into `<gamedir>`
+2. Copy-paste `Fuyu.Launcher/bin/Release/net9.0-windows/win-x64/publish/Fuyu.Launcher.exe` into `<gamedir>`
 3. Create folder `<gamedir>/Fuyu/`
 4. Copy-paste `Mods/` into `<gamedir>/Fuyu/`
 5. Delete `bin` and `obj` inside `<gamedir>/Fuyu/Mods/**/*`
-6. Copy-paste `Fuyu.Modding.NLog/bin/Release/net48/publish/*.dll` into `<gamedir>/EscapeFroMTarkov_data/Managed/`
-7. Copy-paste `Mods/Client/Fuyu.Client.Common//bin/Release/net48/publish/*.dll`
-   except `Fuyu.Client.Common.dll` into `<gamedir>/Fuyu/Client/Fuyu.Client.Common/`
+6. Copy-paste `Fuyu.Modding.NLog/bin/Release/net48/publish/*.dll` into `<gamedir>/EscapeFromTarkov_data/Managed/`
+7. Copy-paste `Fuyu.Common.Client/bin/Release/net48/publish/*.dll`  into `<gamedir>/EscapeFromTarkov_data/Managed/`

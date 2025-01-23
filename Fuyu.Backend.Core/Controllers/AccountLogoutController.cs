@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
 using Fuyu.Backend.Core.Networking;
 
 namespace Fuyu.Backend.Core.Controllers;
@@ -14,6 +15,6 @@ public class AccountLogoutController : AbstractCoreHttpController
         var sessionId = context.SessionId;
         CoreOrm.Instance.RemoveSession(sessionId);
 
-        return context.SendJsonAsync("{}");
+        return context.SendStatus(HttpStatusCode.OK);
     }
 }

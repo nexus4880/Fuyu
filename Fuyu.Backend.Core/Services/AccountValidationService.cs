@@ -8,7 +8,7 @@ namespace Fuyu.Backend.Core.Services;
 // -- seionmoya, 2024/09/08
 public static partial class AccountValidationService
 {
-    private const int _minUsernameLength = 2;
+    private const int _minUsernameLength = 3;
     private const int _maxUsernameLength = 15;
     private const int _minPasswordLength = 8;
     private const int _maxPasswordLength = 32;
@@ -25,13 +25,44 @@ public static partial class AccountValidationService
 
     // compile-time generated regex
     // `(?=.*?[A-Z])`:          is at least one uppercase alpha present
+    // NOTE: regex has no length constraint as the validation method
+    //       contains it instead.
+    // -- seionmoya, 2024/09/08
+    [GeneratedRegex("^(?=.*?[a-z]).{0,}$")]
+    private static partial Regex LowerCaseRegex();
+
+    // compile-time generated regex
+    // NOTE: regex has no length constraint as the validation method
+    //       contains it instead.
+    // -- seionmoya, 2024/09/08
+    [GeneratedRegex("^(?=.*?[A-Z]).{0,}$")]
+    private static partial Regex UpperCaseRegex();
+
+    // compile-time generated regex
+    // `(?=.*?[0-9])`:          is at least one digit present
+    // NOTE: regex has no length constraint as the validation method
+    //       contains it instead.
+    // -- seionmoya, 2024/09/08
+    [GeneratedRegex("^(?=.*?[0-9]).{0,}$")]
+    private static partial Regex DigitRegex();
+
+    // compile-time generated regex
+    // `(?=.*?[#?!@$%^&*-])`:   is at least one special character present
+    // NOTE: regex has no length constraint as the validation method
+    //       contains it instead.
+    // -- seionmoya, 2024/09/08
+    [GeneratedRegex("^(?=.*?[#?!@$%^&*-]).{0,}$")]
+    private static partial Regex SpecialRegex();
+
+    // compile-time generated regex
+    // `(?=.*?[A-Z])`:          is at least one uppercase alpha present
     // `(?=.*?[a-z])`:          is at least one lowercase alpha present
     // `(?=.*?[0-9])`:          is at least one digit present
     // `(?=.*?[#?!@$%^&*-])`:   is at least one special character present
     // NOTE: regex has no length constraint as the validation method
     //       contains it instead.
     // -- seionmoya, 2024/09/08
-    [GeneratedRegex("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{0,}$")]
+    [GeneratedRegex("^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{0,}$")]
     private static partial Regex PasswordRegex();
 
     public static ERegisterStatus ValidateUsername(string username)
@@ -53,7 +84,7 @@ public static partial class AccountValidationService
 
         if (!UsernameRegex().IsMatch(username))
         {
-            return ERegisterStatus.UsernameInvalid;
+            return ERegisterStatus.UsernameInvalidCharacter;
         }
 
         return ERegisterStatus.Success;
@@ -76,9 +107,29 @@ public static partial class AccountValidationService
             return ERegisterStatus.PasswordTooLong;
         }
 
+        if (!LowerCaseRegex().IsMatch(password))
+        {
+            return ERegisterStatus.PasswordMissingLowerCase;
+        }
+
+        if (!UpperCaseRegex().IsMatch(password))
+        {
+            return ERegisterStatus.PasswordMissingUpperCase;
+        }
+
+        if (!DigitRegex().IsMatch(password))
+        {
+            return ERegisterStatus.PasswordMissingDigit;
+        }
+
+        if (!SpecialRegex().IsMatch(password))
+        {
+            return ERegisterStatus.PasswordMissingSpecial;
+        }
+
         if (!PasswordRegex().IsMatch(password))
         {
-            return ERegisterStatus.PasswordInvalid;
+            return ERegisterStatus.PasswordInvalidCharacter;
         }
 
         return ERegisterStatus.Success;

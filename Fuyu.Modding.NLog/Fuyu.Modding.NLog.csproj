@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- NLog 4.7.15, .netstandard2.0 (EFT does NOT work with net45 target) -->
+    <!-- NLog 4.7.15, netstandard2.0 (EFT does NOT work with net45 target) -->
     <Reference Include="NLog" HintPath="References/NLog.dll" />
   </ItemGroup>
 
@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Fuyu.Common\Fuyu.Common.csproj" />
+    <ProjectReference Include="..\Fuyu.Common.Client\Fuyu.Common.Client.csproj" />
     <ProjectReference Include="..\Fuyu.DependencyInjection\Fuyu.DependencyInjection.csproj" />
     <ProjectReference Include="..\Fuyu.Modding\Fuyu.Modding.csproj" />
   </ItemGroup>

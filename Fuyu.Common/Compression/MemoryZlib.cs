@@ -1,4 +1,4 @@
-#if NET6_0_OR_GREATER
+using System;
 using System.IO;
 using System.IO.Compression;
 
@@ -33,10 +33,9 @@ public static class MemoryZlib
         }
     }
 
-    // NOTE: assumes this is running inside the backend or launcher
-    // -- seionmoya, 2024-10-07
     public static byte[] Compress(byte[] data, CompressionLevel level)
     {
+        // backend or launcher: decompress
         using (var msin = new MemoryStream(data))
         {
             using (var msout = new MemoryStream())
@@ -51,11 +50,9 @@ public static class MemoryZlib
         }
     }
 
-    // NOTE: assumes this is running inside the backend or launcher
-    // -- seionmoya, 2024-10-07
     public static byte[] Decompress(byte[] data)
     {
-
+        // backend or launcher: decompress
         using (var msin = new MemoryStream(data))
         {
             using (var msout = new MemoryStream())
@@ -69,4 +66,3 @@ public static class MemoryZlib
         }
     }
 }
-#endif

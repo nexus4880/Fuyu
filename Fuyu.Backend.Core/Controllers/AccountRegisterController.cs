@@ -7,7 +7,7 @@ using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.Core.Controllers;
 
-public class AccountRegisterController : CoreHttpController<AccountRegisterRequest>
+public class AccountRegisterController : AbstractCoreHttpController<AccountRegisterRequest>
 {
     private readonly AccountService _accountService;
 
@@ -24,6 +24,7 @@ public class AccountRegisterController : CoreHttpController<AccountRegisterReque
             Status = result
         };
 
-        return context.SendJsonAsync(Json.Stringify(response));
+        var text = Json.Stringify(response);
+        return context.SendJsonAsync(text);
     }
 }

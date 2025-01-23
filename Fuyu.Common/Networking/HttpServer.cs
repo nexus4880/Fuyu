@@ -55,8 +55,7 @@ public class HttpServer
     {
         var context = new HttpContext(listenerContext.Request, listenerContext.Response);
 
-        var time = DateTime.UtcNow.ToString();
-        Terminal.WriteLine($"[{time}][{Name}][HTTP] {context.Path}");
+        Terminal.WriteLine($"[{Name}][HTTP] {context.Path}");
 
         try
         {
@@ -83,7 +82,7 @@ public class HttpServer
         {
             var context = new WsContext(listenerContext.Request, listenerContext.Response, ws);
             var time = DateTime.UtcNow.ToString();
-            Terminal.WriteLine($"[{time}][{Name}][WS  ] {context.Path}");
+            Terminal.WriteLine($"[{Name}][WS  ] {context.Path}");
             await WsRouter.RouteAsync(context);
         }
         catch (Exception ex)

@@ -1,29 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
-using Fuyu.Common.IO;
+using Fuyu.Common.Client.Services;
 using Fuyu.DependencyInjection;
 using Fuyu.Modding;
-using NLog;
 using NLog.Targets;
 
 [Target(nameof(FuyuClient))]
 public sealed class FuyuClient : TargetWithLayout
 {
+    private FileSystemService _fileSystemService;
+    private LogService _logService;
+
     protected override void InitializeTarget()
     {
         var container = new DependencyContainer();
 
-        Terminal.SetLogFile("Fuyu/Logs/Client.log");
+        // resolve dependencies
+        _fileSystemService = FileSystemService.Instance;
+        _logService = LogService.Instance;
 
+        // setup logging
+        _logService.SetLogConfig("Fuyu.Client", "Fuyu/Logs/Client.log");
+        AppDomain.CurrentDomain.UnhandledException += LogException;
+
+        // verify game directory
         CheckIncompatibleSoftware();
 
-        Terminal.WriteLine("Loading mods...");
+        // load mods
+        _logService.WriteLine("Loading mods...");
         ModManager.Instance.AddMods("./Fuyu/Mods/Client");
         ModManager.Instance.Load(container).GetAwaiter().GetResult();
-        Terminal.WriteLine("Finished loading mods");
 
-        // TODO: OnApplicationQuit
-        // -- seionmoya, 20205-01-04
+        _logService.WriteLine("Finished loading!");
     }
 
     private void CheckIncompatibleSoftware()
@@ -40,10 +48,17 @@ public sealed class FuyuClient : TargetWithLayout
 
         foreach (var kvp in record)
         {
-            if (VFS.Exists(kvp.Key))
+            if (_fileSystemService.FileExists(kvp.Key))
             {
-                throw new Exception($"{kvp.Value} found. Please remove the software from the client before proceeding.");
+                var ex = new Exception($"{kvp.Value} found. Please remove the software from the client before proceeding.");
+                _logService.WriteLine(ex);
+                throw ex;
             }
         }
+    }
+
+    private void LogException(object sender, UnhandledExceptionEventArgs e)
+    {
+        _logService.WriteLine(e.ExceptionObject);
     }
 }
