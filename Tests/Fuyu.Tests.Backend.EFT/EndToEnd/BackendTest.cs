@@ -8,12 +8,13 @@ using Fuyu.Backend.BSG.Models.Raid;
 using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.Core;
 using Fuyu.Backend.Core.Models.Accounts;
-using Fuyu.Backend.Core.Servers;
 using Fuyu.Backend.EFTMain;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
+using Fuyu.Common.Networking;
 using Fuyu.Common.Serialization;
+using Fuyu.Common.Services;
 using Fuyu.Tests.Backend.EFT.Networking;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AccountService = Fuyu.Backend.Core.Services.AccountService;
@@ -49,25 +50,12 @@ public class BackendTest
     private static int CreateGameAccount(string sessionId, string game, string edition)
     {
         var response = AccountService.Instance.RegisterGame(sessionId, game, edition);
-
-        if (response.Status != ERegisterStatus.Success)
-        {
-            throw new Exception(response.Status.ToString());
-        }
-
-        var gameAccountId = CoreOrm.Instance.GetAccount(sessionId).Games[game].Value;
-
-        return gameAccountId;
+        return response.AccountId;
     }
 
     [AssemblyInitialize]
     public static void AssemblyInitialize(TestContext testContext)
     {
-        if (VFS.DirectoryExists("Fuyu/"))
-        {
-            Directory.Delete("Fuyu/", true);
-        }
-
         // setup databases
         CoreLoader.Instance.Load();
         EftLoader.Instance.Load();

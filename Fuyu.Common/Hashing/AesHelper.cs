@@ -26,10 +26,8 @@ public static class AesHelper
         return aes.IV.Concat(ms.ToArray()).ToArray();
     }
 
-
     // NOTE: removeTail should always be true unless the trailing zero byte is desirable to keep
     // -- seionmoya, 2025-01-11
-#if NET5_0_OR_GREATER
     public static byte[] DecryptAes(byte[] data, byte[] key, bool removeTail = true)
     {
         using var aes = Aes.Create();
@@ -56,30 +54,4 @@ public static class AesHelper
 
         return result;
     }
-#else
-    public static byte[] DecryptAes(byte[] data, byte[] Key, bool removeTail = true)
-    {
-        using var aes = Aes.Create();
-        aes.Padding = PaddingMode.Zeros;
-        aes.Key = Key;
-        aes.IV = data.Take(IV_SIZE).ToArray();
-
-        using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-        using var memory = new MemoryStream();
-        using var cryptoStream = new CryptoStream(memory, decryptor, CryptoStreamMode.Write);
-
-        var newData = data.Skip(IV_SIZE).ToArray();
-        cryptoStream.Write(newData, 0, newData.Length);
-        cryptoStream.Close();
-        
-        var result = memory.ToArray();
-        if (removeTail)
-        {
-            result = result.Take(result.Length - 1).ToArray();
-        }
-
-        return result;
-    }
-#endif
-
 }

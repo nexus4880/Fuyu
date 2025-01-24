@@ -1,13 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFrameworks>net9.0;netstandard2.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>13</LangVersion>
   </PropertyGroup>
-  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\Fuyu.Common\Fuyu.Common.csproj" />
     <ProjectReference Include="..\Fuyu.DependencyInjection\Fuyu.DependencyInjection.csproj" />
   </ItemGroup>
+
 </Project>

@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.Backend.Arena", "Fuyu.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.Backend.BSG", "Fuyu.Backend.BSG\Fuyu.Backend.BSG.csproj", "{E17DFDEA-8EF9-4859-8671-F16A0C0F9AB6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.Backend.Common", "Fuyu.Backend.Common\Fuyu.Backend.Common.csproj", "{BB644821-DCB4-4BFB-B291-FDCAAEE0CD76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.Common.Backend", "Fuyu.Common.Backend\Fuyu.Common.Backend.csproj", "{BB644821-DCB4-4BFB-B291-FDCAAEE0CD76}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.Backend.Core", "Fuyu.Backend.Core\Fuyu.Backend.Core.csproj", "{26EAF8DC-D482-409F-B2D5-FEB314413F61}"
 EndProject
@@ -19,13 +19,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.Common", "Fuyu.Common\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.Launcher", "Fuyu.Launcher\Fuyu.Launcher.csproj", "{7C62D77E-1C6E-4EF0-8436-49FD1603A1D6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.Launcher.Core", "Fuyu.Launcher.Core\Fuyu.Launcher.Core.csproj", "{C06DFF4F-3F61-4178-9221-A7580ED03305}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.Launcher.Core", "Mods\Launcher\Fuyu.Launcher.Core\Fuyu.Launcher.Core.csproj", "{C06DFF4F-3F61-4178-9221-A7580ED03305}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Client.Arena", "Fuyu.Client.Arena\Fuyu.Client.Arena.csproj", "{1346446F-1914-4008-BF39-C115303A0B0A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Client.Arena", "Mods\Client\Fuyu.Client.Arena\Fuyu.Client.Arena.csproj", "{1346446F-1914-4008-BF39-C115303A0B0A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.Client.Common", "Fuyu.Client.Common\Fuyu.Client.Common.csproj", "{C9544557-EF73-485C-9578-410F373DFCF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.Common.Client", "Fuyu.Common.Client\Fuyu.Common.Client.csproj", "{C9544557-EF73-485C-9578-410F373DFCF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Client.EFT", "Fuyu.Client.EFT\Fuyu.Client.EFT.csproj", "{6C285025-50E9-4970-AFBF-4D216BCD4D7D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Client.EFT", "Mods\Client\Fuyu.Client.EFT\Fuyu.Client.EFT.csproj", "{6C285025-50E9-4970-AFBF-4D216BCD4D7D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Tests.Backend.Arena", "Tests\Fuyu.Tests.Backend.Arena\Fuyu.Tests.Backend.Arena.csproj", "{57699BC1-D80E-4CB2-BDEE-DF0136AF2526}"
 EndProject
@@ -41,9 +41,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Modding", "Fuyu.Moddin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Modding.NLog", "Fuyu.Modding.NLog\Fuyu.Modding.NLog.csproj", "{335E42B4-0EDD-4CDD-908A-C109272FB181}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Devtools", "Devtools", "{C5E8A40F-0996-4B0B-AFB5-3404B485A925}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Common.Launcher", "Fuyu.Common.Launcher\Fuyu.Common.Launcher.csproj", "{DBBA78DD-8B76-4BFB-BA80-138337A6BE5C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Devtool.EftLauncher", "Devtools\Fuyu.Devtool.EftLauncher\Fuyu.Devtool.EftLauncher.csproj", "{2263FF30-D295-499B-9914-346347B4E8FD}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mods", "Mods", "{EC717D12-BC9D-4470-9A98-67B2A870CF36}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Launcher", "Launcher", "{052933F6-495C-4574-AD7C-4094C441C637}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Launcher.EFT", "Mods\Launcher\Fuyu.Launcher.EFT\Fuyu.Launcher.EFT.csproj", "{F9BC3987-298A-42C0-9BEE-378EC4160FBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Devtools.StartBackend", "Mods\Launcher\Fuyu.Devtools.StartBackend\Fuyu.Devtools.StartBackend.csproj", "{12C089A2-1A24-4C50-8655-F44F9DF4BB40}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -127,10 +133,18 @@ Global
 		{335E42B4-0EDD-4CDD-908A-C109272FB181}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{335E42B4-0EDD-4CDD-908A-C109272FB181}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{335E42B4-0EDD-4CDD-908A-C109272FB181}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2263FF30-D295-499B-9914-346347B4E8FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2263FF30-D295-499B-9914-346347B4E8FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2263FF30-D295-499B-9914-346347B4E8FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2263FF30-D295-499B-9914-346347B4E8FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBBA78DD-8B76-4BFB-BA80-138337A6BE5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBBA78DD-8B76-4BFB-BA80-138337A6BE5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBBA78DD-8B76-4BFB-BA80-138337A6BE5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBBA78DD-8B76-4BFB-BA80-138337A6BE5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9BC3987-298A-42C0-9BEE-378EC4160FBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9BC3987-298A-42C0-9BEE-378EC4160FBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9BC3987-298A-42C0-9BEE-378EC4160FBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9BC3987-298A-42C0-9BEE-378EC4160FBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12C089A2-1A24-4C50-8655-F44F9DF4BB40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12C089A2-1A24-4C50-8655-F44F9DF4BB40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12C089A2-1A24-4C50-8655-F44F9DF4BB40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12C089A2-1A24-4C50-8655-F44F9DF4BB40}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -139,6 +153,8 @@ Global
 		SolutionGuid = {67ADC3F3-9ADA-4F75-AEDC-DB5A17E9E5AF}
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{2263FF30-D295-499B-9914-346347B4E8FD} = {C5E8A40F-0996-4B0B-AFB5-3404B485A925}
+		{052933F6-495C-4574-AD7C-4094C441C637} = {EC717D12-BC9D-4470-9A98-67B2A870CF36}
+		{F9BC3987-298A-42C0-9BEE-378EC4160FBB} = {052933F6-495C-4574-AD7C-4094C441C637}
+		{12C089A2-1A24-4C50-8655-F44F9DF4BB40} = {052933F6-495C-4574-AD7C-4094C441C637}
 	EndGlobalSection
 EndGlobal

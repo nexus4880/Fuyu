@@ -25,14 +25,14 @@ public abstract class AbstractCoreHttpController : AbstractHttpController
     public abstract Task RunAsync(CoreHttpContext context);
 }
 
-public abstract class CoreHttpController<TRequest> : AbstractCoreHttpController where TRequest : class
+public abstract class AbstractCoreHttpController<TRequest> : AbstractCoreHttpController where TRequest : class
 {
-    protected CoreHttpController(Regex pattern) : base(pattern)
+    protected AbstractCoreHttpController(Regex pattern) : base(pattern)
     {
         // match dynamic paths
     }
 
-    protected CoreHttpController(string path) : base(path)
+    protected AbstractCoreHttpController(string path) : base(path)
     {
         // match static paths
     }

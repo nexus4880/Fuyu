@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Services;
-using Fuyu.Backend.Common;
 using Fuyu.Backend.Core;
-using Fuyu.Backend.Core.Servers;
 using Fuyu.Backend.EFTMain;
+using Fuyu.Common.Backend;
 using Fuyu.Common.IO;
 using Fuyu.Common.Networking;
 using Fuyu.Common.Serialization;
+using Fuyu.Common.Services;
 using Fuyu.DependencyInjection;
 using Fuyu.Modding;
 
@@ -18,7 +18,8 @@ public class Program
     {
         var container = new DependencyContainer();
 
-        Terminal.SetLogFile("Fuyu/Logs/Backend.log");
+        Terminal.SetLogConfig("Fuyu.Backend", "Fuyu/Logs/Backend.log");
+
         LoadDatabase(container);
         LoadServers(container);
         await LoadMods(container);

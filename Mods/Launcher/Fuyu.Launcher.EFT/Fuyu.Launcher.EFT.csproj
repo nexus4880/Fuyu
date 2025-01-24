@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <LangVersion>13</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Fix MSB3277: Found conflicts between different versions of "WindowsBase" that could not be resolved. -->
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../Fuyu.Common/Fuyu.Common.csproj" />
+    <ProjectReference Include="../../../Fuyu.DependencyInjection/Fuyu.DependencyInjection.csproj" />
+    <ProjectReference Include="../../../Fuyu.Common.Launcher/Fuyu.Common.Launcher.csproj" />
+    <ProjectReference Include="../../../Fuyu.Modding/Fuyu.Modding.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <link href="./assets/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="./assets/css/styles.css" rel="stylesheet" />
+</head>
+
+<body>
+    <!-- message window -->
+    <div class="modal" id="message-window" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <p id="message-text">Placeholder.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-md bg-body-tertiary border-bottom">
+        <div class="container-fluid">
+            <div class="collapse navbar-collapse">
+                <!-- left-side entries -->
+                <div class="navbar-nav">
+                    <a class="nav-link active" href="http://launcher.fuyu.api/account-login.html">Login</a>
+                    <a class="nav-link" href="http://launcher.fuyu.api/account-register.html">Register</a>
+                    <a class="nav-link" href="http://launcher.fuyu.api/settings.html">Settings</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- content -->
+    <main>
+        <div class="container-fluid mt-3">
+            <div class="row">
+                <div class="col-6">
+                    <!-- username -->
+                    <div class="mb-3">
+                        <label for="field_username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="field_username" placeholder="User">
+                    </div>
+
+                    <!-- password -->
+                    <div class="mb-3">
+                        <label for="field_password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="field_password" placeholder="********">
+                    </div>
+
+                    <!-- submit -->
+                    <button class="btn btn-outline-light" type="button" onclick="login()">Login</button>
+                </div>
+                
+                <div class="col-6 justify-content-end">
+                    <!-- stuff here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- load javascript -->
+    <script src="./assets/js/popper.min.js"></script>
+    <script src="./assets/js/bootstrap.min.js"></script>
+    <script>
+        function sendMessage(obj) {
+            const json = JSON.stringify(obj);
+            window.chrome.webview.postMessage(json);
+        }
+
+        function login() {
+            const username = document.getElementById("field_username").value;
+            const password = document.getElementById("field_password").value;
+
+            const data = {
+                type: "LOGIN_CORE",
+                username: username,
+                password: password
+            };
+
+            sendMessage(data);
+        };
+
+        function showMessage(text) {
+            const messageWindowElement = document.getElementById('message-window');
+            const messageTextElement = document.getElementById('message-text');
+
+            // set text to display
+            messageTextElement.innerHTML = text;
+
+            // show the message window
+            const messageWindow = new bootstrap.Modal(messageWindowElement);
+            messageWindow.show();
+        }
+
+        function onMessage(event) {
+            const data = JSON.parse(event.data);
+
+            switch (data.type)
+            {
+                case "LOGIN_ERROR":
+                    showMessage(data.message);
+                    return;
+            }
+        }
+
+        window.chrome.webview.addEventListener("message", onMessage);
+    </script>
+</body>

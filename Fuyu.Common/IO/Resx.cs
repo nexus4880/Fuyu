@@ -92,14 +92,11 @@ public static class Resx
     {
         using (var rs = GetStream(id, path))
         {
+            // TODO: System.Buffer.ArrayBuffer
+            // -- seionmoya, 2025-01-14
             var bytes = new byte[rs.Length];
 
-#if NET7_0_OR_GREATER
             rs.ReadExactly(bytes);
-#else
-            rs.Read(bytes, 0, bytes.Length);
-#endif
-
             return bytes;
         }
     }

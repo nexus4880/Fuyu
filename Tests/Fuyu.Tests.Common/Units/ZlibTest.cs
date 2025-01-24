@@ -1,5 +1,4 @@
-﻿#if NET5_0_OR_GREATER
-using System.Text;
+﻿using System.Text;
 using Fuyu.Common.Compression;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -17,18 +16,17 @@ public class ZlibTest
         Assert.AreEqual(Encoding.UTF8.GetString(bytes), testString);
 
         // compressing
-        var compressed_bytes = MemoryZlib.Compress(bytes, System.IO.Compression.CompressionLevel.SmallestSize);
-        Assert.IsNotNull(compressed_bytes);
-        Assert.AreNotEqual(0, compressed_bytes.Length);
+        var compressedBytes = MemoryZlib.Compress(bytes, System.IO.Compression.CompressionLevel.SmallestSize);
+        Assert.IsNotNull(compressedBytes);
+        Assert.AreNotEqual(0, compressedBytes.Length);
 
         // decompressing
-        var decomp_bytes = MemoryZlib.Decompress(compressed_bytes);
-        Assert.IsNotNull(decomp_bytes);
-        Assert.AreNotEqual(0, decomp_bytes.Length);
+        var decompressedBytes = MemoryZlib.Decompress(compressedBytes);
+        Assert.IsNotNull(decompressedBytes);
+        Assert.AreNotEqual(0, decompressedBytes.Length);
 
         // check if decompressed and original is same
-        Assert.AreEqual(Encoding.UTF8.GetString(decomp_bytes), testString);
-        Assert.AreEqual(Encoding.UTF8.GetString(bytes), Encoding.UTF8.GetString(decomp_bytes));
+        Assert.AreEqual(Encoding.UTF8.GetString(decompressedBytes), testString);
+        Assert.AreEqual(Encoding.UTF8.GetString(bytes), Encoding.UTF8.GetString(decompressedBytes));
     }
 }
-#endif

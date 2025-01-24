@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using Fuyu.Common.IO;
 using Fuyu.DependencyInjection;
-#if NET
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-#endif
 
 namespace Fuyu.Modding;
 
@@ -24,30 +24,57 @@ public class ModManager
     /// </summary>
     private ModManager()
     {
-
     }
 
     private readonly List<AbstractMod> _mods = new List<AbstractMod>();
 
-    private string GetResourcePath(string resourceRootPath, string resourcePath)
+    private ResourceDescription[] GetResources(string assemblyName, string rootPath)
     {
-        return resourcePath
-            .Replace(resourceRootPath + "\\", string.Empty) // exp. Fuyu/Mods/Launcher
-            .Replace("../", string.Empty)                   // relative path ./
-            .Replace("./", string.Empty)                    // relative path ./
-            .Replace("\\", ".")                             // windows \
-            .Replace("/", ".");                             // unix /
+        var resourceRootPath = Path.Combine(rootPath, "res");
+        var resourcePaths = Array.Empty<string>();
+
+        if (Directory.Exists(resourceRootPath))
+        {
+            resourcePaths = Directory.GetFiles(resourceRootPath, "*.*", SearchOption.AllDirectories);
+        }
+
+        if (resourcePaths.Length == 0)
+        {
+            return null;
+        }
+
+        var resources = resourcePaths.Select(resourcePath =>
+        {
+            // convert resource path to resx format
+            var resxPath = resourcePath
+                .Replace(resourceRootPath + "\\", string.Empty) // exp. Fuyu/Mods/Launcher
+                .Replace("../", string.Empty)                   // relative path ./
+                .Replace("./", string.Empty)                    // relative path ./
+                .Replace("\\", ".")                             // windows \
+                .Replace("/", ".");                             // unix /
+
+            // add resource
+            var fileName = $"{assemblyName}.Resources.{resxPath}";
+
+            return new ResourceDescription(
+                fileName,
+                () => new FileStream(resourcePath, FileMode.Open, FileAccess.Read, FileShare.None),
+                isPublic: true
+            );
+        }).ToArray();
+
+        return resources;
     }
 
     public void AddMods(string directory)
     {
-        if (!VFS.DirectoryExists(directory))
+        if (!Directory.Exists(directory))
         {
-            VFS.CreateDirectory(directory);
+            Directory.CreateDirectory(directory);
             return;
         }
 
-        var subdirectories = VFS.GetDirectories(directory);
+        var subdirectories = Directory.GetDirectories(directory);
 
         foreach (var subdirectory in subdirectories)
         {
@@ -59,11 +86,11 @@ public class ModManager
                 case EModType.DLL:
                     ProcessDLLMod(modDirectory);
                     break;
-#if NET
+
                 case EModType.Source:
                     ProcessSourceFiles(modDirectory);
                     break;
-#endif
+
                 default:
                     throw new Exception($"{modDirectory} does not contain a valid mod setup");
             }
@@ -72,14 +99,14 @@ public class ModManager
 
     private EModType GetModType(string directory)
     {
-        if (VFS.GetFiles(directory, "*.dll").Length > 0)
+        if (Directory.GetFiles(directory, "*.dll").Length > 0)
         {
             return EModType.DLL;
         }
 
-        if (VFS.DirectoryExists(Path.Combine(directory, "src")))
+        if (Directory.Exists(Path.Combine(directory, "src")))
         {
-            if (VFS.GetFiles(Path.Combine(directory, "src"), "*.cs").Length > 0)
+            if (Directory.GetFiles(Path.Combine(directory, "src"), "*.cs").Length > 0)
             {
                 return EModType.Source;
             }
@@ -90,7 +117,7 @@ public class ModManager
 
     private void ProcessDLLMod(string directory)
     {
-        var dllPaths = VFS.GetFiles(directory, "*.dll");
+        var dllPaths = Directory.GetFiles(directory, "*.dll");
 
         foreach (var dllPath in dllPaths)
         {
@@ -101,17 +128,6 @@ public class ModManager
 
     private void ProcessAssembly(Assembly assembly, EModType assemblyModType)
     {
-#if NET
-        if (assemblyModType == EModType.DLL)
-        {
-            var resourceAssembly = GenerateResourceAssembly(assembly);
-            if (resourceAssembly != null)
-            {
-                Resx.SetSource(assembly.GetName().Name, resourceAssembly);
-            }
-        }
-#endif
-
         // Get types where T inherits from Mod
         var modTypes = assembly.GetExportedTypes()
             .Where(t => typeof(AbstractMod).IsAssignableFrom(t));
@@ -126,7 +142,7 @@ public class ModManager
                 throw new Exception($"A mod with the id {mod.Id} has already been added");
             }
 
-            Terminal.WriteLine($"Adding mod {mod.Name} ({mod.Id})");
+            Console.WriteLine($"Adding mod {mod.Name} ({mod.Id})");
             _mods.Add(mod);
         }
     }
@@ -188,7 +204,7 @@ public class ModManager
     {
         if (mod.IsLoaded)
         {
-            Terminal.WriteLine($"[{mod.Name} - ({mod.Id})] Unloading");
+            Console.WriteLine($"[{mod.Name} - ({mod.Id})] Unloading");
             await mod.OnShutdown();
             mod.IsLoaded = false;
         }
@@ -196,7 +212,6 @@ public class ModManager
         _mods.Remove(mod);
     }
 
-#if NET
     private CSharpCompilation CreateCompilation(
         string assemblyName,
         IEnumerable<SyntaxTree> syntaxTrees,
@@ -212,6 +227,10 @@ public class ModManager
                 AppDomain.CurrentDomain.GetAssemblies()
                     // Where it is a disk on file
                     .Where(a => !string.IsNullOrEmpty(a.Location))
+                    // Ensure type inclusion
+                    .Append(typeof(DataContractAttribute).Assembly)
+                    .Append(typeof(HttpClient).Assembly)
+                    .Append(typeof(CompressionLevel).Assembly)
                     // Create a MetadataReference from it
                     .Select(a => MetadataReference.CreateFromFile(a.Location));
         }
@@ -230,7 +249,7 @@ public class ModManager
 
     private void ProcessSourceFiles(string directory)
     {
-        var sourceFiles = VFS.GetFiles(Path.Combine(directory, "src"), "*.cs", SearchOption.AllDirectories);
+        var sourceFiles = Directory.GetFiles(Path.Combine(directory, "src"), "*.cs", SearchOption.AllDirectories);
 
         if (sourceFiles.Length == 0)
         {
@@ -242,7 +261,7 @@ public class ModManager
 
         foreach (var file in sourceFiles)
         {
-            var fileContents = VFS.ReadTextFile(file);
+            var fileContents = File.ReadAllText(file);
             var syntaxTree = CSharpSyntaxTree.ParseText(
                 fileContents,
                 new CSharpParseOptions(
@@ -256,19 +275,7 @@ public class ModManager
             syntaxTrees.Add(syntaxTree);
         }
 
-        var resourceRootPath = Path.Combine(directory, "res");
-        var resourcePaths = VFS.GetFiles(resourceRootPath, "*.*", SearchOption.AllDirectories);
-        var resources = resourcePaths.Select(resourcePath =>
-        {
-            var fileName = $"{assemblyName}.Resources.{GetResourcePath(resourceRootPath, resourcePath)}";
-
-            return new ResourceDescription(
-                fileName,
-                () => VFS.OpenRead(resourcePath),
-                isPublic: true
-            );
-        }).ToArray();
-
+        var resources = GetResources(assemblyName, directory);
         var compilation = CreateCompilation(assemblyName, syntaxTrees, true);
 
         Assembly assembly;
@@ -293,63 +300,6 @@ public class ModManager
             assembly = Assembly.Load(ms.ToArray());
         }
 
-        Resx.SetSource(assemblyName, assembly);
         ProcessAssembly(assembly, EModType.Source);
     }
-
-    private Assembly GenerateResourceAssembly(Assembly sourceAssembly)
-    {
-        var assemblyName = sourceAssembly.GetName().Name;
-        var resourceRootPath = Path.Combine(Path.GetDirectoryName(sourceAssembly.Location), "res");
-        string[] resourcePaths;
-
-        try
-        {
-            resourcePaths = VFS.GetFiles(resourceRootPath, "*.*", SearchOption.AllDirectories);
-        }
-        catch (DirectoryNotFoundException)
-        {
-            return null;
-        }
-
-        if (resourcePaths.Length == 0)
-        {
-            return null;
-        }
-
-        var resources = resourcePaths.Select(resourcePath =>
-        {
-            var fileName = $"{assemblyName}.Resources.{GetResourcePath(resourceRootPath, resourcePath)}";
-
-            return new ResourceDescription(
-                fileName,
-                () => VFS.OpenRead(resourcePath),
-                isPublic: true
-            );
-        }).ToArray();
-
-        var compilation = CreateCompilation($"{assemblyName}.Resources", Array.Empty<SyntaxTree>(), false);
-
-        using (var assemblyStream = new MemoryStream())
-        {
-            var emitResult = compilation.Emit(assemblyStream, manifestResources: resources);
-
-            if (!emitResult.Success)
-            {
-                var errors = emitResult.Diagnostics
-                    .Where(d => !d.IsSuppressed && d.Severity == DiagnosticSeverity.Error);
-
-                // Technically no cleanup is being done here but that's because this is considered a
-                // failed state and the ModManager should no longer live (and therefore the program)
-                // -- nexus4880, 2024-12-3
-
-                throw new Exception(string.Join(Environment.NewLine, errors));
-            }
-
-            var resourceAssembly = Assembly.Load(assemblyStream.ToArray());
-
-            return resourceAssembly;
-        }
-    }
-#endif
 }

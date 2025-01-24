@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <link href="./assets/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="./assets/css/styles.css" rel="stylesheet" />
+</head>
+
+<body>
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-md bg-body-tertiary border-bottom">
+        <div class="container-fluid">
+            <div class="collapse navbar-collapse">
+                <!-- left-side entries -->
+                <div class="navbar-nav">
+                    <a class="nav-link active" href="http://launcher.fuyu.api/account-games.html">Games</a>
+                    <a class="nav-link" href="http://launcher.fuyu.api/settings.html">Settings</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- content -->
+    <main>
+        <div class="container-fluid">
+            <div class="py-3">
+
+                <!-- game -->
+                <div class="card" style="width: 18rem;">
+                    <img class="card-img-top" src="./assets/img/logo-eft.png" alt="Logo">
+                    <div class="card-body">
+                        <button class="btn btn-outline" type="button" onclick="viewGame()">Select</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- load javascript -->
+    <script src="./assets/js/popper.min.js"></script>
+    <script src="./assets/js/bootstrap.min.js"></script>
+    <script>
+        function sendMessage(obj) {
+            const json = JSON.stringify(obj);
+            window.chrome.webview.postMessage(json);
+        }
+
+        function viewGame() {
+            const data = {
+                type: "NAVIGATE_GAME",
+                game: "eft"
+            };
+
+            sendMessage(data);
+        };
+
+        function onMessage(event) {
+            // code here
+        }
+
+        window.chrome.webview.addEventListener("message", onMessage);
+    </script>
+</body>

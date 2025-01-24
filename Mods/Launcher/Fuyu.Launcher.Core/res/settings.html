@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <link href="./assets/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="./assets/css/styles.css" rel="stylesheet" />
+</head>
+
+<body>
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-md bg-body-tertiary border-bottom">
+        <div class="container-fluid">
+            <form class="d-flex" role="search">
+                <button class="btn btn-outline" type="button" onclick="navigateBack()">Back</button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- content -->
+    <main>
+        <div class="container-fluid">
+            <div class="row">
+
+                <div class="col-3">
+                    <aside class="bd-aside sticky-xl-top text-body-secondary align-self-start mb-3 mb-xl-5 px-2">
+                        <nav class="small" id="toc">
+
+                            <!-- __TOC __ -->
+
+                        </nav>
+                    </aside>
+                </div>
+
+                <div class="col-7 mt-3 border-left">
+
+                    <!-- __CONTENT __ -->
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- load javascript -->
+    <script src="./assets/js/popper.min.js"></script>
+    <script src="./assets/js/bootstrap.min.js"></script>
+    <script>
+        function sendMessage(obj) {
+            const json = JSON.stringify(obj);
+            window.chrome.webview.postMessage(json);
+        }
+
+        function navigateBack() {
+            const data = {
+                type: "SAVE_SETTINGS",
+                data: [
+                    // __MESSAGE__
+                ]
+            }
+
+            sendMessage(data);
+        };
+
+        function onMessage(event) {
+            // code here
+        }
+
+        window.chrome.webview.addEventListener("message", onMessage);
+    </script>
+</body>

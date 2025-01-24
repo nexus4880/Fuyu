@@ -9,7 +9,9 @@ using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Common.Delegates;
 using Fuyu.Common.IO;
+using Fuyu.Common.Networking;
 using Fuyu.Common.Serialization;
+using Fuyu.Common.Services;
 using Newtonsoft.Json.Linq;
 
 namespace Fuyu.Backend.EFTMain;
@@ -89,6 +91,10 @@ public class EftLoader
     // -- seionmoya, 2024/09/04
     public void Load()
     {
+        // add srver request client
+        var eftHttpClient = new HttpClient("http://localhost:8010");
+        RequestService.Instance.AddOrSetClient("eft", eftHttpClient);
+
         // set data source
         Resx.SetSource("eft", typeof(EftDatabase).Assembly);
 

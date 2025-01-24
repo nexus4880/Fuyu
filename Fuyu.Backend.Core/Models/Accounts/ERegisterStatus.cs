@@ -5,11 +5,15 @@ public enum ERegisterStatus
     UsernameEmpty,
     UsernameTooShort,
     UsernameTooLong,
-    UsernameInvalid,
+    UsernameInvalidCharacter,
     PasswordEmpty,
     PasswordTooShort,
     PasswordTooLong,
-    PasswordInvalid,
+    PasswordMissingLowerCase,
+    PasswordMissingUpperCase,
+    PasswordMissingDigit,
+    PasswordMissingSpecial,
+    PasswordInvalidCharacter,
     AlreadyExists,
     Success
 }

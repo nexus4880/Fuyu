@@ -2,40 +2,39 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <LangVersion>13</LangVersion>
     <OutputType>WinExe</OutputType>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>false</SelfContained>
-    <RootNamespace>Fuyu.Launcher</RootNamespace>
-    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DarkNet" Version="2.3.0" />
-    <PackageReference Include="Fluxor.Blazor.Web" Version="6.1.0" />
-    <PackageReference Include="Fluxor.Persist" Version="2.5.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="8.0.100" />
-    <PackageReference Include="MudBlazor" Version="7.15.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Fuyu.Common/Fuyu.Common.csproj" />
-    <ProjectReference Include="../Fuyu.Launcher.Core/Fuyu.Launcher.Core.csproj" />
+    <ProjectReference Include="../Fuyu.DependencyInjection/Fuyu.DependencyInjection.csproj" />
+    <ProjectReference Include="../Fuyu.Modding/Fuyu.Modding.csproj" />
+    <ProjectReference Include="../Fuyu.Common.Launcher/Fuyu.Common.Launcher.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\icon.ico" />
+    <EmbeddedResource Include="Resources\index.html" />
+  </ItemGroup>
+
+  <!-- Icon generation -->
   <ItemGroup>
     <Resource Include="Resources\icon.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="wwwroot\**">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -44,13 +43,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Update="Resources\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+  <!-- ... -->
 
 </Project>

@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Fuyu.Backend.Core.Models.Accounts;
 using Fuyu.Backend.Core.Models.Responses;
+using Fuyu.Common.Backend.Models.Responses;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
+using Fuyu.Common.Models.Requests;
 using Fuyu.Common.Serialization;
+using Fuyu.Common.Services;
 
 namespace Fuyu.Backend.Core.Services;
 
@@ -157,11 +160,6 @@ public class AccountService
         }
     }
 
-    // TODO:
-    // * store max username length, min/max password length, security requirements in config
-    // * validate username characters (only alphabetical, numbers)
-    // * validate password characters (only alphabetical, numbers, some special characters)
-    // -- seionmoya, 2024/09/08
     public ERegisterStatus RegisterAccount(string username, string password)
     {
         // validate username
@@ -191,11 +189,7 @@ public class AccountService
             Id = GetNewAccountId(),
             Username = username.ToLowerInvariant(),
             Password = hashedPassword,
-            Games = new Dictionary<string, int?>
-            {
-                { "eft",    null },
-                { "arena",  null }
-            },
+            Games = [],
             IsBanned = false
         };
 
@@ -205,39 +199,50 @@ public class AccountService
         return ERegisterStatus.Success;
     }
 
-    public AccountRegisterGameResponse RegisterGame(string sessionId, string game, string edition)
+    public AccountGameRegisterResponse RegisterGame(string sessionId, string game, string edition)
     {
         var account = _coreOrm.GetAccount(sessionId);
 
-        // find existing game
-        if (account.Games.ContainsKey(game) && account.Games[game].HasValue)
-        {
-            return new AccountRegisterGameResponse()
-            {
-                Status = ERegisterStatus.AlreadyExists,
-                AccountId = -1
-            };
-        }
-
         // register game
-        var accountId = _requestService.RegisterGame(game, account.Username, edition);
-        account.Games[game] = accountId;
+        var request = new FuyuGameRegisterRequest()
+        {
+            Username = account.Username,
+            Edition = edition
+        };
+        var response = _requestService.Post<FuyuGameRegisterResponse>(game, "/fuyu/game/register", request);
+        var accountId = response.AccountId;
+
+        // set or add accountId
+        if (account.Games.ContainsKey(game))
+        {
+            account.Games[game] = accountId;
+        }
+        else
+        {
+            account.Games.Add(game, accountId);
+        }
 
         // store result
         _coreOrm.SetOrAddAccount(account);
         WriteToDisk(account);
 
-        return new AccountRegisterGameResponse()
+        return new AccountGameRegisterResponse()
         {
-            Status = ERegisterStatus.Success,
             AccountId = accountId
         };
     }
 
-    public Dictionary<string, int?> GetGames(string sessionId)
+    public AccountGetResponse GetStrippedAccount(string sessionId)
     {
         var account = _coreOrm.GetAccount(sessionId);
-        return account.Games;
+
+        var strippedAccount = new AccountGetResponse()
+        {
+            Username = account.Username,
+            Games = account.Games
+        };
+
+        return strippedAccount;
     }
 
     public void WriteToDisk(Account account)

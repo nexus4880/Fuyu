@@ -109,7 +109,7 @@
 			{
 				"label": "dotnet: build publish",
 				"type": "shell",
-				"command": "dotnet publish --nologo --no-build --framework net9.0",
+				"command": "dotnet publish --nologo --no-build",
 				"problemMatcher": [],
 				"dependsOn": ["dotnet: build release"],
 				"dependsOrder": "sequence",

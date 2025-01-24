@@ -6,7 +6,7 @@ using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.Core.Controllers;
 
-public class AccountLoginController : CoreHttpController<AccountLoginRequest>
+public class AccountLoginController : AbstractCoreHttpController<AccountLoginRequest>
 {
     private readonly AccountService _accountService;
 
@@ -19,6 +19,7 @@ public class AccountLoginController : CoreHttpController<AccountLoginRequest>
     {
         var response = _accountService.LoginAccount(body.Username, body.Password);
 
-        return context.SendJsonAsync(Json.Stringify(response));
+        var text = Json.Stringify(response);
+        return context.SendJsonAsync(text);
     }
 }

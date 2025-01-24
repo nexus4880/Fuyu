@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Concurrent;
 using System.IO;
-#if NET9_0_OR_GREATER
-using Lock = System.Threading.Lock;
-#else
-using Lock = object;
-#endif
+using System.Threading;
 
 namespace Fuyu.Common.IO;
 
@@ -18,9 +13,9 @@ public static class VFS
         _writeLock = new ConcurrentDictionary<string, Lock>();
     }
 
-    public static string GetWorkingDirectory()
+    public static string GetFileExtension(string filepath)
     {
-        return Environment.CurrentDirectory;
+        return Path.GetExtension(filepath);
     }
 
     public static bool DirectoryExists(string filepath)

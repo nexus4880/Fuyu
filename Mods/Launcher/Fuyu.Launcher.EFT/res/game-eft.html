@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <!-- loaded by Fuyu.Launcher.Core -->
+    <link href="./assets/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="./assets/css/styles.css" rel="stylesheet" />
+    <!-- loaded by Fuyu.Launcher.EFT -->
+    <link href="./assets/css/game-eft.css" rel="stylesheet" />
+</head>
+
+<body>
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-md bg-body-tertiary border-bottom">
+        <div class="container-fluid">
+            <div class="collapse navbar-collapse">
+                <!-- left-side entries -->
+                <div class="navbar-nav">
+                    <a class="nav-link active" href="http://launcher.fuyu.api/account-games.html">Games</a>
+                    <a class="nav-link" href="http://launcher.fuyu.api/settings.html">Settings</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- content -->
+    <main class="bg-eft">
+        <div class="container-fluid p-5">
+            <div class="py-5">
+
+                <!-- game banner -->
+                <img src="./assets/img/logo-eft.png" alt="Logo">
+
+            </div>
+        </div>
+    </main>
+
+    <!-- footer -->
+    <footer class="footer py-2 bg-body-tertiary border-top">
+        <div class="container-fluid py-1">
+
+            <!-- launch game -->
+            <button class="btn btn-outline-warning" type="button" onclick="launchGame()">Launch</button>
+
+        </div>
+    </footer>
+
+    <!-- load javascript -->
+    <script src="./assets/js/popper.min.js"></script>
+    <script src="./assets/js/bootstrap.min.js"></script>
+    <script>
+        function sendMessage(obj) {
+            const json = JSON.stringify(obj);
+            window.chrome.webview.postMessage(json);
+        }
+
+        function launchGame() {
+            const data = {
+                type: "LAUNCH_GAME"
+            };
+
+            sendMessage(data);
+        };
+
+        function onMessage(event) {
+            // code here
+        }
+
+        window.chrome.webview.addEventListener("message", onMessage);
+    </script>
+</body>

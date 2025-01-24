@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en" data-bs-theme="auto">
+
+<head>
+</head>
+
+<body>
+    <script>
+        function sendMessage(obj) {
+            const json = JSON.stringify(obj);
+            window.chrome.webview.postMessage(json);
+        }
+
+        function onLoad() {
+            const data = {
+                type: "LOADED_PAGE"
+            };
+
+            sendMessage(data);
+        };
+
+        window.onload = onLoad;
+    </script>
+</body>
