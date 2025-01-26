@@ -45,6 +45,7 @@ public class GameProfileItemsMovingController : AbstractEftHttpController<JObjec
         ItemEventRouter.AddController<RagFairAddOfferItemEventController>();
         ItemEventRouter.AddController<RagFairRemoveOfferItemEventController>();
         ItemEventRouter.AddController<RagFairRenewOfferController>();
+        ItemEventRouter.AddController<TransferItemEventController>();
 
         _eftOrm = EftOrm.Instance;
     }
