@@ -57,7 +57,7 @@ public class BackendTest
         CoreLoader.Instance.Load();
         EftLoader.Instance.OnResxSet += ItemFactoryLoader.Instance.Load;
         EftLoader.Instance.Load();
-        
+
         // setup servers
         var coreServer = new CoreServer();
         coreServer.RegisterServices();
