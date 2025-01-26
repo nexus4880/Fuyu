@@ -57,18 +57,6 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         {
             selectedOffers = SearchByItem(handbook, body.HandbookId.Value);
             selectedCategory = body.HandbookId;
-
-            var count = 0;
-
-            if (_ragfairService.CategoricalOffers.ContainsKey(body.HandbookId.Value))
-            {
-                count = _ragfairService.CategoricalOffers[body.HandbookId.Value];
-            }
-
-            categories = new Dictionary<MongoId, int>()
-            {
-                { body.HandbookId.Value, count }
-            };
         }
         else if (body.LinkedSearchId.HasValue)
         {
