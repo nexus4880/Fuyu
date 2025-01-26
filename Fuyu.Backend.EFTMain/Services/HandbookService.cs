@@ -86,4 +86,77 @@ public class HandbookService
 
         return price;
     }
+
+    public List<HandbookCategory> GetAllCategoriesOfType(HandbookCategory root)
+    {
+        var handbook = _eftOrm.GetHandbook();
+        var result = new List<HandbookCategory> { root };
+        var added = true;
+
+        while (added)
+        {
+            added = false;
+
+            for (var i = 0; i < handbook.Categories.Count; i++)
+            {
+                var category = handbook.Categories[i];
+
+                if (category.ParentId.HasValue &&
+                    result.Exists(c => c.Id == category.ParentId.Value) &&
+                    !result.Exists(c => c.Id == category.Id))
+                {
+                    result.Add(category);
+                    added = true;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public List<HandbookItem> GetAllItemsOfType(MongoId id)
+    {
+        var handbook = _eftOrm.GetHandbook();
+        var rootCategory = handbook.Categories.Find(c => c.Id == id);
+        var categories = GetAllCategoriesOfType(rootCategory).Select(c => c.Id).ToList();
+
+        var itemIds = new List<MongoId>();
+        var added = true;
+
+        while (added)
+        {
+            added = false;
+
+            for (var i = 0; i < handbook.Items.Count; i++)
+            {
+                var item = handbook.Items[i];
+
+                if (!itemIds.Contains(item.Id) && categories.Contains(item.ParentId))
+                {
+                    itemIds.Add(item.Id);
+                    added = true;
+                }
+            }
+        }
+
+        return handbook.Items.Where(i => itemIds.Contains(i.Id)).ToList();
+    }
+
+    public List<HandbookItem> GetAllItemsOfTypeAndSubcategories(MongoId id)
+    {
+        var handbook = _eftOrm.GetHandbook();
+        var items = new List<HandbookItem>();
+
+        for (var i = 0; i < handbook.Items.Count; i++)
+        {
+            var item = handbook.Items[i];
+
+            if (item.ParentId == id)
+            {
+                items.Add(item);
+            }
+        }
+
+        return items;
+    }
 }

@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Common.Serialization;
 using Newtonsoft.Json.Linq;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
@@ -77,17 +77,31 @@ public class GameProfileItemsMovingController : AbstractEftHttpController<JObjec
         itemEventResponse.ProfileChanges[profile.Savage._id] = new ProfileChange();
 
         var requestIndex = 0;
+        Exception ex = null;
+
         foreach (var itemRequest in requestData)
         {
             var action = itemRequest.Value<string>("Action");
             var itemEventContext = new ItemEventContext(sessionId, action, requestIndex, itemRequest, itemEventResponse);
-            await ItemEventRouter.RouteAsync(itemEventContext);
+
+            try
+            {
+                await ItemEventRouter.RouteAsync(itemEventContext);
+            }
+            catch (Exception innerException)
+            {
+                ex = innerException;
+                break;
+            }
+
             requestIndex++;
         }
 
         var response = new ResponseBody<ItemEventResponse>
         {
-            data = itemEventResponse
+            data = itemEventResponse,
+            err = ex != null ? 200 : 0,
+            errmsg = ex?.Message
         };
 
         await context.SendResponseAsync(response, true, true);

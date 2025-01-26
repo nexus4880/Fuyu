@@ -1,8 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Fuyu.Backend.BSG;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
@@ -15,30 +15,50 @@ using Fuyu.Common.IO;
 using Fuyu.DependencyInjection;
 using Fuyu.Modding;
 
+namespace Fuyu.Devtools.GenerateFleaMarketOffers;
+
 public class Mod : AbstractMod
 {
-    public override string Id { get; } = "Fuyu.Devtools.GenerateFleaMarketOffers";
-    public override string Name { get; } = "Fuyu.Devtools.GenerateFleaMarketOffers";
+    public override string Id { get; } = "Fuyu.Devtool.GenerateFleaMarketOffers";
+
+    public override string Name { get; } = "Fuyu-GenerateFleaMarketOffers";
+
+    private HandbookService _handbookService;
+
+    private ItemFactoryService _itemFactoryService;
+
+    private RagfairService _ragfairService;
+
+    private ItemFactoryOrm _itemFactoryOrm;
 
     private Thread _generateOffersThread;
 
     public override Task OnLoad(DependencyContainer container)
     {
-        _generateOffersThread = new Thread(GenerateOffers);
+        _handbookService = HandbookService.Instance;
+        _itemFactoryService = ItemFactoryService.Instance;
+        _ragfairService = RagfairService.Instance;
+        _itemFactoryOrm = ItemFactoryOrm.Instance;
+
+        _generateOffersThread = new Thread(GenerateOffers)
+        {
+            // This thread will not keep the application alive
+            IsBackground = true
+        };
+
         _generateOffersThread.Start();
 
         return Task.CompletedTask;
     }
 
-    static void GenerateOffers()
+    private void GenerateOffers()
     {
-        var player = new RagfairPlayerUser(MongoId.Generate(), 344, EMemberCategory.Developer, EMemberCategory.Developer,
-            "b1gdeveloper", 69.420f, true);
+        var player = new RagfairPlayerUser(MongoId.Generate(), 301, EMemberCategory.Developer, EMemberCategory.Developer,
+            "GenerateFleaMarketOffers", 1f, true);
         Terminal.WriteLine("Generating offers...");
 
         var sw = Stopwatch.StartNew();
-        var templates = EftOrm.Instance.GetItemTemplates()["data"]!.ToObject<Dictionary<MongoId, ItemTemplate>>();
-        var handbook = EftOrm.Instance.GetHandbook();
+        var templates = _itemFactoryOrm.GetItemTemplates();
         var success = 0;
         var failed = 0;
 
@@ -49,28 +69,27 @@ public class Mod : AbstractMod
                 continue;
             }
 
-            int price = HandbookService.Instance.GetPrice(tid, 100).Value;
+            int price = _handbookService.GetPrice(tid, 100).Value;
 
             try
             {
-                var items = ItemFactoryService.Instance.CreateItem(template);
+                var items = _itemFactoryService.CreateItem(template);
 
-                if (items[0].Updatable == null)
-                {
-                    items[0].Updatable = new ItemUpdatable();
-                }
-
+                items[0].Updatable ??= new ItemUpdatable();
                 items[0].Updatable.StackObjectsCount = Random.Shared.Next(100, 100000);
 
-                var createdOffer = RagfairService.Instance.CreateAndAddOffer(
+                var createdOffer = _ragfairService.CreateAndAddOffer(
                     user: player,
                     items: items,
                     isBatch: false,
                     requirements: [
-                        new HandoverRequirement() { Count = price, TemplateId = "5449016a4bdc2d6f028b456f" }
+                        new HandoverRequirement
+                        {
+                            TemplateId = "5449016a4bdc2d6f028b456f",
+                            Count = price
+                        }
                     ],
-                    lifetime: TimeSpan.FromHours(30d),
-                    unlimitedCount: true
+                    lifetime: TimeSpan.FromDays(1d)
                 );
 
                 if (createdOffer == null)
@@ -82,7 +101,7 @@ public class Mod : AbstractMod
                     success++;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 failed++;
             }

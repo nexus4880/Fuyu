@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Common.Hashing;
@@ -64,36 +63,26 @@ public class ItemService
         return ids.FindIndex(i => i == item.ParentId) != -1;
     }
 
-    // TODO: refactor into recursive function
     public List<ItemInstance> GetItemAndChildren(List<ItemInstance> items, MongoId id)
     {
-        var idsToReturn = new List<string> { id };
-        var keepSearching = true;
+        var rootItem = items.Find(i => i.Id == id);
+        var result = new List<ItemInstance>() { rootItem };
+        var subItems = items.FindAll(i => i.ParentId != null && i.ParentId == rootItem.Id.ToString());
 
-        while (keepSearching)
+        foreach (var item in subItems)
         {
-            keepSearching = false;
+            var recurseResult = GetItemAndChildren(items, item.Id);
 
-            for (var i = 0; i < items.Count; i++)
-            {
-                var item = items[i];
-
-                if (!idsToReturn.Contains(item.Id) && idsToReturn.Contains(item.ParentId))
-                {
-                    idsToReturn.Add(item.Id);
-                    keepSearching = true;
-                }
-            }
+            result.AddRange(recurseResult);
         }
 
-        // Grab the ItemInstance of each found id and return it as a List
-        return items.Where(i => idsToReturn.Contains(i.Id)).ToList();
+        return result;
     }
 
     /// <summary>
     /// Only an item and its children should be passed into this
     /// </summary>
-    public (int width, int height) CalculateItemSize(List<ItemInstance> items)
+    public (int width, int height) CalculateItemSize(List<ItemInstance> items, EItemRotation rotation)
     {
         if (items == null)
         {
@@ -107,65 +96,71 @@ public class ItemService
 
         var root = items[0];
 
-        if (root.Size != null)
+        if (root.Size == null)
         {
-            return root.Size.Value;
-        }
+            var rootProperties = _itemFactoryService.GetItemProperties<CompoundItemItemProperties>(root.TemplateId);
 
-        var rootProperties = _itemFactoryService.GetItemProperties<ItemProperties>(root.TemplateId);
+            var width = rootProperties.Width;
+            var height = rootProperties.Height;
 
-        var width = rootProperties.Width;
-        var height = rootProperties.Height;
+            var sizeUp = 0;
+            var sizeDown = 0;
+            var sizeLeft = 0;
+            var sizeRight = 0;
+            var forcedUp = 0;
+            var forcedDown = 0;
+            var forcedLeft = 0;
+            var forcedRight = 0;
 
-        var sizeUp = 0;
-        var sizeDown = 0;
-        var sizeLeft = 0;
-        var sizeRight = 0;
-        var forcedUp = 0;
-        var forcedDown = 0;
-        var forcedLeft = 0;
-        var forcedRight = 0;
-
-        for (var i = 1; i < items.Count; i++)
-        {
-            var itemProperties = _itemFactoryService.GetItemProperties<ItemProperties>(items[i].TemplateId);
-
-            if (itemProperties == null)
+            // For items with grids (backpack/stash/containers) we should not add onto the size
+            if (rootProperties.Grids.Count == 0)
             {
-                continue;
+                for (var i = 1; i < items.Count; i++)
+                {
+                    var itemProperties = _itemFactoryService.GetItemProperties<ItemProperties>(items[i].TemplateId);
+
+                    if (itemProperties == null)
+                    {
+                        continue;
+                    }
+
+                    if (itemProperties.ExtraSizeForceAdd)
+                    {
+                        forcedUp += itemProperties.ExtraSizeUp;
+                        forcedDown += itemProperties.ExtraSizeDown;
+                        forcedLeft += itemProperties.ExtraSizeLeft;
+                        forcedRight += itemProperties.ExtraSizeRight;
+                    }
+                    else
+                    {
+                        sizeUp = Math.Max(sizeUp, itemProperties.ExtraSizeUp);
+                        sizeDown = Math.Max(sizeDown, itemProperties.ExtraSizeDown);
+                        sizeLeft = Math.Max(sizeLeft, itemProperties.ExtraSizeLeft);
+                        sizeRight = Math.Max(sizeRight, itemProperties.ExtraSizeRight);
+                    }
+                }
             }
 
-            if (itemProperties.ExtraSizeForceAdd)
-            {
-                forcedUp += itemProperties.ExtraSizeUp;
-                forcedDown += itemProperties.ExtraSizeDown;
-                forcedLeft += itemProperties.ExtraSizeLeft;
-                forcedRight += itemProperties.ExtraSizeRight;
-            }
-            else
-            {
-                sizeUp = Math.Max(sizeUp, itemProperties.ExtraSizeUp);
-                sizeDown = Math.Max(sizeDown, itemProperties.ExtraSizeDown);
-                sizeLeft = Math.Max(sizeLeft, itemProperties.ExtraSizeLeft);
-                sizeRight = Math.Max(sizeRight, itemProperties.ExtraSizeRight);
-            }
+            width += sizeLeft + sizeRight + forcedLeft + forcedRight;
+            height += sizeUp + sizeDown + forcedUp + forcedDown;
+
+            root.Size = (width, height);
         }
 
-        width += sizeLeft + sizeRight + forcedLeft + forcedRight;
-        height += sizeUp + sizeDown + forcedUp + forcedDown;
-
-        if (root.Location.IsValue1 && root.Location.Value1 != null && root.Location.Value1.r == EItemRotation.Vertical)
+        // If the desired rotation is vertical then flip
+        // the height and the width
+        if (rotation == EItemRotation.Vertical)
         {
-            root.Size = (height, width);
-            return (height, width);
+            (int w, int h) = root.Size.Value;
+
+            return (h, w);
         }
 
-        root.Size = (width, height);
-        return (width, height);
+        return root.Size.Value;
     }
 
     public LocationInGrid GetNextFreeSlot(ItemInstance containerItem,
-        List<ItemInstance> items, int width, int height, ref bool[] matrix, out string gridName,
+        List<ItemInstance> items, int width, int height, bool[,] matrix, out string gridName,
         EItemRotation desiredRotation = EItemRotation.Horizontal)
     {
         if (width <= 0)
@@ -215,7 +210,7 @@ public class ItemService
                     {
                         for (var dx = 0; dx < width; dx++)
                         {
-                            if (matrix[(y + dy) * gridWidth + (x + dx)])
+                            if (matrix[x + dx, y + dy])
                             {
                                 canFit = false;
                                 break;
@@ -234,9 +229,9 @@ public class ItemService
         return null;
     }
 
-    public bool[] GenerateMatrix(int gridWidth, int gridHeight, List<ItemInstance> items)
+    public bool[,] GenerateMatrix(int gridWidth, int gridHeight, List<ItemInstance> items)
     {
-        var matrix = new bool[gridWidth * gridHeight];
+        var matrix = new bool[gridWidth, gridHeight];
 
         foreach (var itemInThisGrid in items)
         {
@@ -247,7 +242,7 @@ public class ItemService
 
             var itemLocation = itemInThisGrid.Location.Value1;
             var itemAndChildren = GetItemAndChildren(items, itemInThisGrid);
-            (int itemWidth, int itemHeight) = CalculateItemSize(itemAndChildren);
+            (int itemWidth, int itemHeight) = CalculateItemSize(itemAndChildren, itemLocation.r);
 
             if (itemLocation.x < 0 || itemLocation.y < 0 ||
                 itemLocation.x + itemWidth > gridWidth ||
@@ -262,7 +257,7 @@ public class ItemService
                 {
                     var cellX = itemLocation.x + x;
                     var cellY = itemLocation.y + y;
-                    matrix[cellY * gridWidth + cellX] = true;
+                    matrix[cellX, cellY] = true;
                 }
             }
         }

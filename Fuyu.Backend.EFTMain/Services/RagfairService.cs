@@ -27,7 +27,7 @@ public class RagfairService
     public List<Offer> Offers { get; } = [];
 
     public Offer CreateAndAddOffer(IRagfairUser user, List<ItemInstance> items, bool isBatch,
-        List<HandoverRequirement> requirements, TimeSpan lifetime, bool unlimitedCount, int loyaltyLevel = 1)
+        List<HandoverRequirement> requirements, TimeSpan lifetime, bool unlimitedCount = false, int loyaltyLevel = 1)
     {
         if (user == null)
         {
@@ -54,19 +54,6 @@ public class RagfairService
             throw new Exception($"{nameof(requirements)} is empty");
         }
 
-        var handbook = _eftOrm.GetHandbook();
-        var handbookItem = handbook.Items.Find(i => i.Id == items[0].TemplateId);
-
-        if (!CategoricalOffers.TryAdd(handbookItem.ParentId, 1))
-        {
-            CategoricalOffers[handbookItem.ParentId]++;
-        }
-
-        if (!CategoricalOffers.TryAdd(items[0].TemplateId, 1))
-        {
-            CategoricalOffers[items[0].TemplateId]++;
-        }
-
         var offer = new Offer()
         {
             Id = MongoId.Generate(),
@@ -89,14 +76,33 @@ public class RagfairService
             LoyaltyLevel = loyaltyLevel
         };
 
-        Offers.Add(offer);
-
-        return offer;
+        return AddOffer(offer);
     }
 
     public Offer GetOffer(MongoId offerId)
     {
         return Offers.Find(o => o.Id == offerId);
+    }
+
+    public Offer AddOffer(Offer offer)
+    {
+        var items = offer.Items;
+        var handbook = _eftOrm.GetHandbook();
+        var handbookItem = handbook.Items.Find(i => i.Id == items[0].TemplateId);
+
+        if (!CategoricalOffers.TryAdd(handbookItem.ParentId, 1))
+        {
+            CategoricalOffers[handbookItem.ParentId]++;
+        }
+
+        if (!CategoricalOffers.TryAdd(items[0].TemplateId, 1))
+        {
+            CategoricalOffers[items[0].TemplateId]++;
+        }
+
+        Offers.Add(offer);
+
+        return offer;
     }
 
     public void RemoveOffer(Offer offer)

@@ -4,10 +4,9 @@ using System.Linq;
 using System.Reflection;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Items;
-using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Common.Hashing;
-using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
+using Newtonsoft.Json;
 
 namespace Fuyu.Backend.BSG.Services;
 
@@ -17,19 +16,14 @@ public class ItemFactoryService
     public static ItemFactoryService Instance => instance.Value;
     private static readonly Lazy<ItemFactoryService> instance = new(() => new ItemFactoryService());
 
+    private readonly ItemFactoryOrm _itemFactoryOrm;
+
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
     private ItemFactoryService()
     {
-    }
-
-    public Dictionary<MongoId, ItemTemplate> ItemTemplates { get; private set; }
-
-    public void Load()
-    {
-        var itemsText = Resx.GetText("eft", "database.client.items.json");
-        ItemTemplates = Json.Parse<ResponseBody<Dictionary<MongoId, ItemTemplate>>>(itemsText).data;
+        _itemFactoryOrm = ItemFactoryOrm.Instance;
     }
 
     /// <summary>
@@ -40,7 +34,23 @@ public class ItemFactoryService
     /// <returns>The <see cref="ItemProperties"/> class defined</returns>
     public T GetItemProperties<T>(MongoId templateId) where T : ItemProperties
     {
-        return ItemTemplates[templateId].Props.ToObject<T>();
+        var itemTemplate = _itemFactoryOrm.GetItemTemplate(templateId);
+
+        return GetItemProperties<T>(itemTemplate);
+    }
+
+    /// <summary>
+    /// Gets an <see cref="ItemProperties"/> from a <see cref="ItemTemplate"/> Template
+    /// </summary>
+    /// <typeparam name="T">The <see cref="ItemProperties"/> class to return</typeparam>
+    /// <param name="template">The <see cref="ItemTemplate"/> Template to get the <see cref="ItemProperties"/> from</param>
+    /// <returns>The <see cref="ItemProperties"/> class defined</returns>
+    public T GetItemProperties<T>(ItemTemplate template) where T : ItemProperties
+    {
+        var reader = template.Props.CreateReader();
+        var serializer = JsonSerializer.Create(Json.jsonSerializerSettings);
+
+        return serializer.Deserialize<T>(reader);
     }
 
     public List<ItemInstance> CreateItem(ItemTemplate template, int? count = null, MongoId? id = null, string parentId = null,
@@ -70,7 +80,7 @@ public class ItemFactoryService
             // Handle child items - these are created once per root item
             if (compoundItemProperties.Slots != null)
             {
-                foreach (var slot in compoundItemProperties.Slots.Where(s => s.Required && s.Properties.Filters.Length > 0))
+                foreach (var slot in compoundItemProperties.Slots.Where(s => s.Required && s.Properties.Filters.Count > 0))
                 {
                     if (!slot.Properties.Filters[0].Plate.HasValue)
                     {
@@ -78,11 +88,10 @@ public class ItemFactoryService
                     }
 
                     var templateId = slot.Properties.Filters[0].Plate.Value;
-                    if (ItemTemplates.TryGetValue(templateId, out var childTemplate))
-                    {
-                        var subItems = CreateItem(childTemplate, null, null, itemId, slot.Name);
-                        items.AddRange(subItems);
-                    }
+                    var childTemplate = _itemFactoryOrm.GetItemTemplate(templateId);
+                    var subItems = CreateItem(childTemplate, null, null, itemId, slot.Name);
+
+                    items.AddRange(subItems);
                 }
             }
         }
@@ -147,12 +156,12 @@ public class ItemFactoryService
 
     public ItemUpdatable CreateItemUpdatable(MongoId tpl)
     {
-        return CreateItemUpdatable(ItemTemplates[tpl]);
+        return CreateItemUpdatable(ItemFactoryOrm.Instance.GetItemTemplate(tpl));
     }
 
     public object CreateItemComponent(MongoId tpl, Type componentType, bool createDefault)
     {
-        return CreateItemComponent(ItemTemplates[tpl], componentType, createDefault);
+        return CreateItemComponent(ItemFactoryOrm.Instance.GetItemTemplate(tpl), componentType, createDefault);
     }
 
     public List<List<ItemInstance>> CreateItemsFromTradeRequest(List<ItemInstance> purchasedItem, int count)
