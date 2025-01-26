@@ -1,7 +1,7 @@
 ﻿using System;
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Fuyu.Backend.BSG;
 using Fuyu.Backend.BSG.Models.Accounts;
 using Fuyu.Backend.BSG.Models.Bots;
 using Fuyu.Backend.BSG.Models.Raid;
@@ -11,10 +11,7 @@ using Fuyu.Backend.Core.Models.Accounts;
 using Fuyu.Backend.EFTMain;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Hashing;
-using Fuyu.Common.IO;
-using Fuyu.Common.Networking;
 using Fuyu.Common.Serialization;
-using Fuyu.Common.Services;
 using Fuyu.Tests.Backend.EFT.Networking;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AccountService = Fuyu.Backend.Core.Services.AccountService;
@@ -58,8 +55,9 @@ public class BackendTest
     {
         // setup databases
         CoreLoader.Instance.Load();
+        EftLoader.Instance.OnResxSet += ItemFactoryLoader.Instance.Load;
         EftLoader.Instance.Load();
-
+        
         // setup servers
         var coreServer = new CoreServer();
         coreServer.RegisterServices();

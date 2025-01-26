@@ -116,6 +116,7 @@ public class EftLoader
         OnLoadCustomizations();
         OnLoadCustomizationStorage();
         OnLoadDefaultBuilds();
+        OnLoadWipeProfiles();
         OnLoadWorldMap();
         OnLoadHideoutSettings();
         OnLoadAchievementStatistics();
