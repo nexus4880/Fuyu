@@ -35,7 +35,7 @@ public class SplitItemEventController : AbstractItemEventController<SplitItemEve
         }
 
         var targetLocationItem = profile.Pmc.Inventory.FindItem(request.Container.Id);
-        
+
         if (targetLocationItem == null)
         {
             throw new Exception($"Failed to find target container {request.Container.Id}");
