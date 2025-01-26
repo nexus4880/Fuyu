@@ -51,6 +51,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Launcher.EFT", "Mods\L
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Devtools.StartBackend", "Mods\Launcher\Fuyu.Devtools.StartBackend\Fuyu.Devtools.StartBackend.csproj", "{12C089A2-1A24-4C50-8655-F44F9DF4BB40}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{4133B399-161A-46DC-AE4F-8F69B15F3ADB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Devtools.GenerateFleaMarketOffers", "Mods\Backend\Fuyu.Devtools.GenerateFleaMarketOffers\Fuyu.Devtools.GenerateFleaMarketOffers.csproj", "{0463B9A4-5524-4CFF-82B3-8519A50751CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Devtools.GenerateFleaMarketWeapons", "Mods\Backend\Fuyu.Devtools.GenerateFleaMarketWeapons\Fuyu.Devtools.GenerateFleaMarketWeapons.csproj", "{BDCAEE68-BA10-443F-B180-F99B7C8A1FBD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -145,16 +151,27 @@ Global
 		{12C089A2-1A24-4C50-8655-F44F9DF4BB40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12C089A2-1A24-4C50-8655-F44F9DF4BB40}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12C089A2-1A24-4C50-8655-F44F9DF4BB40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0463B9A4-5524-4CFF-82B3-8519A50751CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0463B9A4-5524-4CFF-82B3-8519A50751CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0463B9A4-5524-4CFF-82B3-8519A50751CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0463B9A4-5524-4CFF-82B3-8519A50751CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDCAEE68-BA10-443F-B180-F99B7C8A1FBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDCAEE68-BA10-443F-B180-F99B7C8A1FBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDCAEE68-BA10-443F-B180-F99B7C8A1FBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDCAEE68-BA10-443F-B180-F99B7C8A1FBD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {67ADC3F3-9ADA-4F75-AEDC-DB5A17E9E5AF}
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{052933F6-495C-4574-AD7C-4094C441C637} = {EC717D12-BC9D-4470-9A98-67B2A870CF36}
 		{F9BC3987-298A-42C0-9BEE-378EC4160FBB} = {052933F6-495C-4574-AD7C-4094C441C637}
 		{12C089A2-1A24-4C50-8655-F44F9DF4BB40} = {052933F6-495C-4574-AD7C-4094C441C637}
+		{4133B399-161A-46DC-AE4F-8F69B15F3ADB} = {EC717D12-BC9D-4470-9A98-67B2A870CF36}
+		{0463B9A4-5524-4CFF-82B3-8519A50751CF} = {4133B399-161A-46DC-AE4F-8F69B15F3ADB}
+		{BDCAEE68-BA10-443F-B180-F99B7C8A1FBD} = {4133B399-161A-46DC-AE4F-8F69B15F3ADB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {67ADC3F3-9ADA-4F75-AEDC-DB5A17E9E5AF}
 	EndGlobalSection
 EndGlobal

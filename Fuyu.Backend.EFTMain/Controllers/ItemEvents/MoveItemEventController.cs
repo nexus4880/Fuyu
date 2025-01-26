@@ -25,11 +25,12 @@ public class MoveItemEventController : AbstractItemEventController<MoveItemEvent
             throw new Exception($"Failed to find {request.Item} in inventory");
         }
 
-        var rootItem = items[0];
-
-        profile.Pmc.Inventory.MoveItem(ItemService.Instance, ItemFactoryService.Instance, items, request.To.Location);
-        rootItem.ParentId = request.To.Id;
-        rootItem.SlotId = request.To.Container;
+        profile.Pmc.Inventory.MoveItem(
+            items,
+            request.To.Id,
+            request.To.Container,
+            request.To.Location
+        );
 
         return Task.CompletedTask;
     }

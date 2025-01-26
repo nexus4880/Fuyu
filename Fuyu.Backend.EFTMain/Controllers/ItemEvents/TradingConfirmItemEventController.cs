@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.ItemEvents;
+using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Services;
@@ -123,7 +123,9 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
 
         foreach (var stack in stacks)
         {
-            (int itemWidth, int itemHeight) = _itemService.CalculateItemSize(stack);
+            // Assume horizontal rotation when purchasing items. I'm unsure of live behavior.
+            // I think it tries horizontal and then vertical if it doesn't fit?
+            (int itemWidth, int itemHeight) = _itemService.CalculateItemSize(stack, EItemRotation.Horizontal);
             var targetLocation = profile.Pmc.Inventory.GetNextFreeSlot(_itemService, itemWidth, itemHeight, out string gridName);
 
             if (targetLocation == null)
@@ -132,12 +134,12 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
             }
 
             var rootItem = stack[0];
+
             rootItem.Location = targetLocation;
             rootItem.SlotId = gridName;
             rootItem.ParentId = profile.Pmc.Inventory.Stash;
 
-            profile.Pmc.Inventory.AddItems(_itemService, ItemFactoryService.Instance,
-                stack);
+            profile.Pmc.Inventory.AddItems(_itemService, stack);
 
             context.Response.ProfileChanges[profile.Pmc._id].Items.New.AddRange(stack);
         }

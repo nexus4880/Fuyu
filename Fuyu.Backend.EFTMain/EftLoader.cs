@@ -45,11 +45,12 @@ public class EftLoader
     public LoadCallback OnLoadHideoutQtes;
     public LoadCallback OnLoadItemTemplates;
     public LoadCallback OnLoadLocalWeather;
-    public LoadCallback OnLoadPretigste;
+    public LoadCallback OnLoadPrestige;
     public LoadCallback OnLoadQuests;
     public LoadCallback OnLoadSettings;
     public LoadCallback OnLoadTraders;
     public LoadCallback OnLoadWeather;
+    public LoadCallback OnResxSet;
 
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
@@ -80,11 +81,12 @@ public class EftLoader
         OnLoadHideoutQtes += LoadHideoutQtes;
         OnLoadItemTemplates += LoadItemTemplates;
         OnLoadLocalWeather += LoadLocalWeather;
-        OnLoadPretigste += LoadPretigste;
+        OnLoadPrestige += LoadPrestige;
         OnLoadQuests += LoadQuests;
         OnLoadSettings += LoadSettings;
         OnLoadTraders += LoadTraders;
         OnLoadWeather += LoadWeather;
+        OnResxSet += ResxSet;
     }
 
     // NOTE: load order is VERY important!
@@ -98,40 +100,45 @@ public class EftLoader
         // set data source
         Resx.SetSource("eft", typeof(EftDatabase).Assembly);
 
+        OnResxSet();
+
         // load accounts
-        LoadAccounts();
-        LoadProfiles();
-        LoadSessions();
+        OnLoadAccounts();
+        OnLoadProfiles();
+        OnLoadSessions();
 
         // load locales
-        LoadLanguages();
-        LoadGlobalLocales();
-        LoadMenuLocales();
+        OnLoadLanguages();
+        OnLoadGlobalLocales();
+        OnLoadMenuLocales();
 
         // load templates
-        LoadCustomizations();
-        LoadCustomizationStorage();
-        LoadDefaultBuilds();
-        LoadWipeProfiles();
-        LoadWorldMap();
-        LoadHideoutSettings();
-        LoadAchievementStatistics();
+        OnLoadCustomizations();
+        OnLoadCustomizationStorage();
+        OnLoadDefaultBuilds();
+        OnLoadWorldMap();
+        OnLoadHideoutSettings();
+        OnLoadAchievementStatistics();
 
         // JOBJECT
-        LoadAchievements();
-        LoadGlobals();
-        LoadHandbook();
-        LoadHideoutAreas();
-        LoadHideoutCustomizationOffers();
-        LoadHideoutProductionRecipes();
-        LoadHideoutQtes();
-        LoadItemTemplates();
-        LoadLocalWeather();
-        LoadPretigste();
-        LoadQuests();
-        LoadSettings();
-        LoadTraders();
-        LoadWeather();
+        OnLoadAchievements();
+        OnLoadGlobals();
+        OnLoadHandbook();
+        OnLoadHideoutAreas();
+        OnLoadHideoutCustomizationOffers();
+        OnLoadHideoutProductionRecipes();
+        OnLoadHideoutQtes();
+        OnLoadItemTemplates();
+        OnLoadLocalWeather();
+        OnLoadPrestige();
+        OnLoadQuests();
+        OnLoadSettings();
+        OnLoadTraders();
+        OnLoadWeather();
+    }
+
+    private void ResxSet()
+    {
     }
 
     private void LoadAccounts()
@@ -351,7 +358,7 @@ public class EftLoader
         _eftOrm.SetLocalWeather(weather);
     }
 
-    private void LoadPretigste()
+    private void LoadPrestige()
     {
         var json = Resx.GetText("eft", "database.client.prestige.list.json");
         var prestige = JObject.Parse(json);

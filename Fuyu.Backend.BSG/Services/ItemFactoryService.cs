@@ -4,9 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Items;
-using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Common.Hashing;
-using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
 using Newtonsoft.Json;
 
@@ -18,19 +16,14 @@ public class ItemFactoryService
     public static ItemFactoryService Instance => instance.Value;
     private static readonly Lazy<ItemFactoryService> instance = new(() => new ItemFactoryService());
 
+    private readonly ItemFactoryOrm _itemFactoryOrm;
+
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
     private ItemFactoryService()
     {
-    }
-
-    public Dictionary<MongoId, ItemTemplate> ItemTemplates { get; private set; }
-
-    public void Load()
-    {
-        var itemsText = Resx.GetText("eft", "database.client.items.json");
-        ItemTemplates = Json.Parse<ResponseBody<Dictionary<MongoId, ItemTemplate>>>(itemsText).data;
+        _itemFactoryOrm = ItemFactoryOrm.Instance;
     }
 
     /// <summary>
@@ -41,7 +34,9 @@ public class ItemFactoryService
     /// <returns>The <see cref="ItemProperties"/> class defined</returns>
     public T GetItemProperties<T>(MongoId templateId) where T : ItemProperties
     {
-        return GetItemProperties<T>(ItemTemplates[templateId]);
+        var itemTemplate = _itemFactoryOrm.GetItemTemplate(templateId);
+
+        return GetItemProperties<T>(itemTemplate);
     }
 
     /// <summary>
@@ -93,11 +88,10 @@ public class ItemFactoryService
                     }
 
                     var templateId = slot.Properties.Filters[0].Plate.Value;
-                    if (ItemTemplates.TryGetValue(templateId, out var childTemplate))
-                    {
-                        var subItems = CreateItem(childTemplate, null, null, itemId, slot.Name);
-                        items.AddRange(subItems);
-                    }
+                    var childTemplate = _itemFactoryOrm.GetItemTemplate(templateId);
+                    var subItems = CreateItem(childTemplate, null, null, itemId, slot.Name);
+
+                    items.AddRange(subItems);
                 }
             }
         }
@@ -162,12 +156,12 @@ public class ItemFactoryService
 
     public ItemUpdatable CreateItemUpdatable(MongoId tpl)
     {
-        return CreateItemUpdatable(ItemTemplates[tpl]);
+        return CreateItemUpdatable(ItemFactoryOrm.Instance.GetItemTemplate(tpl));
     }
 
     public object CreateItemComponent(MongoId tpl, Type componentType, bool createDefault)
     {
-        return CreateItemComponent(ItemTemplates[tpl], componentType, createDefault);
+        return CreateItemComponent(ItemFactoryOrm.Instance.GetItemTemplate(tpl), componentType, createDefault);
     }
 
     public List<List<ItemInstance>> CreateItemsFromTradeRequest(List<ItemInstance> purchasedItem, int count)

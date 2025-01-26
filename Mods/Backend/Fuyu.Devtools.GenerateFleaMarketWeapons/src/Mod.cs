@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fuyu.Backend.BSG;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
@@ -11,15 +11,14 @@ using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain;
 using Fuyu.Backend.EFTMain.Services;
-using Fuyu.Common.Collections;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.DependencyInjection;
 using Fuyu.Modding;
 
-namespace Fuyu.Backend;
+namespace Fuyu.Devtools.GenerateFleaMarketWeapons;
 
-public class GenerateFleaMarketWeaponsMod : AbstractMod
+public class Mod : AbstractMod
 {
     public override string Id => "Fuyu.Devtool.GenerateFleaMarketWeapons";
 
@@ -33,6 +32,8 @@ public class GenerateFleaMarketWeaponsMod : AbstractMod
 
     private RagfairService _ragfairService;
 
+    private ItemFactoryOrm _itemFactoryOrm;
+
     private Thread _generateOffersThread;
 
     public override Task OnLoad(DependencyContainer container)
@@ -41,6 +42,8 @@ public class GenerateFleaMarketWeaponsMod : AbstractMod
         _itemFactoryService = ItemFactoryService.Instance;
         _handbookService = HandbookService.Instance;
         _ragfairService = RagfairService.Instance;
+        _itemFactoryOrm = ItemFactoryOrm.Instance;
+
         _generateOffersThread = new Thread(GenerateOffers)
         {
             // This thread will not keep the application alive
@@ -52,31 +55,31 @@ public class GenerateFleaMarketWeaponsMod : AbstractMod
         return Task.CompletedTask;
     }
 
-    private List<ItemInstance> CreateItemAndFillSlots(ItemFactoryService itemFactoryService, ItemTemplate template, string parent, string slotId)
+    private List<ItemInstance> CreateItemAndFillSlots(ItemTemplate template, string parent, string slotId)
     {
         var items = new List<ItemInstance>();
-        var createdItems = itemFactoryService.CreateItem(template);
+        var createdItems = _itemFactoryService.CreateItem(template);
 
         items.AddRange(createdItems);
 
         var rootItem = createdItems[0];
-        
+
         rootItem.ParentId = parent;
         rootItem.SlotId = slotId;
 
-        var weaponProperties = itemFactoryService.GetItemProperties<WeaponItemProperties>(template);
+        var weaponProperties = _itemFactoryService.GetItemProperties<WeaponItemProperties>(template);
         var handbook = _eftOrm.GetHandbook();
 
         foreach (var slot in weaponProperties.Slots)
         {
             var slotPropertyFilters = slot.Properties.Filters;
-            
+
             if (slotPropertyFilters.Count == 0)
             {
                 continue;
             }
 
-            var itemFilters = slotPropertyFilters[0].Filter.Where(f => handbook.Items.Exists(hi => hi.Id == f)).ToArray();
+            var itemFilters = slotPropertyFilters[0].Filter.FindAll(f => handbook.Items.Exists(hi => hi.Id == f)).ToArray();
 
             if (itemFilters.Length == 0)
             {
@@ -84,15 +87,15 @@ public class GenerateFleaMarketWeaponsMod : AbstractMod
             }
 
             var subTemplateId = itemFilters[Random.Shared.Next(0, itemFilters.Length)];
-            var subTemplate = itemFactoryService.ItemTemplates[subTemplateId];
-            var subItems = CreateItemAndFillSlots(itemFactoryService, subTemplate, rootItem.Id, slot.Name);
+            var subTemplate = _itemFactoryOrm.GetItemTemplate(subTemplateId);
+            var subItems = CreateItemAndFillSlots(subTemplate, rootItem.Id, slot.Name);
 
             // Only happens when cancellation is requested, hence break
             if (subItems == null)
             {
                 break;
             }
-            
+
             items.AddRange(subItems);
         }
 
@@ -113,8 +116,8 @@ public class GenerateFleaMarketWeaponsMod : AbstractMod
         {
             try
             {
-                var weaponTemplate = _itemFactoryService.ItemTemplates[weapon.Id];
-                var weaponItemStack = CreateItemAndFillSlots(_itemFactoryService, weaponTemplate, "hideout", "hideout");
+                var weaponTemplate = _itemFactoryOrm.GetItemTemplate(weapon.Id);
+                var weaponItemStack = CreateItemAndFillSlots(weaponTemplate, "hideout", "hideout");
 
                 if (weaponItemStack[0].Updatable == null)
                 {
@@ -136,8 +139,7 @@ public class GenerateFleaMarketWeaponsMod : AbstractMod
                             Count = 100
                         }
                     ],
-                    lifetime: TimeSpan.FromDays(1d),
-                    unlimitedCount: false
+                    lifetime: TimeSpan.FromDays(1d)
                 );
 
                 if (createdOffer == null)
@@ -149,7 +151,7 @@ public class GenerateFleaMarketWeaponsMod : AbstractMod
                     created++;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 failed++;
             }

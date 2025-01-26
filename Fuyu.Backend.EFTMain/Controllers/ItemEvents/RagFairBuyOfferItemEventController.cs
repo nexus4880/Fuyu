@@ -84,7 +84,7 @@ public class RagFairBuyOfferItemEventController : AbstractItemEventController<Ra
 
             foreach (var stack in stacks)
             {
-                (int itemWidth, int itemHeight) = _itemService.CalculateItemSize(stack);
+                (int itemWidth, int itemHeight) = _itemService.CalculateItemSize(stack, BSG.Models.Items.EItemRotation.Horizontal);
                 var targetLocation = profile.Pmc.Inventory.GetNextFreeSlot(_itemService, itemWidth, itemHeight, out string gridName);
 
                 if (targetLocation == null)
@@ -97,8 +97,7 @@ public class RagFairBuyOfferItemEventController : AbstractItemEventController<Ra
                 rootItem.SlotId = gridName;
                 rootItem.ParentId = profile.Pmc.Inventory.Stash;
 
-                profile.Pmc.Inventory.AddItems(_itemService, ItemFactoryService.Instance,
-                    stack);
+                profile.Pmc.Inventory.AddItems(_itemService, stack);
 
                 context.Response.ProfileChanges[profile.Pmc._id].Items.New.AddRange(stack);
             }

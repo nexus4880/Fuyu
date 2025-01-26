@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Runtime.Serialization;
+using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Common.Collections;
 using Fuyu.Common.Hashing;
@@ -67,4 +69,40 @@ public class ItemInstance
 
         return value;
     }
+
+    public void InitializeMatrices(IList<Grid> grids, IList<ItemInstance> children)
+    {
+        foreach (var grid in grids)
+        {
+            var width = grid.Properties.CellsHorizontal;
+            var height = grid.Properties.CellsVertical;
+            var matrix = new bool[width, height];
+
+            foreach (var itemInGrid in children.Where(i => i.SlotId == grid.Name))
+            {
+                if (!itemInGrid.Location.IsValue1)
+                {
+                    throw new Exception("!itemInGrid.Location.IsValue1");
+                }
+
+                var itemsInGrid = ItemService.Instance.GetItemAndChildren(children.ToList(), itemInGrid);
+                (int itemWidth, int itemHeight) = ItemService.Instance.CalculateItemSize(itemsInGrid, itemInGrid.Location.Value1.r);
+
+                for (var dx = 0; dx < itemWidth; dx++)
+                {
+                    for (var dy = 0; dy < itemHeight; dy++)
+                    {
+                        var x = itemInGrid.Location.Value1.x + dx;
+                        var y = itemInGrid.Location.Value1.y + dy;
+
+                        matrix[x, y] = true;
+                    }
+                }
+            }
+
+            Matrices[grid.Name] = matrix;
+        }
+    }
+
+    public Dictionary<string, bool[,]> Matrices { get; } = [];
 }

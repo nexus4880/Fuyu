@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Fuyu.Backend.BSG;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
 using Fuyu.Backend.BSG.Models.Requests;
@@ -22,7 +23,6 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
     private readonly EftOrm _eftOrm;
     private readonly RagfairService _ragfairService;
     private readonly HandbookService _handbookService;
-    private readonly ItemFactoryService _itemFactoryService;
 
     private readonly HashSet<MongoId> _money = new HashSet<MongoId>
     {
@@ -39,7 +39,6 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         _eftOrm = EftOrm.Instance;
         _ragfairService = RagfairService.Instance;
         _handbookService = HandbookService.Instance;
-        _itemFactoryService = ItemFactoryService.Instance;
     }
 
     public override Task RunAsync(EftHttpContext context, RagfairFindRequest body)
@@ -51,14 +50,32 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         ResponseBody<OffersListResponse> responseBody;
         List<Offer> selectedOffers;
         string selectedCategory;
+        Dictionary<MongoId, int> categories = _ragfairService.CategoricalOffers;
+        var isLinkedSearch = body.LinkedSearchId.HasValue;
 
         if (body.HandbookId.HasValue)
         {
             selectedOffers = SearchByItem(handbook, body.HandbookId.Value);
             selectedCategory = body.HandbookId;
+
+            var count = 0;
+
+            if (_ragfairService.CategoricalOffers.ContainsKey(body.HandbookId.Value))
+            {
+                count = _ragfairService.CategoricalOffers[body.HandbookId.Value];
+            }
+
+            categories = new Dictionary<MongoId, int>()
+            {
+                { body.HandbookId.Value, count }
+            };
         }
         else if (body.LinkedSearchId.HasValue)
         {
+            // TODO: when linked searching selectedCategory should be one of the categories
+            // of one of the available template ids (linked search mag should return bullets
+            // and selectedCategory should be ammo)
+            // -- nexus4880, 2025-1-26
             selectedOffers = LinkedSearch(handbook, body.LinkedSearchId.Value, out selectedCategory);
             selectedCategory = body.LinkedSearchId;
         }
@@ -114,14 +131,27 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         var offers = selectedOffers.Skip(body.Page * body.Limit);
 
         // Creates a slice of the next N elements
-        offers = offers.Take(body.Limit);
+        var finalOffers = offers.Take(body.Limit).ToList();
+
+        if (isLinkedSearch)
+        {
+            categories = new Dictionary<MongoId, int>();
+
+            foreach (var (id, count) in _ragfairService.CategoricalOffers)
+            {
+                if (finalOffers.Exists(offer => offer.Items.Exists(j => id == j.TemplateId)))
+                {
+                    categories[id] = count;
+                }
+            }
+        }
 
         responseBody = new ResponseBody<OffersListResponse>()
         {
             data = new OffersListResponse
             {
-                Categories = _ragfairService.CategoricalOffers,
-                Offers = offers.ToList(),
+                Categories = categories,
+                Offers = finalOffers,
                 OffersCount = selectedOffers.Count,
                 SelectedCategory = selectedCategory
             }
@@ -184,18 +214,13 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
             throw new Exception($"Failed to find category of {handbookItem.ParentId} for {handbookItem.Id}");
         }
 
-        if (!_itemFactoryService.ItemTemplates.TryGetValue(linkedSearchId, out var rootItemTemplate))
-        {
-            throw new Exception($"Failed to get ItemTemplate {linkedSearchId}");
-        }
-
         selectedCategory = handbookCategory.Id;
 
+        var rootItemTemplate = ItemFactoryOrm.Instance.GetItemTemplate(linkedSearchId);
         var baseItemProperties = rootItemTemplate.Props;
         var itemProperties = baseItemProperties.ToObject<CompoundItemItemProperties>();
         var magazineItemProperties = baseItemProperties.ToObject<MagazineItemProperties>();
         var weaponItemProperties = baseItemProperties.ToObject<WeaponItemProperties>();
-
         var result = new List<Offer>();
 
         if (itemProperties.Slots != null)

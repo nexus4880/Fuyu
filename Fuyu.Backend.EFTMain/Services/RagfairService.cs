@@ -27,7 +27,7 @@ public class RagfairService
     public List<Offer> Offers { get; } = [];
 
     public Offer CreateAndAddOffer(IRagfairUser user, List<ItemInstance> items, bool isBatch,
-        List<HandoverRequirement> requirements, TimeSpan lifetime, bool unlimitedCount, int loyaltyLevel = 1)
+        List<HandoverRequirement> requirements, TimeSpan lifetime, bool unlimitedCount = false, int loyaltyLevel = 1)
     {
         if (user == null)
         {
