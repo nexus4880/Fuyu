@@ -90,8 +90,8 @@ public class CoreOrm
     {
         if (!_coreDatabase.Sessions.TryGet(sessionId, out var id))
         {
-// I don't want to have to restart the launcher every time I need a new session
-// -- nexus4880, 2025-1-26
+            // I don't want to have to restart the launcher every time I need a new session
+            // -- nexus4880, 2025-1-26
 #if DEBUG
             _coreDatabase.Sessions.Set(sessionId, id);
 #else
@@ -118,5 +118,5 @@ public class CoreOrm
     {
         _coreDatabase.Sessions.Remove(sessionId);
     }
-#endregion
+    #endregion
 }

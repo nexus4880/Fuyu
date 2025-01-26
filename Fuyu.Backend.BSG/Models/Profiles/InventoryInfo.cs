@@ -32,11 +32,11 @@ public class InventoryInfo
         var itemService = ItemService.Instance;
 
         ItemsMap = _itemsForSerialization.ToDictionary(i => i.Id);
-        
+
         foreach (var item in Items)
         {
             var props = itemFactoryService.GetItemProperties<CompoundItemItemProperties>(item.TemplateId);
-            
+
             if (props.Grids.Count > 0)
             {
                 var items = itemService.GetItemAndChildren(Items, item);

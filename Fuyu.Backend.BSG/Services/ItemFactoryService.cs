@@ -49,7 +49,7 @@ public class ItemFactoryService
     {
         var reader = template.Props.CreateReader();
         var serializer = JsonSerializer.Create(Json.jsonSerializerSettings);
-        
+
         return serializer.Deserialize<T>(reader);
     }
 

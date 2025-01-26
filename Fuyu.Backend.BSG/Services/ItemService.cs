@@ -99,7 +99,7 @@ public class ItemService
         if (root.Size == null)
         {
             var rootProperties = _itemFactoryService.GetItemProperties<CompoundItemItemProperties>(root.TemplateId);
-            
+
             var width = rootProperties.Width;
             var height = rootProperties.Height;
 

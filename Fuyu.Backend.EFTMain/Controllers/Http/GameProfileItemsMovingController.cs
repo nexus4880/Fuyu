@@ -83,7 +83,7 @@ public class GameProfileItemsMovingController : AbstractEftHttpController<JObjec
         {
             var action = itemRequest.Value<string>("Action");
             var itemEventContext = new ItemEventContext(sessionId, action, requestIndex, itemRequest, itemEventResponse);
-            
+
             try
             {
                 await ItemEventRouter.RouteAsync(itemEventContext);
