@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain;
+using Fuyu.Backend.EFTMain.Networking;
 
 namespace Fuyu.Devtools.DisableAfkTimer.Controllers;
 

@@ -109,7 +109,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         {
             selectedOffers.RemoveAll(o => o.Requirements.Any(i => !_money.Contains(i.TemplateId)));
         }
-        
+
         if (body.Currency > 0)
         {
             var targetCurrency = _money[body.Currency - 1];
@@ -148,7 +148,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
                 if (repairKit != null)
                 {
                     var properties = _itemFactoryService.GetItemProperties<RepairKitsItemProperties>(o.RootItem.TemplateId);
-                    
+
                     if (properties == null)
                     {
                         return true;
