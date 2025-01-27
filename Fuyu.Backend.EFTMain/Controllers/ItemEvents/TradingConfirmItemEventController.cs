@@ -12,14 +12,14 @@ namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 public class TradingConfirmEventController : AbstractItemEventController<TradingConfirmItemEvent>
 {
     private readonly EftOrm _eftOrm;
-    private readonly TraderOrm _traderOrm;
     private readonly ItemService _itemService;
+    private readonly RagfairService _ragfairService;
 
     public TradingConfirmEventController() : base("TradingConfirm")
     {
         _eftOrm = EftOrm.Instance;
-        _traderOrm = TraderOrm.Instance;
         _itemService = ItemService.Instance;
+        _ragfairService = RagfairService.Instance;
     }
 
     public override Task RunAsync(ItemEventContext context, TradingConfirmItemEvent request)
@@ -79,12 +79,18 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
     public Task BuyFromTrader(ItemEventContext context, TradingConfirmBuyItemEvent request)
     {
         var profile = _eftOrm.GetActiveProfile(context.SessionId);
-        var traderAssort = _traderOrm.GetTraderAssort(request.TraderId);
-        var itemsToBuy = _itemService.GetItemAndChildren(traderAssort.Items, request.ItemId);
+        var offer = _ragfairService.GetOfferByRootItemId(request.ItemId);
 
-        if (itemsToBuy.Count == 0)
+        if (offer == null)
         {
-            throw new Exception("Failed to find item to buy");
+            throw new Exception("Failed to find offer");
+        }
+
+        var itemsToBuy = offer.Items;
+
+        if (offer.RootItem.Updatable.StackObjectsCount < request.Count)
+        {
+            throw new Exception("Trying to buy more than offer has");
         }
 
         if (!profile.Pmc.TradersInfo.HasValue
@@ -94,19 +100,17 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
             throw new Exception("Failed to get trader info");
         }
 
+        // Deduct items from player inventory
         foreach (var tradingItem in request.Items)
         {
             var itemInstance = profile.Pmc.Inventory.FindItem(tradingItem.Id);
 
             if (itemInstance == null)
             {
-                throw new Exception("Failed to find item");
+                throw new Exception("Failed to find item in player inventory");
             }
 
             itemInstance.Updatable.StackObjectsCount -= tradingItem.Count;
-
-            // TODO: this needs to be something like GetItemWorth()
-            traderInfo.salesSum += tradingItem.Count;
 
             if (itemInstance.Updatable.StackObjectsCount <= 0)
             {
@@ -121,6 +125,7 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
 
         var stacks = ItemFactoryService.Instance.CreateItemsFromTradeRequest(itemsToBuy, request.Count);
 
+        // Add new items to player inventory
         foreach (var stack in stacks)
         {
             // Assume horizontal rotation when purchasing items. I'm unsure of live behavior.
@@ -143,6 +148,15 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
 
             context.Response.ProfileChanges[profile.Pmc._id].Items.New.AddRange(stack);
         }
+
+        offer.RootItem.Updatable.StackObjectsCount -= request.Count;
+
+        traderInfo.salesSum += offer.RequirementsCost * request.Count;
+
+        context.Response.ProfileChanges[profile.Pmc._id].TradersData[request.TraderId] = new TraderData
+        {
+            _salesSum = traderInfo.salesSum
+        };
 
         return Task.CompletedTask;
     }
