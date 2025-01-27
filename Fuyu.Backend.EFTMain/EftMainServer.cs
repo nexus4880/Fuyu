@@ -1,5 +1,4 @@
 using Fuyu.Backend.EFT.Controllers.Http;
-using Fuyu.Backend.EFTMain.Controllers;
 using Fuyu.Backend.EFTMain.Controllers.Http;
 using Fuyu.Backend.EFTMain.Controllers.Websocket;
 using Fuyu.Common.Networking;
@@ -88,6 +87,7 @@ public class EftMainServer : HttpServer
         HttpRouter.AddController<SearchOtherProfileController>();
         HttpRouter.AddController<ClientRagfairFindController>();
         HttpRouter.AddController<ClientRagfairItemMarketPriceController>();
+        HttpRouter.AddController<ClientMatchingAvailableController>();
 
         // EFT-WS
         WsRouter.AddController<PushNotiferGetWebsocketController>();
