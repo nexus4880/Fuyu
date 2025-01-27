@@ -41,7 +41,14 @@ public class InventoryInfo
             {
                 var items = itemService.GetItemAndChildren(Items, item);
 
-                item.InitializeMatrices(props.Grids, items);
+                try
+                {
+                    item.InitializeMatrices(props.Grids, items);
+                }
+                catch (Exception)
+                {
+                    // ignored, this fails on bot gifter (and maybe others)
+                }
             }
         }
     }
@@ -275,6 +282,11 @@ public class InventoryInfo
     public List<ItemInstance> GetItemAndChildren(ItemService itemService, MongoId id)
     {
         return itemService.GetItemAndChildren(Items, id);
+    }
+
+    public List<ItemInstance> GetItemAndChildren(ItemService itemService, ItemInstance rootItem)
+    {
+        return itemService.GetItemAndChildren(Items, rootItem);
     }
 
     public List<ItemInstance> GetItemsByTemplate(MongoId templateId)
