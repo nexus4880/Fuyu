@@ -54,6 +54,13 @@ public class RagfairService
             throw new Exception($"{nameof(requirements)} is empty");
         }
 
+        var cost = items.Sum(i => _handbookService.GetPrice(i.TemplateId, 100).Value);
+
+        if (isBatch)
+        {
+            cost *= items[0].Updatable.StackObjectsCount.Value;
+        }
+
         var offer = new Offer()
         {
             Id = MongoId.Generate(),
@@ -61,10 +68,7 @@ public class RagfairService
             User = user,
             RootItemId = items[0].Id,
             Items = items,
-            ItemsCost =
-                (isBatch
-                    ? items.Sum(i => _handbookService.GetPrice(i.TemplateId, 100))
-                    : _handbookService.GetPrice(items[0].TemplateId, 1)).GetValueOrDefault(1),
+            ItemsCost = cost,
             Requirements = requirements,
             RequirementsCost =
                 requirements.Sum(i => _handbookService.GetPrice(i.TemplateId).GetValueOrDefault(1) * i.Count),
@@ -127,5 +131,10 @@ public class RagfairService
         {
             CategoricalOffers[offer.RootItem.TemplateId]--;
         }
+    }
+
+    public Offer GetOfferByRootItemId(MongoId id)
+    {
+        return Offers.Find(o => o.RootItemId == id);
     }
 }
