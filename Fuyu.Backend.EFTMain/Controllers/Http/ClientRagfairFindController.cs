@@ -23,7 +23,9 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
     private readonly EftOrm _eftOrm;
     private readonly RagfairService _ragfairService;
     private readonly HandbookService _handbookService;
+    private readonly ItemService _itemService;
 
+    // TODO: add GP
     private readonly HashSet<MongoId> _money = new HashSet<MongoId>
     {
         // Roubles
@@ -39,6 +41,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         _eftOrm = EftOrm.Instance;
         _ragfairService = RagfairService.Instance;
         _handbookService = HandbookService.Instance;
+        _itemService = ItemService.Instance;
     }
 
     public override Task RunAsync(EftHttpContext context, RagfairFindRequest body)
@@ -102,6 +105,12 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         if (body.RemoveBartering)
         {
             selectedOffers.RemoveAll(o => o.Requirements.Any(i => !_money.Contains(i.TemplateId)));
+        }
+
+        if (body.OnlyFunctional)
+        {
+            // Maybe only needs to run on RootItem?
+            selectedOffers.RemoveAll(o => !o.Items.TrueForAll(i => _itemService.IsFunctional(o.Items, i)));
         }
 
         // Ascending
