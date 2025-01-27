@@ -23,9 +23,10 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
     private readonly EftOrm _eftOrm;
     private readonly RagfairService _ragfairService;
     private readonly HandbookService _handbookService;
+    private readonly ItemFactoryService _itemFactoryService;
     private readonly ItemService _itemService;
 
-    private readonly HashSet<MongoId> _money = new HashSet<MongoId>
+    private readonly List<MongoId> _money = new List<MongoId>
     {
         // Roubles
         "5449016a4bdc2d6f028b456f",
@@ -43,6 +44,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         _ragfairService = RagfairService.Instance;
         _handbookService = HandbookService.Instance;
         _itemService = ItemService.Instance;
+        _itemFactoryService = ItemFactoryService.Instance;
     }
 
     public override Task RunAsync(EftHttpContext context, RagfairFindRequest body)
@@ -107,6 +109,72 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         {
             selectedOffers.RemoveAll(o => o.Requirements.Any(i => !_money.Contains(i.TemplateId)));
         }
+        
+        if (body.Currency > 0)
+        {
+            var targetCurrency = _money[body.Currency - 1];
+
+            selectedOffers.RemoveAll(o => o.Requirements.TrueForAll(i => i.TemplateId != targetCurrency));
+        }
+
+        if (body.QuantityFrom > 0)
+        {
+            selectedOffers.RemoveAll(o => o.RootItem.Updatable.StackObjectsCount < body.QuantityFrom);
+        }
+
+        if (body.QuantityTo > 0)
+        {
+            selectedOffers.RemoveAll(o => o.RootItem.Updatable.StackObjectsCount > body.QuantityTo);
+        }
+
+        if (body.ConditionFrom > 0 || body.ConditionTo < 100)
+        {
+            selectedOffers.RemoveAll(o =>
+            {
+                var repairable = o.RootItem.Updatable.Repairable;
+
+                if (repairable != null)
+                {
+                    var percentage = repairable.Durability / repairable.MaxDurability * 100f;
+
+                    if (percentage > body.ConditionTo || percentage < body.ConditionFrom)
+                    {
+                        return true;
+                    }
+                }
+
+                var repairKit = o.RootItem.Updatable.RepairKit;
+
+                if (repairKit != null)
+                {
+                    var properties = _itemFactoryService.GetItemProperties<RepairKitsItemProperties>(o.RootItem.TemplateId);
+                    
+                    if (properties == null)
+                    {
+                        return true;
+                    }
+
+                    var percentage = repairKit.Resource / properties.MaxRepairResource * 100f;
+
+                    if (percentage > body.ConditionTo || percentage < body.ConditionFrom)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            });
+        }
+
+        if (body.PriceFrom > 0)
+        {
+            selectedOffers.RemoveAll(o => o.RequirementsCost < body.PriceFrom);
+        }
+
+        if (body.PriceTo > 0)
+        {
+            selectedOffers.RemoveAll(o => o.RequirementsCost > body.PriceTo);
+        }
 
         if (body.OnlyFunctional)
         {
@@ -117,12 +185,12 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         // Ascending
         if (body.SortDirection == 0)
         {
-            selectedOffers.Sort((a, b) => a.ItemsCost - b.ItemsCost);
+            selectedOffers.Sort((a, b) => a.RequirementsCost - b.RequirementsCost);
         }
         // Descending
         else
         {
-            selectedOffers.Sort((a, b) => b.ItemsCost - a.ItemsCost);
+            selectedOffers.Sort((a, b) => b.RequirementsCost - a.RequirementsCost);
         }
 
         // Moves the enumerator N times (essentially removing them from the list)
