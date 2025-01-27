@@ -25,7 +25,6 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
     private readonly HandbookService _handbookService;
     private readonly ItemService _itemService;
 
-    // TODO: add GP
     private readonly HashSet<MongoId> _money = new HashSet<MongoId>
     {
         // Roubles
@@ -33,7 +32,9 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         // Dollars
         "5696686a4bdc2da3298b456a",
         // Euros
-        "569668774bdc2da2298b4568"
+        "569668774bdc2da2298b4568",
+        // GP Coin
+        "5d235b4d86f7742e017bc88a"
     };
 
     public ClientRagfairFindController() : base("/client/ragfair/find")
