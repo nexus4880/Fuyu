@@ -37,13 +37,14 @@ public class Router<TController, TContext> where TController : IRouterController
         return (T)controller;
     }
 
-    public TTo ReplaceController<TFrom, TTo>(out TFrom old)
+    public (TFrom oldController, TTo newController) ReplaceController<TFrom, TTo>()
         where TFrom : TController
         where TTo : TController, new()
     {
-        old = RemoveController<TFrom>();
+        var oldController = RemoveController<TFrom>();
+        var newController = AddController<TTo>();
 
-        return AddController<TTo>();
+        return (oldController, newController);
     }
 
     public List<TController> GetAllMatching(TContext context)
