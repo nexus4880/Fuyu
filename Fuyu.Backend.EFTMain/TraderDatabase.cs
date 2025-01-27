@@ -80,7 +80,7 @@ public class TraderDatabase
             HandbookService.Instance.GetPrice(items[0].TemplateId, handOverRequirements[0].Count);
 
             _ragfairService.CreateAndAddOffer(traderRagfairUser, items, false, handOverRequirements,
-                TimeSpan.FromHours(30d), false, loyaltyLevel);
+                TimeSpan.FromHours(30d), loyaltyLevel: loyaltyLevel);
         }
     }
 }
