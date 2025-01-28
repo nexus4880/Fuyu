@@ -98,6 +98,7 @@ public class ItemService
         }
 
         var root = items[0];
+        var isFolded = root.Updatable?.Foldable?.Folded == true;
 
         if (root.Size == null)
         {
@@ -123,6 +124,11 @@ public class ItemService
                     var itemProperties = _itemFactoryService.GetItemProperties<ItemProperties>(items[i].TemplateId);
 
                     if (itemProperties == null)
+                    {
+                        continue;
+                    }
+
+                    if (isFolded && items[i].SlotId == "mod_stock")
                     {
                         continue;
                     }
