@@ -129,41 +129,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
 
         if (body.ConditionFrom > 0 || body.ConditionTo < 100)
         {
-            selectedOffers.RemoveAll(o =>
-            {
-                var repairable = o.RootItem.Updatable.Repairable;
-
-                if (repairable != null)
-                {
-                    var percentage = repairable.Durability / repairable.MaxDurability * 100f;
-
-                    if (percentage > body.ConditionTo || percentage < body.ConditionFrom)
-                    {
-                        return true;
-                    }
-                }
-
-                var repairKit = o.RootItem.Updatable.RepairKit;
-
-                if (repairKit != null)
-                {
-                    var properties = _itemFactoryService.GetItemProperties<RepairKitsItemProperties>(o.RootItem.TemplateId);
-
-                    if (properties == null)
-                    {
-                        return true;
-                    }
-
-                    var percentage = repairKit.Resource / properties.MaxRepairResource * 100f;
-
-                    if (percentage > body.ConditionTo || percentage < body.ConditionFrom)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            });
+            selectedOffers.RemoveAll(o => !MeetsConditions(o, body.ConditionTo, body.ConditionFrom));
         }
 
         if (body.PriceFrom > 0)
@@ -340,5 +306,41 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         }
 
         return result;
+    }
+
+    private bool MeetsConditions(Offer offer, int conditionFrom, int conditionTo)
+    {
+        var repairable = offer.RootItem.Updatable.Repairable;
+
+        if (repairable != null)
+        {
+            var percentage = repairable.Durability / repairable.MaxDurability * 100f;
+
+            if (percentage > conditionTo || percentage < conditionFrom)
+            {
+                return false;
+            }
+        }
+
+        var repairKit = offer.RootItem.Updatable.RepairKit;
+
+        if (repairKit != null)
+        {
+            var properties = _itemFactoryService.GetItemProperties<RepairKitsItemProperties>(offer.RootItem.TemplateId);
+
+            if (properties == null)
+            {
+                return false;
+            }
+
+            var percentage = repairKit.Resource / properties.MaxRepairResource * 100f;
+
+            if (percentage > conditionTo || percentage < conditionFrom)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

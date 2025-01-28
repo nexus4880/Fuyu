@@ -71,7 +71,7 @@ public class ApplyInventoryChangesItemEventController : AbstractItemEventControl
         {
             var itemAndChildren = profile.Pmc.Inventory.GetItemAndChildren(ItemService.Instance, changedItem);
 
-            // Store sorted Location (MUST BE A VALUE1)
+            // Store sorted Location (MUST BE AN UNION.VALUE1)
             var previousLocation = changedItem.Location.Value1;
 
             // Free all items previous positions
