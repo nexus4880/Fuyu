@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Fuyu.Backend.BSG\Fuyu.Backend.BSG.csproj" />
+        <ProjectReference Include="..\..\..\Fuyu.Backend.EFTMain\Fuyu.Backend.EFTMain.csproj" />
+        <ProjectReference Include="..\..\..\Fuyu.Common\Fuyu.Common.csproj" />
+        <ProjectReference Include="..\..\..\Fuyu.Modding\Fuyu.Modding.csproj" />
+    </ItemGroup>
+</Project>

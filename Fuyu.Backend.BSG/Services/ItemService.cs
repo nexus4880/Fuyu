@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Items;
+using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Common.Hashing;
 
 namespace Fuyu.Backend.BSG.Services;
@@ -12,6 +13,7 @@ public class ItemService
     private static readonly Lazy<ItemService> instance = new(() => new ItemService());
 
     private readonly ItemFactoryService _itemFactoryService;
+    private readonly ItemFactoryOrm _itemFactoryOrm;
 
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
@@ -19,6 +21,7 @@ public class ItemService
     private ItemService()
     {
         _itemFactoryService = ItemFactoryService.Instance;
+        _itemFactoryOrm = ItemFactoryOrm.Instance;
     }
 
     public void RegenerateItemIds(IEnumerable<ItemInstance> items, Dictionary<string, string> mapping)
@@ -263,5 +266,63 @@ public class ItemService
         }
 
         return matrix;
+    }
+
+    public bool IsFunctional(List<ItemInstance> items, ItemInstance rootItem)
+    {
+        if (items.Count == 0)
+        {
+            throw new Exception($"{nameof(items)}.Count == 0");
+        }
+
+        if (rootItem == null)
+        {
+            throw new ArgumentNullException(nameof(rootItem));
+        }
+
+        var rootItemTemplate = _itemFactoryOrm.GetItemTemplate(rootItem.TemplateId);
+
+        if (rootItemTemplate == null)
+        {
+            throw new Exception($"Failed to find ItemTemplate for {rootItem.TemplateId}");
+        }
+
+        var itemProperties = _itemFactoryService.GetItemProperties<CompoundItemItemProperties>(rootItemTemplate);
+        var weaponItemProperties = _itemFactoryService.GetItemProperties<WeaponItemProperties>(rootItemTemplate);
+        var result = new List<Offer>();
+
+        if (itemProperties.Slots != null)
+        {
+            foreach (var slot in itemProperties.Slots)
+            {
+                if (!slot.Required)
+                {
+                    continue;
+                }
+
+                if (!items.Exists(i => i.SlotId == slot.Name && i.ParentId == rootItem.Id))
+                {
+                    return false;
+                }
+            }
+        }
+
+        if (weaponItemProperties.Chambers != null)
+        {
+            foreach (var chamber in weaponItemProperties.Chambers)
+            {
+                if (!chamber.Required)
+                {
+                    continue;
+                }
+
+                if (!items.Exists(i => rootItem.SlotId == chamber.Name && i.ParentId == rootItem.Id))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }

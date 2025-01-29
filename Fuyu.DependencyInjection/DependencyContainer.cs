@@ -182,6 +182,12 @@ public class DependencyContainer
         return (T)Resolve(id, typeof(TBase));
     }
 
+    public T Resolve<TBase, T>() where T : class
+        where TBase : class
+    {
+        return (T)Resolve(typeof(T).Name, typeof(TBase));
+    }
+
     #endregion
 
     #region ResolveAll

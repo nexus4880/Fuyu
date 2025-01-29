@@ -6,6 +6,7 @@ using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Common.Hashing;
+using Fuyu.Common.IO;
 
 namespace Fuyu.Backend.BSG.Models.Profiles;
 
@@ -41,7 +42,15 @@ public class InventoryInfo
             {
                 var items = itemService.GetItemAndChildren(Items, item);
 
-                item.InitializeMatrices(props.Grids, items);
+                try
+                {
+                    item.InitializeMatrices(props.Grids, items);
+                }
+                catch (Exception ex)
+                {
+                    // this fails on bot gifter (and maybe others)
+                    Terminal.WriteLine($"Failed to initialize matrices: {ex}");
+                }
             }
         }
     }
@@ -275,6 +284,11 @@ public class InventoryInfo
     public List<ItemInstance> GetItemAndChildren(ItemService itemService, MongoId id)
     {
         return itemService.GetItemAndChildren(Items, id);
+    }
+
+    public List<ItemInstance> GetItemAndChildren(ItemService itemService, ItemInstance rootItem)
+    {
+        return itemService.GetItemAndChildren(Items, rootItem);
     }
 
     public List<ItemInstance> GetItemsByTemplate(MongoId templateId)

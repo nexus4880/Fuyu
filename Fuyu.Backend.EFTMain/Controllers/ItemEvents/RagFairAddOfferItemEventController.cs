@@ -15,13 +15,11 @@ public class RagFairAddOfferItemEventController : AbstractItemEventController<Ra
 {
     private readonly RagfairService _ragfairService;
     private readonly EftOrm _eftOrm;
-    private readonly ItemService _itemService;
 
     public RagFairAddOfferItemEventController() : base("RagFairAddOffer")
     {
         _ragfairService = RagfairService.Instance;
         _eftOrm = EftOrm.Instance;
-        _itemService = ItemService.Instance;
     }
 
     public override Task RunAsync(ItemEventContext context, RagFairAddOfferItemEvent request)
@@ -45,7 +43,7 @@ public class RagFairAddOfferItemEventController : AbstractItemEventController<Ra
         }
 
         var offer = _ragfairService.CreateAndAddOffer(ragfairUser, items, request.SellAsPack, request.Requirements,
-            TimeSpan.FromMinutes(30d), false);
+            TimeSpan.FromMinutes(30d));
 
         if (offer == null)
         {

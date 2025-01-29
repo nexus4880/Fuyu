@@ -23,15 +23,19 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
     private readonly EftOrm _eftOrm;
     private readonly RagfairService _ragfairService;
     private readonly HandbookService _handbookService;
+    private readonly ItemFactoryService _itemFactoryService;
+    private readonly ItemService _itemService;
 
-    private readonly HashSet<MongoId> _money = new HashSet<MongoId>
+    private readonly List<MongoId> _money = new List<MongoId>
     {
         // Roubles
         "5449016a4bdc2d6f028b456f",
         // Dollars
         "5696686a4bdc2da3298b456a",
         // Euros
-        "569668774bdc2da2298b4568"
+        "569668774bdc2da2298b4568",
+        // GP Coin
+        "5d235b4d86f7742e017bc88a"
     };
 
     public ClientRagfairFindController() : base("/client/ragfair/find")
@@ -39,6 +43,8 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         _eftOrm = EftOrm.Instance;
         _ragfairService = RagfairService.Instance;
         _handbookService = HandbookService.Instance;
+        _itemService = ItemService.Instance;
+        _itemFactoryService = ItemFactoryService.Instance;
     }
 
     public override Task RunAsync(EftHttpContext context, RagfairFindRequest body)
@@ -104,15 +110,53 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
             selectedOffers.RemoveAll(o => o.Requirements.Any(i => !_money.Contains(i.TemplateId)));
         }
 
+        if (body.Currency > 0)
+        {
+            var targetCurrency = _money[body.Currency - 1];
+
+            selectedOffers.RemoveAll(o => o.Requirements.TrueForAll(i => i.TemplateId != targetCurrency));
+        }
+
+        if (body.QuantityFrom > 0)
+        {
+            selectedOffers.RemoveAll(o => o.RootItem.Updatable.StackObjectsCount < body.QuantityFrom);
+        }
+
+        if (body.QuantityTo > 0)
+        {
+            selectedOffers.RemoveAll(o => o.RootItem.Updatable.StackObjectsCount > body.QuantityTo);
+        }
+
+        if (body.ConditionFrom > 0 || body.ConditionTo < 100)
+        {
+            selectedOffers.RemoveAll(o => !MeetsConditions(o, body.ConditionTo, body.ConditionFrom));
+        }
+
+        if (body.PriceFrom > 0)
+        {
+            selectedOffers.RemoveAll(o => o.RequirementsCost < body.PriceFrom);
+        }
+
+        if (body.PriceTo > 0)
+        {
+            selectedOffers.RemoveAll(o => o.RequirementsCost > body.PriceTo);
+        }
+
+        if (body.OnlyFunctional)
+        {
+            // Maybe only needs to run on RootItem?
+            selectedOffers.RemoveAll(o => !o.Items.TrueForAll(i => _itemService.IsFunctional(o.Items, i)));
+        }
+
         // Ascending
         if (body.SortDirection == 0)
         {
-            selectedOffers.Sort((a, b) => a.ItemsCost - b.ItemsCost);
+            selectedOffers.Sort((a, b) => a.RequirementsCost - b.RequirementsCost);
         }
         // Descending
         else
         {
-            selectedOffers.Sort((a, b) => b.ItemsCost - a.ItemsCost);
+            selectedOffers.Sort((a, b) => b.RequirementsCost - a.RequirementsCost);
         }
 
         // Moves the enumerator N times (essentially removing them from the list)
@@ -262,5 +306,41 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         }
 
         return result;
+    }
+
+    private bool MeetsConditions(Offer offer, int conditionFrom, int conditionTo)
+    {
+        var repairable = offer.RootItem.Updatable.Repairable;
+
+        if (repairable != null)
+        {
+            var percentage = repairable.Durability / repairable.MaxDurability * 100f;
+
+            if (percentage > conditionTo || percentage < conditionFrom)
+            {
+                return false;
+            }
+        }
+
+        var repairKit = offer.RootItem.Updatable.RepairKit;
+
+        if (repairKit != null)
+        {
+            var properties = _itemFactoryService.GetItemProperties<RepairKitsItemProperties>(offer.RootItem.TemplateId);
+
+            if (properties == null)
+            {
+                return false;
+            }
+
+            var percentage = repairKit.Resource / properties.MaxRepairResource * 100f;
+
+            if (percentage > conditionTo || percentage < conditionFrom)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

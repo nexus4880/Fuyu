@@ -21,7 +21,7 @@ public class RagfairFindRequest
     public int SortDirection { get; set; }
 
     [DataMember(Name = "currency")]
-    public ECurrencyType Currency { get; set; }
+    public int Currency { get; set; }
 
     [DataMember(Name = "priceFrom")]
     public int PriceFrom { get; set; }
