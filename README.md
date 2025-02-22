@@ -26,7 +26,7 @@ Arena    | none (yet)
 
 ## License
 
-(C) seionmoya, all rights reserved.
+See `LICENSE.md`.
 
 ## FAQ
 
