@@ -18,7 +18,7 @@ public class ModConfig : Config<ModConfig>
     /// </summary>
     private ModConfig()
     {
-        Address = "http://localhost:8010";
+        Address = "https://localhost:44301";
         GamePath = new DirectoryInfo(Environment.CurrentDirectory).FullName;
     }
 

@@ -19,6 +19,6 @@ public class BackendTest
         _ = new CoreServer();
 
         // create request clients
-        _coreClient = new HttpClient("http://localhost:8000");
+        _coreClient = new HttpClient("https://localhost:44300");
     }
 }

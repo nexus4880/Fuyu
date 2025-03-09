@@ -35,7 +35,7 @@ public class GameModeController : AbstractEftHttpController<ClientGameModeReques
             data = new GameModeResponse()
             {
                 GameMode = body.SessionMode,
-                BackendUrl = "http://localhost:8010"
+                BackendUrl = "https://localhost:44301"
             }
         };
 

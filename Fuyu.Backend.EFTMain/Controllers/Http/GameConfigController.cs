@@ -23,11 +23,11 @@ public class GameConfigController : AbstractEftHttpController
                 // --seionmoya, 2024-11-18
                 backend = new Backends()
                 {
-                    Lobby = "http://localhost:8010",
-                    Trading = "http://localhost:8010",
-                    Messaging = "http://localhost:8010",
-                    Main = "http://localhost:8010",
-                    RagFair = "http://localhost:8010"
+                    Lobby = "https://localhost:44301",
+                    Trading = "https://localhost:44301",
+                    Messaging = "https://localhost:44301",
+                    Main = "https://localhost:44301",
+                    RagFair = "https://localhost:44301"
                 },
                 // TODO: update with TimeService later
                 utc_time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000d,

@@ -24,7 +24,7 @@ public class NotifierChannelCreateController : AbstractEftHttpController
             {
                 Server = "localhost:8010",
                 ChannelId = channelId,
-                URL = $"http://localhost:8010/push/notifier/get/{channelId}",
+                URL = $"https://localhost:44301/push/notifier/get/{channelId}",
                 WS = $"ws://localhost:8010/push/notifier/getwebsocket/{channelId}"
             }
         };

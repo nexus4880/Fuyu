@@ -5,7 +5,7 @@ namespace Fuyu.Backend.Core;
 
 public class CoreServer : HttpServer
 {
-    public CoreServer() : base("core", "http://localhost:8000/")
+    public CoreServer() : base("core", "https://localhost:44300/")
     {
     }
 

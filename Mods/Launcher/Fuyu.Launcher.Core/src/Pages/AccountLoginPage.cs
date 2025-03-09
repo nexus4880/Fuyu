@@ -76,7 +76,7 @@ public class AccountLoginPage : AbstractPage
         // handle response
         if (response.Status == ELoginStatus.Success)
         {
-            var coreClient = new CoreHttpClient("http://localhost:8000", response.SessionId);
+            var coreClient = new CoreHttpClient("https://localhost:44300", response.SessionId);
             RequestService.AddOrSetClient("core", coreClient);
 
             var page = "account-games.html";

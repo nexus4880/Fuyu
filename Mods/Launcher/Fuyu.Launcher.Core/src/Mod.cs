@@ -30,7 +30,7 @@ public class Mod : AbstractMod
         InitializePages();
         InitializeAssets();
 
-        var coreHttpClient = new HttpClient("http://localhost:8000");
+        var coreHttpClient = new HttpClient("https://localhost:44300");
         _requestService.AddOrSetClient("core", coreHttpClient);
 
         return Task.CompletedTask;

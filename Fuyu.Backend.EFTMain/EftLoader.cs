@@ -94,7 +94,7 @@ public class EftLoader
     public void Load()
     {
         // add srver request client
-        var eftHttpClient = new HttpClient("http://localhost:8010");
+        var eftHttpClient = new HttpClient("https://localhost:44301");
         RequestService.Instance.AddOrSetClient("eft", eftHttpClient);
 
         // set data source

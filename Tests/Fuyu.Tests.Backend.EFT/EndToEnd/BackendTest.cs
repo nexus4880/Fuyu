@@ -73,7 +73,7 @@ public class BackendTest
         _eftSessionId = Fuyu.Backend.EFTMain.Services.AccountService.Instance.LoginAccount(eftAccountId);
 
         // create request clients
-        _eftMainClient = new EftHttpClient("http://localhost:8010", _eftSessionId, "0.16.0.2.34510");
+        _eftMainClient = new EftHttpClient("https://localhost:44301", _eftSessionId, "0.16.0.2.34510");
 
         var account = EftOrm.Instance.GetAccount(eftAccountId);
         ProfileService.Instance.WipeProfile(account, "Usec", "5cde96047d6c8b20b577f016", "6284d6ab8e4092597733b7a7");

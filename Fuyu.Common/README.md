@@ -35,7 +35,7 @@ public class Program
     static void Main()
     {
         // creates a server instance
-        var server = new HttpServer("main", "http://localhost:8000");
+        var server = new HttpServer("main", "https://localhost:44300");
 
         // register HelloWorld behaviour to the path /helloworld
         server.AddHttpController<HelloWorld>("/helloworld");
@@ -68,7 +68,7 @@ public class Program
     static async Task Main()
     {
         // make a client instance
-        var client = new HttpClient("http://localhost:8000");
+        var client = new HttpClient("https://localhost:44300");
 
         // make request
         var data = await client.GetAsync("/helloworld");
