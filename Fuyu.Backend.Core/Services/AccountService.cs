@@ -47,7 +47,7 @@ public class AccountService
             {
                 found.Add(account);
             }
-        };
+        }
 
         if (found.Count == 0)
         {
