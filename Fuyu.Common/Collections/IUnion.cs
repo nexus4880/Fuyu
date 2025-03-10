@@ -30,7 +30,7 @@ public interface IUnion
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
 public class UnionMappingsAttribute : Attribute
 {
-    public JTokenType[] Tokens { get; set; }
+    public JTokenType[] Tokens { get; }
 
     public UnionMappingsAttribute(params JTokenType[] tokens)
     {
