@@ -6,9 +6,6 @@ namespace Fuyu.Backend.BSG.Models.Profiles;
 public class MoneyTransferLimitInfo
 {
     [DataMember]
-    public int items { get; set; }
-
-    [DataMember]
     public int nextResetTime { get; set; }
 
     [DataMember]

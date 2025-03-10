@@ -14,15 +14,15 @@ public class HideoutInfo
     [DataMember]
     public object Production { get; set; }
 
-    [DataMember]
-    public HideoutAreaInfo[] Areas { get; set; }
-
     // TODO: proper type
     [DataMember]
     public object Improvements { get; set; }
 
     [DataMember]
-    public long Seed { get; set; }
+    public HideoutAreaInfo[] Areas { get; set; }
+
+    [DataMember]
+    public string Seed { get; set; }
 
     [DataMember(Name = "Customization")]
     public Dictionary<EHideoutCustomizationType, MongoId?> GlobalCustomization { get; set; }

@@ -10,19 +10,19 @@ namespace Fuyu.Backend.BSG.Models.Profiles;
 public class HealthInfo
 {
     [DataMember]
-    public ClampedHealthStat<float> Hydration { get; set; }
+    public BodyPartInfo BodyParts { get; set; }
 
     [DataMember]
     public ClampedHealthStat<float> Energy { get; set; }
+
+    [DataMember]
+    public ClampedHealthStat<float> Hydration { get; set; }
 
     [DataMember]
     public ClampedHealthStat<float> Temperature { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
     public ClampedHealthStat<float> Poison { get; set; }
-
-    [DataMember]
-    public BodyPartInfo BodyParts { get; set; }
 
     [DataMember]
     public int? UpdateTime { get; set; }

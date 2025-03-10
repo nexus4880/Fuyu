@@ -86,7 +86,7 @@ public class InventoryService
         // regenerate inventory favorite items
         if (inventory.FavoriteItems != null)
         {
-            for (var i = 0; i < inventory.FavoriteItems.Length; ++i)
+            for (var i = 0; i < inventory.FavoriteItems.Count; ++i)
             {
                 var itemId = inventory.FavoriteItems[i];
                 inventory.FavoriteItems[i] = mapping[itemId];

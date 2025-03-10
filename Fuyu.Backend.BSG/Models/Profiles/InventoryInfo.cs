@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using Fuyu.Backend.BSG.ItemTemplates;
+using Fuyu.Backend.BSG.Models.Hideout;
 using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Common.Hashing;
@@ -61,23 +62,24 @@ public class InventoryInfo
     [DataMember(Name = "stash")]
     public MongoId? Stash { get; set; }
 
-    [DataMember(Name = "sortingTable")]
-    public MongoId? SortingTable { get; set; }
-
     [DataMember(Name = "questRaidItems")]
     public MongoId? QuestRaidItems { get; set; }
 
     [DataMember(Name = "questStashItems")]
     public MongoId? QuestStashItems { get; set; }
 
-    [DataMember(Name = "fastPanel")]
-    public Dictionary<string, MongoId> FastPanel { get; set; }
+    [DataMember(Name = "sortingTable")]
+    public MongoId? SortingTable { get; set; }
 
     [DataMember(Name = "hideoutAreaStashes")]
-    public Dictionary<string, MongoId> HideoutAreaStashes { get; set; }
+    public Dictionary<EAreaType, MongoId> HideoutAreaStashes { get; set; }
+
+    [DataMember(Name = "fastPanel")]
+    // TODO: proper type later
+    public Dictionary<string, MongoId> FastPanel { get; set; }
 
     [DataMember(Name = "favoriteItems")]
-    public MongoId[] FavoriteItems { get; set; }
+    public List<MongoId> FavoriteItems { get; set; }
 
     [DataMember(Name = "hideoutCustomizationStashId")]
     public MongoId? HideoutCustomizationStashId { get; set; }

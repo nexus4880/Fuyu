@@ -20,11 +20,17 @@ public class Profile
     [DataMember(EmitDefaultValue = false)]
     public MongoId? savage { get; set; }
 
+    [DataMember(Name = "karmaValue")]
+    public float KarmaValue { get; set; }
+
     [DataMember]
     public ProfileInfo Info { get; set; }
 
     [DataMember]
     public CustomizationInfo Customization { get; set; }
+
+    [DataMember]
+    public Dictionary<MongoId, bool> Encyclopedia { get; set; }
 
     [DataMember]
     public HealthInfo Health { get; set; }
@@ -33,32 +39,16 @@ public class Profile
     public InventoryInfo Inventory { get; set; }
 
     [DataMember]
-    public SkillInfo Skills { get; set; }
-
-    [DataMember]
-    public StatsInfo Stats { get; set; }
-
-    [DataMember]
-    public Dictionary<MongoId, bool> Encyclopedia { get; set; }
-
-    [DataMember]
-    public Dictionary<string, ConditionCounter> TaskConditionCounters { get; set; }
-
-    [DataMember]
     public List<InsuredItem> InsuredItems { get; set; }
 
     [DataMember]
-    public HideoutInfo Hideout { get; set; }
-
-    [DataMember]
-    public List<BonusInfo> Bonuses { get; set; }
-
-    [DataMember]
-    [UnionMappings(JTokenType.Object, JTokenType.Array)]
-    public Union<Dictionary<MongoId, EWishlistGroup>, object[]> WishList { get; set; }
+    public SkillInfo Skills { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
     public NotesInfo Notes { get; set; }
+
+    [DataMember]
+    public Dictionary<string, ConditionCounter> TaskConditionCounters { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
     public List<QuestInfo> Quests { get; set; }
@@ -66,23 +56,41 @@ public class Profile
     [DataMember(EmitDefaultValue = false)]
     public Dictionary<MongoId, int> Achievements { get; set; }
 
-    // TODO: proper type
-    // seionmoya, 2025-01-04
-    [DataMember(EmitDefaultValue = false)]
-    public object Prestige { get; set; }
-
-    [DataMember(EmitDefaultValue = false)]
-    public RagfairInfo RagfairInfo { get; set; }
-
     [DataMember(EmitDefaultValue = false)]
     [UnionMappings(JTokenType.Object, JTokenType.Array)]
-    public Union<Dictionary<MongoId, TraderInfo>, object[]>? TradersInfo { get; set; }
+    public Union<Dictionary<MongoId, int>, MongoId[]> Prestige { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
     public UnlockedInfo UnlockedInfo { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
     public MoneyTransferLimitInfo moneyTransferLimitData { get; set; }
+
+    [DataMember]
+    public List<BonusInfo> Bonuses { get; set; }
+
+    [DataMember]
+    public HideoutInfo Hideout { get; set; }
+
+    [DataMember(EmitDefaultValue = false)]
+    public RagfairInfo RagfairInfo { get; set; }
+
+    [DataMember]
+    [UnionMappings(JTokenType.Object, JTokenType.Array)]
+    public Union<Dictionary<MongoId, EWishlistGroup>, object[]> WishList { get; set; }
+
+    [DataMember]
+    public StatsInfo Stats { get; set; }
+
+    [DataMember]
+    public Dictionary<MongoId, int> CheckedMagazines { get; set; } = [];
+
+    [DataMember]
+    public List<MongoId> CheckedChambers { get; set; } = [];
+
+    [DataMember(EmitDefaultValue = false)]
+    [UnionMappings(JTokenType.Object, JTokenType.Array)]
+    public Union<Dictionary<MongoId, TraderInfo>, object[]>? TradersInfo { get; set; }
 
     // NOTE: Deserialization works but is deserialized as
     // an array because the profile has "WishList": [] by default

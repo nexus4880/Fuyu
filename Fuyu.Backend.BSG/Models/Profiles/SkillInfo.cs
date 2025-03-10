@@ -11,7 +11,4 @@ public class SkillInfo
 
     [DataMember]
     public Mastery[] Mastering { get; set; }
-
-    [DataMember]
-    public int Points { get; set; }
 }

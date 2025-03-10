@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Fuyu.Common.Hashing;
 
@@ -22,22 +23,22 @@ public class EftStats
     public int? TotalSessionExperience { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
-    public int? LastSessionDate { get; set; }
+    public long? LastSessionDate { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
     public AggressorInfo Aggressor { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
-    public PlacedQuestItem[] DroppedItems { get; set; }
+    public List<PlacedQuestItem> DroppedItems { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
-    public FoundQuestItem[] FoundInRaidItems { get; set; }
+    public List<FoundQuestItem> FoundInRaidItems { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
-    public VictimInfo[] Victims { get; set; }
+    public List<VictimInfo> Victims { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
-    public MongoId[] CarriedQuestItems { get; set; }
+    public List<MongoId> CarriedQuestItems { get; set; }
 
     [DataMember(EmitDefaultValue = false)]
     public DamageHistory DamageHistory { get; set; }

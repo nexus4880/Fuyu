@@ -9,7 +9,7 @@ namespace Fuyu.Backend.BSG.Models.Profiles;
 public class QuestInfo
 {
     [DataMember]
-    public MongoId qid { get; set; }
+    public string qid { get; set; }
 
     [DataMember]
     public long startTime { get; set; }
@@ -18,5 +18,11 @@ public class QuestInfo
     public EQuestStatus status { get; set; }
 
     [DataMember]
-    public Dictionary<string, long> statusTimers { get; set; }
+    public Dictionary<EQuestStatus, long> statusTimers { get; set; }
+
+    [DataMember(Name = "completedConditions")]
+    public HashSet<MongoId> CompletedConditions { get; set; }
+
+    [DataMember(Name = "availableAfter")]
+    public long AvailableAfter { get; set; }
 }

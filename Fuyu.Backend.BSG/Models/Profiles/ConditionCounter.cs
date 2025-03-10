@@ -1,4 +1,5 @@
 using System.Runtime.Serialization;
+using Fuyu.Common.Hashing;
 
 namespace Fuyu.Backend.BSG.Models.Profiles;
 
@@ -6,14 +7,14 @@ namespace Fuyu.Backend.BSG.Models.Profiles;
 public class ConditionCounter
 {
     [DataMember]
-    public string id { get; set; }
+    public MongoId id { get; set; }
+
+    [DataMember]
+    public int value { get; set; }
 
     [DataMember]
     public string sourceId { get; set; }
 
     [DataMember]
     public string type { get; set; }
-
-    [DataMember]
-    public int value { get; set; }
 }

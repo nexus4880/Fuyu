@@ -1,4 +1,5 @@
 using System.Runtime.Serialization;
+using Fuyu.Backend.BSG.Models.Trading;
 
 namespace Fuyu.Backend.BSG.Models.Profiles;
 
@@ -11,7 +12,6 @@ public class RagfairInfo
     [DataMember]
     public bool isRatingGrowing { get; set; }
 
-    // TODO: proper type
     [DataMember]
-    public object[] offers { get; set; }
+    public Offer[] offers { get; set; }
 }
