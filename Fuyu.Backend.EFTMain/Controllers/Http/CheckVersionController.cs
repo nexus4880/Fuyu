@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
@@ -15,8 +14,9 @@ public class CheckVersionController : AbstractEftHttpController
     {
         // TODO: Add global constant somewhere where we can define the supported version of EFT/Arena?
         // -- slejmur, 2025-01-09
-        string currentVersion = "0.16.0.2.34510";
+        var currentVersion = "0.16.1.3.35392";
         var appVersion = context.EftVersion;
+
         appVersion = appVersion.Replace("EFT Client ", "");
 
         var response = new ResponseBody<CheckVersionResponse>()
@@ -24,7 +24,7 @@ public class CheckVersionController : AbstractEftHttpController
             data = new CheckVersionResponse()
             {
                 isvalid = false,
-                latestVersion = "0.16.0.2.34510"
+                latestVersion = currentVersion
             }
         };
 
