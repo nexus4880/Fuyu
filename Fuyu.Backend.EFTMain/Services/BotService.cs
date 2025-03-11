@@ -116,6 +116,9 @@ public class BotService
     {
         var profile = Json.Parse<Profile>(_profiles[role]);
 
+        // TODO: remove this when new dumps are acquired
+        profile.Prestige = new Dictionary<MongoId, int>();
+
         // regenerate all ids
         profile._id = MongoId.Generate();
         _inventoryService.RegenerateIds(profile.Inventory);
