@@ -72,20 +72,49 @@ public class ItemInstance
 
     public void InitializeMatrices(IList<Grid> grids, IList<ItemInstance> children)
     {
-        foreach (var grid in grids)
+        Matrices = new MatricesClass(grids, children);
+    }
+
+    public MatricesClass Matrices { get; private set; }
+}
+
+// TODO: figure this out at a later date
+// -- nexus4880, 2025-3-10
+public class MatricesClass
+{
+    private readonly IList<Grid> _grids;
+    private readonly IList<ItemInstance> _children;
+    private readonly Dictionary<string, bool[,]> _cachedMatrices = [];
+
+    public MatricesClass(IList<Grid> grids, IList<ItemInstance> children)
+    {
+        _grids = grids;
+        _children = children;
+    }
+
+    public bool[,] this[string name]
+    {
+        get
         {
+            if (_cachedMatrices.TryGetValue(name, out var result))
+            {
+                return result;
+            }
+
+            var grid = _grids.First(g => g.Name == name);
+
             var width = grid.Properties.CellsHorizontal;
             var height = grid.Properties.CellsVertical;
             var matrix = new bool[width, height];
 
-            foreach (var itemInGrid in children.Where(i => i.SlotId == grid.Name))
+            foreach (var itemInGrid in _children.Where(i => i.SlotId == grid.Name))
             {
                 if (!itemInGrid.Location.IsValue1)
                 {
                     throw new Exception("!itemInGrid.Location.IsValue1");
                 }
 
-                var itemsInGrid = ItemService.Instance.GetItemAndChildren(children.ToList(), itemInGrid);
+                var itemsInGrid = ItemService.Instance.GetItemAndChildren(_children.ToList(), itemInGrid);
                 (int itemWidth, int itemHeight) = ItemService.Instance.CalculateItemSize(itemsInGrid, itemInGrid.Location.Value1.r);
 
                 for (var dx = 0; dx < itemWidth; dx++)
@@ -100,9 +129,14 @@ public class ItemInstance
                 }
             }
 
-            Matrices[grid.Name] = matrix;
+            _cachedMatrices[grid.Name] = matrix;
+
+            return matrix;
         }
     }
 
-    public Dictionary<string, bool[,]> Matrices { get; } = [];
+    public bool TryGetValue(string name, out bool[,] result)
+    {
+        return _cachedMatrices.TryGetValue(name, out result);
+    }
 }
