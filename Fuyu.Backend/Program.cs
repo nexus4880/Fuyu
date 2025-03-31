@@ -35,6 +35,11 @@ public class Program
         while (CommandService.Instance.IsRunning)
         {
             var text = Terminal.ReadLine();
+            if (text == null)
+            {
+                break;
+            }
+            
             var args = text.Split(' ');
             CommandService.Instance.RunCommand(args);
         }
