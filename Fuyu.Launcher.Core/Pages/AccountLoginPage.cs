@@ -1,5 +1,4 @@
 using System;
-using Fuyu.Backend.Core.Models.Responses;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.Common.Launcher.Models.Messages;
@@ -10,6 +9,7 @@ using Fuyu.Launcher.Core.Models.Accounts;
 using Fuyu.Launcher.Core.Models.Messages;
 using Fuyu.Launcher.Core.Models.Replies;
 using Fuyu.Launcher.Core.Models.Requests;
+using Fuyu.Launcher.Core.Models.Response;
 using Fuyu.Launcher.Core.Networking;
 
 namespace Fuyu.Launcher.Core.Pages;

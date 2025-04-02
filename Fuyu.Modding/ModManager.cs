@@ -90,7 +90,8 @@ public class ModManager
                 case EModType.Source:
                     ProcessSourceFiles(modDirectory);
                     break;
-
+                case EModType.Disabled:
+                    break;
                 default:
                     throw new Exception($"{modDirectory} does not contain a valid mod setup");
             }
@@ -99,6 +100,11 @@ public class ModManager
 
     private EModType GetModType(string directory)
     {
+        if (Directory.GetFiles(directory, ".disabled").Length > 0)
+        {
+            return EModType.Disabled;
+        }
+
         if (Directory.GetFiles(directory, "*.dll").Length > 0)
         {
             return EModType.DLL;

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <LangVersion>13</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\account-games.html" />
+    <None Remove="Resources\account-login.html" />
+    <None Remove="Resources\account-register.html" />
+    <None Remove="Resources\assets\css\bootstrap.min.css" />
+    <None Remove="Resources\assets\css\styles.css" />
+    <None Remove="Resources\assets\js\bootstrap.min.js" />
+    <None Remove="Resources\assets\js\popper.min.js" />
+    <None Remove="Resources\settings.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\account-games.html" />
+    <EmbeddedResource Include="Resources\account-login.html" />
+    <EmbeddedResource Include="Resources\account-register.html" />
+    <EmbeddedResource Include="Resources\assets\css\bootstrap.min.css" />
+    <EmbeddedResource Include="Resources\assets\css\styles.css" />
+    <EmbeddedResource Include="Resources\assets\js\bootstrap.min.js" />
+    <EmbeddedResource Include="Resources\assets\js\popper.min.js" />
+    <EmbeddedResource Include="Resources\settings.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Fix MSB3277: Found conflicts between different versions of "WindowsBase" that could not be resolved. -->
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Fuyu.Common/Fuyu.Common.csproj" />
+    <ProjectReference Include="../Fuyu.DependencyInjection/Fuyu.DependencyInjection.csproj" />
+    <ProjectReference Include="../Fuyu.Common.Launcher/Fuyu.Common.Launcher.csproj" />
+    <ProjectReference Include="../Fuyu.Modding/Fuyu.Modding.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -5,33 +5,34 @@ using Fuyu.Common.Launcher.Models.Settings;
 using Fuyu.Common.Launcher.Services;
 using Fuyu.Common.Networking;
 using Fuyu.Common.Services;
-using Fuyu.DependencyInjection;
+using Fuyu.DependencyInjection.Attributes;
 using Fuyu.Launcher.EFT.Pages;
-using Fuyu.Modding;
 
 namespace Fuyu.Launcher.EFT;
 
-public class Mod : AbstractMod
+public class EFTLauncherExtension
 {
-    public override string Id { get; } = "Fuyu.Launcher.EFT";
-    public override string Name { get; } = "Fuyu.Launcher.EFT";
-    public override string[] Dependencies { get; } = [
-        "Fuyu.Launcher.Core"
-    ];
+    private static readonly string _resourceId = "Fuyu.Launcher.EFT";
 
-    private ContentService _contentService;
-    private RequestService _requestService;
-    private SettingsService _settingsService;
+    private readonly ContentService _contentService;
+    private readonly RequestService _requestService;
+    private readonly SettingsService _settingsService;
 
-    public override Task OnLoad(DependencyContainer container)
+    [Injectable]
+    public EFTLauncherExtension(
+        [Inject] ContentService contentService,
+        [Inject] RequestService requestService,
+        [Inject] SettingsService settingsService)
     {
-        // resolve dependencies
-        _contentService = ContentService.Instance;
-        _requestService = RequestService.Instance;
-        _settingsService = SettingsService.Instance;
+        _contentService = contentService;
+        _requestService = requestService;
+        _settingsService = settingsService;
+    }
 
+    public Task Initialize()
+    {
         // Register resources
-        Resx.SetSource(Id, this.GetType().Assembly);
+        Resx.SetSource(_resourceId, this.GetType().Assembly);
 
         // Load config
         ModConfig.Instance.Load();
@@ -94,9 +95,9 @@ public class Mod : AbstractMod
         return path switch
         {
             // filepath                    stream
-            "assets/css/game-eft.css" => Resx.GetStream(Id, "assets.css.game-eft.css"),
-            "assets/img/bg-eft.png" => Resx.GetStream(Id, "assets.img.bg-eft.png"),
-            "assets/img/logo-eft.png" => Resx.GetStream(Id, "assets.img.logo-eft.png"),
+            "assets/css/game-eft.css" => Resx.GetStream(_resourceId, "assets.css.game-eft.css"),
+            "assets/img/bg-eft.png" => Resx.GetStream(_resourceId, "assets.img.bg-eft.png"),
+            "assets/img/logo-eft.png" => Resx.GetStream(_resourceId, "assets.img.logo-eft.png"),
             _ => throw new FileNotFoundException()
         };
     }

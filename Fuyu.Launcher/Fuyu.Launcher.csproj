@@ -25,6 +25,8 @@
     <ProjectReference Include="../Fuyu.DependencyInjection/Fuyu.DependencyInjection.csproj" />
     <ProjectReference Include="../Fuyu.Modding/Fuyu.Modding.csproj" />
     <ProjectReference Include="../Fuyu.Common.Launcher/Fuyu.Common.Launcher.csproj" />
+    <ProjectReference Include="..\Fuyu.Launcher.Core\Fuyu.Launcher.Core.csproj" />
+    <ProjectReference Include="..\Fuyu.Launcher.EFT\Fuyu.Launcher.EFT.csproj" />
   </ItemGroup>
 
   <ItemGroup>

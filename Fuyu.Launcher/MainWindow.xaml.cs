@@ -2,7 +2,10 @@
 using System.Windows;
 using Fuyu.Common.IO;
 using Fuyu.Common.Launcher.Services;
+using Fuyu.Common.Services;
 using Fuyu.DependencyInjection;
+using Fuyu.Launcher.Core;
+using Fuyu.Launcher.EFT;
 using Fuyu.Modding;
 
 namespace Fuyu.Launcher;
@@ -30,6 +33,14 @@ public partial class MainWindow : Window
         var navigationService = NavigationService.Instance;
         var webViewService = WebViewService.Instance;
 
+        container.RegisterSingleton(contentService);
+        container.RegisterSingleton(messageService);
+        container.RegisterSingleton(modManager);
+        container.RegisterSingleton(navigationService);
+        container.RegisterSingleton(webViewService);
+        container.RegisterSingleton(RequestService.Instance);
+        container.RegisterSingleton(SettingsService.Instance);
+
         // initialize webview
         await browser.EnsureCoreWebView2Async(null);
         var webview = browser.CoreWebView2;
@@ -53,6 +64,12 @@ public partial class MainWindow : Window
 #else
         var modPath = "./Fuyu/Mods/Launcher";
 #endif
+
+        var core = container.Resolve<LauncherCoreExtension>();
+        await core.Initialize();
+
+        var launcher = container.Resolve<EFTLauncherExtension>();
+        await launcher.Initialize();
 
         modManager.AddMods(modPath);
         await modManager.Load(container);

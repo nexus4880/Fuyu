@@ -8,7 +8,7 @@ using Fuyu.Launcher.Core.Models.Accounts;
 using Fuyu.Launcher.Core.Models.Messages;
 using Fuyu.Launcher.Core.Models.Replies;
 using Fuyu.Launcher.Core.Models.Requests;
-using Fuyu.Launcher.Core.Models.Responses;
+using Fuyu.Launcher.Core.Models.Response;
 
 namespace Fuyu.Launcher.Core.Pages;
 

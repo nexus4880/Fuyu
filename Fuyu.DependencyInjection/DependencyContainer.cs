@@ -134,10 +134,22 @@ public class DependencyContainer
                 {
                     if (parameter.ParameterType != typeof(DependencyContainer))
                     {
-                        throw new Exception($"Cannot inject '{parameter.Name}' on constructor for {type.Name} because dependency id is null and it is not requesting the container");
-                    }
+                        try
+                        {
+                            parameterArguments[i] = Resolve(parameter.ParameterType.Name, parameter.ParameterType);
+                        }
+                        catch
+                        {
+                            throw new Exception($"Cannot inject '{parameter.Name}' on constructor for {type.Name}");
+                        }
 
-                    parameterArguments[i] = this;
+                        // Old behavior, throw instead of trying to create an instance of it
+                        // throw new Exception($"Cannot inject '{parameter.Name}' on constructor for {type.Name} because dependency id is null and it is not requesting the container");
+                    }
+                    else
+                    {
+                        parameterArguments[i] = this;
+                    }
                 }
                 else
                 {
