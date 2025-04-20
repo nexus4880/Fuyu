@@ -79,6 +79,9 @@ public class Offer
     [DataMember(Name = "summaryCost")]
     public int SummaryCost { get; set; }
 
+    [DataMember(Name = "quantity")]
+    public int Quantity { get; set; }
+
     public ItemInstance RootItem
     {
         get

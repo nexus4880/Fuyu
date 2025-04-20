@@ -27,8 +27,13 @@ public class RagfairService
     public List<Offer> Offers { get; } = [];
 
     public Offer CreateAndAddOffer(IRagfairUser user, List<ItemInstance> items, bool isBatch,
-        List<HandoverRequirement> requirements, TimeSpan lifetime, bool unlimitedCount = false, int loyaltyLevel = 1)
+        List<HandoverRequirement> requirements, TimeSpan lifetime, int quantity = 1, bool unlimitedCount = false, int loyaltyLevel = 1)
     {
+        if (quantity <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(quantity));
+        }
+
         if (user == null)
         {
             throw new ArgumentNullException(nameof(user));
@@ -58,7 +63,7 @@ public class RagfairService
 
         if (isBatch)
         {
-            cost *= items[0].Updatable.StackObjectsCount.Value;
+            cost *= quantity;
         }
 
         var offer = new Offer()
@@ -77,7 +82,8 @@ public class RagfairService
             StartTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000d,
             EndTime = (DateTimeOffset.UtcNow + lifetime).ToUnixTimeMilliseconds() / 1000d,
             UnlimitedCount = unlimitedCount,
-            LoyaltyLevel = loyaltyLevel
+            LoyaltyLevel = loyaltyLevel,
+            Quantity = quantity
         };
 
         return AddOffer(offer);
