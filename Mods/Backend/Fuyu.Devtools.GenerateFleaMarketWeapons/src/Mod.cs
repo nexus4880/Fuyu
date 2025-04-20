@@ -126,12 +126,11 @@ public class Mod : AbstractMod
 
                 var upd = weaponItemStack[0].Updatable;
 
-                upd.StackObjectsCount = 100000;
-
                 var createdOffer = _ragfairService.CreateAndAddOffer(
                     user: user,
                     items: weaponItemStack,
                     isBatch: false,
+                    quantity: 100000,
                     requirements: [
                         new HandoverRequirement
                         {

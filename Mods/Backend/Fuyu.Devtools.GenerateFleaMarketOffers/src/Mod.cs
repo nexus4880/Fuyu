@@ -74,13 +74,11 @@ public class Mod : AbstractMod
             try
             {
                 var items = _itemFactoryService.CreateItem(template);
-
-                items[0].Updatable ??= new ItemUpdatable();
-                items[0].Updatable.StackObjectsCount = Random.Shared.Next(100, 100000);
-
+                var count = Random.Shared.Next(100, 100000);
                 var createdOffer = _ragfairService.CreateAndAddOffer(
                     user: player,
                     items: items,
+                    quantity: count,
                     isBatch: false,
                     requirements: [
                         new HandoverRequirement
