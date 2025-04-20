@@ -19,7 +19,7 @@ public class ItemKeyComponent : IItemComponent
 
         return new ItemKeyComponent
         {
-            NumberOfUsages = templateProperties.Value<int>("MaximumNumberOfUsage")
+            NumberOfUsages = 0
         };
     }
 }
