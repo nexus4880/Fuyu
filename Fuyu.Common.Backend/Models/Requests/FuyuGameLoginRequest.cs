@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace Fuyu.Common.Models.Requests;
+namespace Fuyu.Common.Backend.Models.Requests;
 
 [DataContract]
 public class FuyuGameLoginRequest

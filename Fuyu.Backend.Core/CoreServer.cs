@@ -1,11 +1,11 @@
 using Fuyu.Backend.Core.Controllers;
-using Fuyu.Common.Networking;
+using Fuyu.Common.Backend.Networking;
 
 namespace Fuyu.Backend.Core;
 
-public class CoreServer : HttpServer
+public class CoreServer : FuyuServer
 {
-    public CoreServer() : base("core", "https://localhost:44300/")
+    public CoreServer() : base("core", 44300)
     {
     }
 

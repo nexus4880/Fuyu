@@ -1,6 +1,6 @@
 using System;
 
-namespace Fuyu.Common.Networking;
+namespace Fuyu.Common.Backend.Networking;
 
 public class RouteNotFoundException : Exception
 {

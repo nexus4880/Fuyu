@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Fuyu.Common.Networking;
+namespace Fuyu.Common.Backend.Networking;
 
 public interface IRouterController<TContext> where TContext : IRouterContext
 {

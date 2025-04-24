@@ -2,7 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Fuyu.Common.Networking;
+namespace Fuyu.Common.Backend.Networking;
 
 public abstract class AbstractHttpController : AbstractWebController<HttpContext>
 {

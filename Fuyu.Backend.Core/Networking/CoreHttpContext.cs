@@ -3,13 +3,14 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Fuyu.Backend.Core.Services;
-using Fuyu.Common.Networking;
+using Microsoft.AspNetCore.Http;
+using FuyuHttpContext = Fuyu.Common.Backend.Networking.HttpContext;
 
 namespace Fuyu.Backend.Core.Networking;
 
-public class CoreHttpContext : HttpContext
+public class CoreHttpContext : FuyuHttpContext
 {
-    public CoreHttpContext(HttpListenerRequest request, HttpListenerResponse response) : base(request, response)
+    public CoreHttpContext(HttpRequest request, HttpResponse response) : base(request, response)
     {
     }
 
@@ -17,7 +18,7 @@ public class CoreHttpContext : HttpContext
     {
         using (var ms = new MemoryStream())
         {
-            Request.InputStream.CopyTo(ms);
+            Request.Body.CopyTo(ms);
 
             var body = ms.ToArray();
             var encryption = Encryption;
@@ -47,7 +48,7 @@ public class CoreHttpContext : HttpContext
         // Used for postman debugging by Nexus4880
         // -- seionmoya, 2024-11-18
 #if DEBUG
-        if (Request.Headers["X-Require-Plaintext"] != null)
+        if (Request.Headers.ContainsKey("X-Require-Plaintext"))
         {
             encrypted = false;
         }
@@ -90,7 +91,7 @@ public class CoreHttpContext : HttpContext
     {
         get
         {
-            return Request.Cookies["Session"].Value;
+            return Request.Cookies["Session"];
         }
     }
 }

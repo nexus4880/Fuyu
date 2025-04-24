@@ -4,15 +4,17 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
+using Fuyu.Common.Backend.Networking;
 using Fuyu.Common.Compression;
-using Fuyu.Common.Networking;
 using Fuyu.Common.Serialization;
+using Microsoft.AspNetCore.Http;
+using FuyuHttpContext = Fuyu.Common.Backend.Networking.HttpContext;
 
 namespace Fuyu.Backend.EFTMain.Networking;
 
-public class EftHttpContext : HttpContext
+public class EftHttpContext : FuyuHttpContext
 {
-    public EftHttpContext(HttpListenerRequest request, HttpListenerResponse response) : base(request, response)
+    public EftHttpContext(HttpRequest request, HttpResponse response) : base(request, response)
     {
     }
 
@@ -20,7 +22,7 @@ public class EftHttpContext : HttpContext
     {
         using (var ms = new MemoryStream())
         {
-            Request.InputStream.CopyTo(ms);
+            Request.Body.CopyTo(ms);
 
             var body = ms.ToArray();
             var encryption = Encryption;
@@ -55,7 +57,7 @@ public class EftHttpContext : HttpContext
         // Used for postman debugging by Nexus4880
         // -- seionmoya, 2024-11-18
 #if DEBUG
-        if (Request.Headers["X-Require-Plaintext"] != null)
+        if (Request.Headers.ContainsKey("X-Require-Plaintext"))
         {
             zipped = false;
             encrypted = false;
@@ -121,7 +123,7 @@ public class EftHttpContext : HttpContext
     {
         get
         {
-            return Request.Cookies["PHPSESSID"].Value;
+            return Request.Cookies["PHPSESSID"];
         }
     }
 

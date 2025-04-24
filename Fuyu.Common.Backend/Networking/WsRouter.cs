@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Fuyu.Common.Networking;
+namespace Fuyu.Common.Backend.Networking;
 
 public class WsRouter : Router<WsController, WsContext>
 {
@@ -16,16 +16,13 @@ public class WsRouter : Router<WsController, WsContext>
         {
             tasks[i] = matches[i].RunAsync(context);
         }
-
+        
+        // Let them all initialize first
         await Task.WhenAll(tasks);
 
-        while (context.IsOpen())
+        while (await context.PollAsync())
         {
-            await context.PollAsync();
+            // Reads from the connection
         }
-
-        // NOTE: No need to call context.CloseAsync here
-        // because ReceiveAsync will handle that for us
-        // -- nexus4880, 2024-10-23
     }
 }

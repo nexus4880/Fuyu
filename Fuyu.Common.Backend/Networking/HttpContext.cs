@@ -3,12 +3,13 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Fuyu.Common.Serialization;
+using Microsoft.AspNetCore.Http;
 
-namespace Fuyu.Common.Networking;
+namespace Fuyu.Common.Backend.Networking;
 
 public class HttpContext : WebRouterContext
 {
-    public HttpContext(HttpListenerRequest request, HttpListenerResponse response) : base(request, response)
+    public HttpContext(HttpRequest request, HttpResponse response) : base(request, response)
     {
     }
 
@@ -16,7 +17,7 @@ public class HttpContext : WebRouterContext
     {
         using (var ms = new MemoryStream())
         {
-            Request.InputStream.CopyTo(ms);
+            Request.Body.CopyTo(ms);
             return ms.ToArray();
         }
     }
@@ -39,18 +40,18 @@ public class HttpContext : WebRouterContext
 
         Response.StatusCode = (int)status;
         Response.ContentType = mime;
-        Response.ContentLength64 = hasData ? data.Length : 0;
+        Response.ContentLength = hasData ? data.Length : 0;
 
         if (hasData)
         {
-            using (var payload = Response.OutputStream)
+            using (var payload = Response.Body)
             {
                 return payload.WriteAsync(data, 0, data.Length);
             }
         }
         else
         {
-            Response.Close();
+            Response.Body.Close();
             return Task.CompletedTask;
         }
     }

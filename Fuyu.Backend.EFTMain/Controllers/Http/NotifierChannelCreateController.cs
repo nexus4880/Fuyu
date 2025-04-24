@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Common.Hashing;
-using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
@@ -22,10 +21,10 @@ public class NotifierChannelCreateController : AbstractEftHttpController
         {
             data = new NotifierChannelCreateResponse()
             {
-                Server = "localhost:8010",
+                Server = "localhost:44301",
                 ChannelId = channelId,
                 URL = $"https://localhost:44301/push/notifier/get/{channelId}",
-                WS = $"ws://localhost:8010/push/notifier/getwebsocket/{channelId}"
+                WS = $"wss://localhost:44301/push/notifier/getwebsocket/{channelId}"
             }
         };
 

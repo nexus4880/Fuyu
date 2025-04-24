@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Fuyu.Common.Networking;
+namespace Fuyu.Common.Backend.Networking;
 
 public abstract class WsController : AbstractWebController<WsContext>
 {
@@ -15,6 +15,7 @@ public abstract class WsController : AbstractWebController<WsContext>
         // match static paths
     }
 
+    // This is just adding callbacks and setting up whatever needs to be setup for your controller
     public override Task RunAsync(WsContext context)
     {
         context.OnCloseEvent += OnCloseAsync;

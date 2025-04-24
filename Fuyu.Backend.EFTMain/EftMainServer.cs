@@ -1,13 +1,13 @@
 using Fuyu.Backend.EFT.Controllers.Http;
 using Fuyu.Backend.EFTMain.Controllers.Http;
 using Fuyu.Backend.EFTMain.Controllers.Websocket;
-using Fuyu.Common.Networking;
+using Fuyu.Common.Backend.Networking;
 
 namespace Fuyu.Backend.EFTMain;
 
-public class EftMainServer : HttpServer
+public class EftMainServer : FuyuServer
 {
-    public EftMainServer() : base("eft-main", "https://localhost:44301/")
+    public EftMainServer() : base("eft-main", 44301)
     {
     }
 

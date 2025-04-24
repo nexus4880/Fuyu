@@ -1,11 +1,11 @@
 using System;
-using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
-namespace Fuyu.Common.Networking;
+namespace Fuyu.Common.Backend.Networking;
 
 public class WsContext : WebRouterContext
 {
@@ -20,7 +20,7 @@ public class WsContext : WebRouterContext
     public event OnBinaryEventHandler OnBinaryEvent;
     public event OnCloseEventHandler OnCloseEvent;
 
-    public WsContext(HttpListenerRequest request, HttpListenerResponse response, WebSocket ws) : base(request, response)
+    public WsContext(HttpRequest request, HttpResponse response, WebSocket ws) : base(request, response)
     {
         _ws = ws;
     }
@@ -37,10 +37,19 @@ public class WsContext : WebRouterContext
     // NOTE: Made this internal because consumers
     // shouldn't be calling this on their own
     // -- nexus4880, 2024-10-23
-    internal async Task PollAsync()
+    internal async Task<bool> PollAsync()
     {
         var buffer = new byte[_bufferSize];
-        var received = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+        WebSocketReceiveResult received;
+        try
+        {
+            received = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+        }
+        catch
+        {
+            return false;
+        }
+
         var data = new byte[received.Count];
         Array.Copy(buffer, 0, data, 0, data.Length);
 
@@ -63,8 +72,10 @@ public class WsContext : WebRouterContext
 
             case WebSocketMessageType.Close:
                 await CloseAsync();
-                break;
+                return false;
         }
+
+        return true;
     }
 
     public Task SendTextAsync(string text)

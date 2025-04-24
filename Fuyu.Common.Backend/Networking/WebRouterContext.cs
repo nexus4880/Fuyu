@@ -1,19 +1,21 @@
 using System.Collections.Generic;
-using System.Net;
+using Microsoft.AspNetCore.Http;
 
-namespace Fuyu.Common.Networking;
+namespace Fuyu.Common.Backend.Networking;
 
 public class WebRouterContext : IRouterContext
 {
-    public readonly HttpListenerRequest Request;
-    public readonly HttpListenerResponse Response;
+    public readonly HttpRequest Request;
+    public readonly HttpResponse Response;
     public string Path { get; }
+    public string Host { get; }
 
-    public WebRouterContext(HttpListenerRequest request, HttpListenerResponse response)
+    public WebRouterContext(HttpRequest request, HttpResponse response)
     {
         Request = request;
         Response = response;
-        Path = Request.Url.AbsolutePath;
+        Path = Request.Path;
+        Host = $"{Request.HttpContext.Connection.RemoteIpAddress.MapToIPv4()}:{Request.HttpContext.Connection.RemotePort}";
     }
 
     public Dictionary<string, string> GetPathParameters(IRoutable routable)
@@ -39,12 +41,12 @@ public class WebRouterContext : IRouterContext
 
     public bool HasBody()
     {
-        return Request.HasEntityBody;
+        return Request.Body != null;
     }
 
     public void Close()
     {
-        Response.Close();
+        Response.Body.Close();
     }
 
     public override string ToString()

@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Services;
+using Fuyu.Common.Backend.Models.Requests;
 using Fuyu.Common.Backend.Models.Responses;
-using Fuyu.Common.Models.Requests;
 using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;

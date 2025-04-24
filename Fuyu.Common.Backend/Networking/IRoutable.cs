@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Fuyu.Common.Networking;
+namespace Fuyu.Common.Backend.Networking;
 
 public interface IRoutable
 {

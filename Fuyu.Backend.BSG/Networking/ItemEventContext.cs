@@ -1,6 +1,6 @@
 ﻿using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Models.Responses;
-using Fuyu.Common.Networking;
+using Fuyu.Common.Backend.Networking;
 using Newtonsoft.Json.Linq;
 
 namespace Fuyu.Backend.BSG.Networking;

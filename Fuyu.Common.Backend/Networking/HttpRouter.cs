@@ -1,4 +1,4 @@
-namespace Fuyu.Common.Networking;
+namespace Fuyu.Common.Backend.Networking;
 
 public class HttpRouter : Router<AbstractHttpController, HttpContext>
 {

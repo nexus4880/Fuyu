@@ -1,19 +1,63 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG;
 using Fuyu.Backend.Core;
 using Fuyu.Backend.EFTMain;
-using Fuyu.Common.Backend;
+using Fuyu.Common.Backend.Networking;
+using Fuyu.Common.Backend.Services;
 using Fuyu.Common.IO;
-using Fuyu.Common.Networking;
 using Fuyu.Common.Serialization;
 using Fuyu.DependencyInjection;
 using Fuyu.Modding;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace Fuyu.Backend;
 
 public class Program
 {
-    static async Task Main()
+    static Task RunServer(CancellationToken token, params FuyuServer[] servers)
+    {
+        var builder = new WebHostBuilder();
+        builder.UseKestrel(options =>
+        {
+            for (var i = 0; i < servers.Length; i++)
+            {
+                options.ListenAnyIP(servers[i].Port, listenOptions =>
+                {
+                    // Add certificate stuff here?
+                    listenOptions.UseHttps();
+                });
+            }
+        });
+
+        builder.Configure(app =>
+        {
+             app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(3d) });
+             app.Run(ctx =>
+             {
+                 // This is how we determine if the request was made to the EFT backend or the Fuyu backend
+                 // -- nexus4880, 2025-4-24
+                 var requestPort = ctx.Connection.LocalPort;
+                 for (var i = 0; i < servers.Length; i++)
+                 {
+                     var server = servers[i];
+                     if (server.Port == requestPort)
+                     {
+                         return server.OnRequestAsync(ctx);
+                     }
+                 }
+
+                 throw new Exception($"Received request on unhandled port: {requestPort} how?");
+             });
+        });
+
+        return builder.Build().RunAsync(token);
+    }
+
+    static async Task Main(string[] args)
     {
         var container = new DependencyContainer();
 
@@ -32,6 +76,13 @@ public class Program
             Terminal.WriteLine(Json.Stringify(EftOrm.Instance.GetSessions().Keys));
         };
 
+        var cts = new CancellationTokenSource();
+        var serverTask = RunServer(
+            cts.Token,
+            container.Resolve<FuyuServer, CoreServer>(),
+            container.Resolve<FuyuServer, EftMainServer>()
+        );
+
         while (CommandService.Instance.IsRunning)
         {
             var text = Terminal.ReadLine();
@@ -39,11 +90,13 @@ public class Program
             {
                 break;
             }
-            
-            var args = text.Split(' ');
-            CommandService.Instance.RunCommand(args);
+
+            var commandArgs = text.Split(' ');
+            CommandService.Instance.RunCommand(commandArgs);
         }
 
+        cts.Cancel();
+        await serverTask;
         await ModManager.Instance.UnloadAll();
     }
 
@@ -62,16 +115,14 @@ public class Program
         Terminal.WriteLine("Loading backends...");
 
         var coreServer = new CoreServer();
-        container.RegisterSingleton<HttpServer, CoreServer>(coreServer);
+        container.RegisterSingleton<FuyuServer, CoreServer>(coreServer);
 
         coreServer.RegisterServices();
-        coreServer.Start();
 
         var eftMainServer = new EftMainServer();
-        container.RegisterSingleton<HttpServer, EftMainServer>(eftMainServer);
+        container.RegisterSingleton<FuyuServer, EftMainServer>(eftMainServer);
 
         eftMainServer.RegisterServices();
-        eftMainServer.Start();
     }
 
     static Task LoadMods(DependencyContainer container)

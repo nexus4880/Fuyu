@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Fuyu.Backend.EFTMain;
 using Fuyu.Backend.EFTMain.Controllers.Http;
-using Fuyu.Common.Networking;
+using Fuyu.Common.Backend.Networking;
 using Fuyu.DependencyInjection;
 using Fuyu.Devtools.DisableAfkTimer.Controllers;
 using Fuyu.Modding;
@@ -16,7 +16,7 @@ public class Mod : AbstractMod
 
     public override Task OnLoad(DependencyContainer container)
     {
-        var eftMainServer = container.Resolve<HttpServer, EftMainServer>();
+        var eftMainServer = container.Resolve<FuyuServer, EftMainServer>();
         var router = eftMainServer.HttpRouter;
         router.ReplaceController<SettingsController, OverrideSettingsController>();
 

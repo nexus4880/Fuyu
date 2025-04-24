@@ -2,7 +2,7 @@ using System;
 using Fuyu.Common.Backend.Delegates;
 using Fuyu.Common.IO;
 
-namespace Fuyu.Common.Backend;
+namespace Fuyu.Common.Backend.Services;
 
 public class CommandService
 {

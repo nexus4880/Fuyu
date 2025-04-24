@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Fuyu.Common.Networking;
+namespace Fuyu.Common.Backend.Networking;
 
 public abstract class AbstractWebController<TContext> : IRoutable, IRouterController<TContext> where TContext : WebRouterContext
 {

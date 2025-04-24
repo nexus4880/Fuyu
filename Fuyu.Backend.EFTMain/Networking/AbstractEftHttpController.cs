@@ -1,7 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Fuyu.Common.Networking;
+using Fuyu.Common.Backend.Networking;
 
 namespace Fuyu.Backend.EFTMain.Networking;
 

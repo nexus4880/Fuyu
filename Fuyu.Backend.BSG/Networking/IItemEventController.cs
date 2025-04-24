@@ -1,4 +1,4 @@
-﻿using Fuyu.Common.Networking;
+﻿using Fuyu.Common.Backend.Networking;
 
 namespace Fuyu.Backend.BSG.Networking;
 
