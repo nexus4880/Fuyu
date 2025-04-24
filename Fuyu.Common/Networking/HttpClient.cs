@@ -21,7 +21,9 @@ public class HttpClient : IDisposable
         var handler = new HttpClientHandler
         {
             // set cookies in header instead
-            UseCookies = false
+            UseCookies = false,
+            // ignore SSL errors (such as self signed certificate errors)
+            ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
         };
 
         Httpv = new System.Net.Http.HttpClient(handler);
