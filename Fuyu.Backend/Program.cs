@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG;
@@ -13,29 +15,71 @@ using Fuyu.Modding;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using System.IO;
+using System.CommandLine;
 
 namespace Fuyu.Backend;
 
 public class Program
 {
-    static Task RunServer(CancellationToken token, params FuyuServer[] servers)
+    static X509Certificate2 GenerateSelfSigned(string password, out byte[] bytes)
+    {
+        using var rsa = RSA.Create();
+
+        var req = new CertificateRequest("cn=Fuyu", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+        var cert = req.CreateSelfSigned(DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(30));
+        bytes = cert.Export(X509ContentType.Pfx, password);
+
+        return X509CertificateLoader.LoadPkcs12(bytes, password);
+    }
+
+    static X509Certificate2 GetCertificate(string certificatePath, string certificatePassword)
+    {
+        X509Certificate2 certificate;
+
+        if (certificatePath != null && File.Exists(certificatePath))
+        {
+            certificate = X509CertificateLoader.LoadPkcs12FromFile(certificatePath, certificatePassword);
+            if (DateTime.UtcNow > certificate.NotAfter)
+            {
+                throw new Exception("Certificate expiring too soon");
+            }
+
+            Terminal.WriteLine($"Loaded certificate {certificate.SubjectName.Name}");
+
+            return certificate;
+        }
+
+        certificate = GenerateSelfSigned(certificatePassword, out var bytes);
+        if (certificatePath != null)
+        {
+            VFS.WriteBytes(certificatePath, bytes);
+            Terminal.WriteLine($"Wrote certificate to {certificatePath}");
+        }
+
+        return certificate;
+    }
+
+    static Task RunServer(CancellationToken token, string certificatePath, string certificatePassword, params FuyuServer[] servers)
     {
         var builder = new WebHostBuilder();
+        var certificate = GetCertificate(certificatePath, certificatePassword);
+
         builder.UseKestrel(options =>
         {
             for (var i = 0; i < servers.Length; i++)
             {
                 options.ListenAnyIP(servers[i].Port, listenOptions =>
                 {
-                    // Add certificate stuff here?
-                    listenOptions.UseHttps();
+                    listenOptions.UseHttps(certificate);
                 });
             }
         });
 
         builder.Configure(app =>
         {
-             app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(3d) });
+             app.UseWebSockets();
              app.Run(ctx =>
              {
                  // This is how we determine if the request was made to the EFT backend or the Fuyu backend
@@ -57,8 +101,18 @@ public class Program
         return builder.Build().RunAsync(token);
     }
 
-    static async Task Main(string[] args)
+    static async Task<int> Main(string[] args)
     {
+        var config = FuyuCommandLineConfig.Instance;
+        var rootCommand = config.CreateRootCommand(Run);
+        var exitCode = await rootCommand.InvokeAsync(args);
+
+        return exitCode;
+    }
+
+    static async Task Run()
+    {
+        var config = FuyuCommandLineConfig.Instance;
         var container = new DependencyContainer();
 
         Terminal.SetLogConfig("Fuyu.Backend", "Fuyu/Logs/Backend.log");
@@ -78,7 +132,9 @@ public class Program
 
         var cts = new CancellationTokenSource();
         var serverTask = RunServer(
-            cts.Token,
+        cts.Token,
+            config.CertificatePath,
+            config.CertificatePassword,
             container.Resolve<FuyuServer, CoreServer>(),
             container.Resolve<FuyuServer, EftMainServer>()
         );
