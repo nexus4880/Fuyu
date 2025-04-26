@@ -13,5 +13,11 @@ public class TextSetting : Setting
     public TextSetting()
     {
         Type = ESettingType.Text;
+        AddOnSaveCallback(UpdateValue);
+    }
+
+    private void UpdateValue(string value)
+    {
+        Value = value;
     }
 }

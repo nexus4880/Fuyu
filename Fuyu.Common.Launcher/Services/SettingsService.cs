@@ -177,6 +177,6 @@ public class SettingsService
             throw new Exception($"Could not find setting {settingId} in section {sectionId}");
         }
 
-        target.OnSave(entry.Value);
+        target.InvokeOnSave(entry.Value);
     }
 }

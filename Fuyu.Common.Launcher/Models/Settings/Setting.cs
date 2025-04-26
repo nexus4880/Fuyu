@@ -1,3 +1,4 @@
+using System.Configuration;
 using System.Runtime.Serialization;
 using Fuyu.Common.Launcher.Delegates;
 
@@ -14,5 +15,20 @@ public class Setting
     [DataMember(Name = "name")]
     public string Name { get; set; }
 
-    public SaveCallback OnSave;
+    private SaveCallback _onSave;
+
+    public void AddOnSaveCallback(SaveCallback callback)
+    {
+        _onSave += callback;
+    }
+
+    public void RemoveOnSaveCallback(SaveCallback callback)
+    {
+        _onSave -= callback;
+    }
+
+    public void InvokeOnSave(string value)
+    {
+        _onSave?.Invoke(value);
+    }
 }

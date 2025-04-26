@@ -37,8 +37,8 @@ public class GameEftPage : AbstractPage
 
         // TODO: Keep track of game lifecycle
         // -- seionmoya, 2025-01-11
-        var gamepath = ModConfig.Instance.GamePath;
-        var address = ModConfig.Instance.Address;
+        var gamepath = EFTLauncherConfig.Instance.GamePath;
+        var address = EFTLauncherConfig.Instance.EFTAddress;
         var process = GetEftProcess(gamepath, gameSessionId, address);
         process.Start();
 

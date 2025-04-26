@@ -35,13 +35,32 @@ public class EFTLauncherExtension
         Resx.SetSource(_resourceId, this.GetType().Assembly);
 
         // Load config
-        ModConfig.Instance.Load();
-        var address = ModConfig.Instance.Address;
-        var gamepath = ModConfig.Instance.GamePath;
+        EFTLauncherConfig.Instance.Load();
+        var address = EFTLauncherConfig.Instance.EFTAddress;
+        var gamepath = EFTLauncherConfig.Instance.GamePath;
 
         // Add launcher request client
         var eftHttpClient = new HttpClient(address);
         _requestService.AddOrSetClient("eft", eftHttpClient);
+
+        var backendAddressSetting = new TextSetting()
+        {
+            Id = "address",
+            Name = "Backend address",
+            Description = "Game server address",
+            Value = address
+        };
+
+        var gamePathSetting = new TextSetting()
+        {
+            Id = "gamepath",
+            Name = "Game directory",
+            Description = "Full path to the directory where EscapeFromTarkov.exe resides",
+            Value = gamepath
+        };
+
+        backendAddressSetting.AddOnSaveCallback(OnSaveAddress);
+        gamePathSetting.AddOnSaveCallback(OnSaveGamePath);
 
         // Add settings
         var settings = new SettingSection()
@@ -49,22 +68,8 @@ public class EFTLauncherExtension
             Id = "fuyu.launcher.eft",
             Name = "Escape From Tarkov",
             Settings = [
-                new TextSetting()
-                {
-                    Id = "address",
-                    Name = "Backend address",
-                    Description = "Game server address",
-                    Value = address,
-                    OnSave = OnSaveAddress
-                },
-                new TextSetting()
-                {
-                    Id = "gamepath",
-                    Name = "Game directory",
-                    Description = "Full path to the directory where EscapeFromTarkov.exe resides",
-                    Value = gamepath,
-                    OnSave = OnSaveGamePath
-                }
+                backendAddressSetting,
+                gamePathSetting
             ]
         };
 
@@ -104,13 +109,13 @@ public class EFTLauncherExtension
 
     void OnSaveAddress(string value)
     {
-        ModConfig.Instance.Address = value;
-        ModConfig.Instance.Save();
+        EFTLauncherConfig.Instance.EFTAddress = value;
+        EFTLauncherConfig.Instance.Save();
     }
 
     void OnSaveGamePath(string value)
     {
-        ModConfig.Instance.GamePath = value;
-        ModConfig.Instance.Save();
+        EFTLauncherConfig.Instance.GamePath = value;
+        EFTLauncherConfig.Instance.Save();
     }
 }

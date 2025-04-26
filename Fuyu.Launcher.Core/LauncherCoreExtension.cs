@@ -1,6 +1,9 @@
+using System;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using Fuyu.Common.IO;
+using Fuyu.Common.Launcher.Models.Settings;
 using Fuyu.Common.Launcher.Services;
 using Fuyu.Common.Networking;
 using Fuyu.Common.Services;
@@ -15,15 +18,18 @@ public class LauncherCoreExtension
 
     private readonly ContentService _contentService;
     private readonly RequestService _requestService;
+    private readonly SettingsService _settingsService;
 
     [Injectable]
     public LauncherCoreExtension(
         [Inject] ContentService contentService,
-        [Inject] RequestService requestService
+        [Inject] RequestService requestService,
+        [Inject] SettingsService settingsService
         )
     {
         _contentService = contentService;
         _requestService = requestService;
+        _settingsService = settingsService;
     }
 
     public Task Initialize()
@@ -36,7 +42,38 @@ public class LauncherCoreExtension
         var coreHttpClient = new HttpClient("https://localhost:44300");
         _requestService.AddOrSetClient("core", coreHttpClient);
 
+        CoreLauncherConfig.Instance.Load();
+        var address = CoreLauncherConfig.Instance.CoreAddress;
+
+        var backendAddressSetting = new TextSetting
+        {
+            Id = "address",
+            Name = "Backend address",
+            Description = "Fuyu server address",
+            Value = address
+        };
+
+        backendAddressSetting.AddOnSaveCallback(OnSaveBackendAddress);
+
+        // Add settings
+        var settings = new SettingSection()
+        {
+            Id = "fuyu.launcher.core",
+            Name = "Core",
+            Settings = [
+                backendAddressSetting
+            ]
+        };
+
+        _settingsService.SetOrAddSection(settings);
+
         return Task.CompletedTask;
+    }
+
+    private void OnSaveBackendAddress(string value)
+    {
+        CoreLauncherConfig.Instance.CoreAddress = value;
+        CoreLauncherConfig.Instance.Save();
     }
 
     void InitializePages()
