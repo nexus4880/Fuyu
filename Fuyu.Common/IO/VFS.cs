@@ -134,6 +134,35 @@ public static class VFS
         _writeLock.TryRemove(filepath, out _);
     }
 
+    // NOTE: we must prevent threads from accessing the same file at the
+    //       same time. This way we can prevent data corruption when
+    //       writing to the same file.
+    public static void WriteBytes(string filepath, byte[] bytes)
+    {
+        // create directory
+        var path = Path.GetDirectoryName(filepath);
+
+        if (!DirectoryExists(path))
+        {
+            CreateDirectory(path);
+        }
+
+        // get thread lock
+        _writeLock.TryAdd(filepath, new Lock());
+
+        // write text
+        lock (_writeLock[filepath])
+        {
+            using (var fs = new FileStream(filepath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                fs.Write(bytes);
+            }
+        }
+
+        // release thread lock
+        _writeLock.TryRemove(filepath, out _);
+    }
+
     public static Stream OpenRead(string filepath)
     {
         var path = Path.GetDirectoryName(filepath);
