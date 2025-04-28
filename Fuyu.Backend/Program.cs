@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.CommandLine;
+using Fuyu.Common.Backend.ConsoleCommands;
+using System.Collections.Generic;
 
 namespace Fuyu.Backend;
 
@@ -61,14 +63,14 @@ public class Program
         return certificate;
     }
 
-    static Task RunServer(CancellationToken token, string certificatePath, string certificatePassword, params FuyuServer[] servers)
+    static Task RunServer(CancellationToken token, string certificatePath, string certificatePassword, List<FuyuServer> servers)
     {
         var builder = new WebHostBuilder();
         var certificate = GetCertificate(certificatePath, certificatePassword);
 
         builder.UseKestrel(options =>
         {
-            for (var i = 0; i < servers.Length; i++)
+            for (var i = 0; i < servers.Count; i++)
             {
                 options.ListenAnyIP(servers[i].Port, listenOptions =>
                 {
@@ -85,7 +87,7 @@ public class Program
                  // This is how we determine if the request was made to the EFT backend or the Fuyu backend
                  // -- nexus4880, 2025-4-24
                  var requestPort = ctx.Connection.LocalPort;
-                 for (var i = 0; i < servers.Length; i++)
+                for (var i = 0; i < servers.Count; i++)
                  {
                      var server = servers[i];
                      if (server.Port == requestPort)
@@ -135,8 +137,7 @@ public class Program
         cts.Token,
             config.CertificatePath,
             config.CertificatePassword,
-            container.Resolve<FuyuServer, CoreServer>(),
-            container.Resolve<FuyuServer, EftMainServer>()
+            container.ResolveAll<FuyuServer>()
         );
 
         while (CommandService.Instance.IsRunning)
