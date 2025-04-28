@@ -1,72 +1,78 @@
 using System;
-using Fuyu.Common.Backend.Delegates;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using Fuyu.Common.Backend.ConsoleCommands;
 using Fuyu.Common.IO;
+using Fuyu.DependencyInjection;
 
 namespace Fuyu.Common.Backend.Services;
 
 public class CommandService
 {
-    public static CommandService Instance => instance.Value;
-    private static readonly Lazy<CommandService> instance = new(() => new CommandService());
+    private List<Type> _commands { get; } = [];
 
-    public bool IsRunning { get; private set; }
+    private readonly DependencyContainer _container;
 
-    public CommandCallback OnCommand;
-    public CommandCallback OnHelp;
-    public CommandCallback OnSessions;
-
-    /// <summary>
-    /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
-    /// </summary>
-    private CommandService()
+    public CommandService(DependencyContainer container)
     {
-        IsRunning = true;
-
-        OnCommand += ExitCommand;
-        OnHelp += ExitHelp;
+        _container = container;
     }
 
-    public void RunCommand(string[] args)
+    public void RegisterCommand<T>() where T: IConsoleCommand
     {
-        if (args == null || args.Length == 0)
-        {
-            // no commands to run
-            return;
-        }
+        _commands.Add(typeof(T));
+    }
 
-        if (args.Length == 1)
+    public IEnumerable<ConsoleCommandAttribute> GetAllConsoleCommandsAttributes()
+    {
+        foreach (var command in _commands)
         {
-            switch (args[0])
+            var consoleCommand = command.GetCustomAttribute<ConsoleCommandAttribute>();
+            if (consoleCommand != null)
             {
-                case "help":
-                    {
-                        OnHelp(args);
-                        return;
-                    }
-                case "sessions":
-                    {
-                        OnSessions(args);
-                        return;
-                    }
+                yield return consoleCommand;
+            }
+        }
+    }
+
+    public IConsoleCommand GetConsoleCommand(string commandName)
+    {
+        foreach (var command in _commands)
+        {
+            var consoleCommand = command.GetCustomAttribute<ConsoleCommandAttribute>();
+            if (consoleCommand != null)
+            {
+                string[] keywords = [consoleCommand.Command, .. consoleCommand.Aliases];
+                if (keywords.Any(keyword => keyword.Equals(commandName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return _container.Resolve(command) as IConsoleCommand;
+                }
             }
         }
 
-        OnCommand(args);
+        return null;
     }
 
-    private void ExitCommand(string[] args)
+    public Task ExecuteCommand(ArraySegment<string> args)
     {
-        if (args.Length != 1 && args[0] != "exit")
+        if (args.Count > 0)
         {
-            // not ours to run
-            return;
+            var command = GetConsoleCommand(args[0]);
+            if (command != null)
+            {
+                var commandArgs =
+                    args.Count > 1 ?
+                    args.Slice(1) :
+                    ArraySegment<string>.Empty;
+
+                return command.InvokeAsync(commandArgs);
+            }
+
+            Terminal.WriteLine($"Command {args[0]} not found");
         }
 
-        IsRunning = false;
-    }
-
-    private void ExitHelp(string[] args)
-    {
-        Terminal.WriteLine("exit: close the application");
+        return Task.CompletedTask;
     }
 }

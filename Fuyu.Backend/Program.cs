@@ -9,7 +9,6 @@ using Fuyu.Backend.EFTMain;
 using Fuyu.Common.Backend.Networking;
 using Fuyu.Common.Backend.Services;
 using Fuyu.Common.IO;
-using Fuyu.Common.Serialization;
 using Fuyu.DependencyInjection;
 using Fuyu.Modding;
 using Microsoft.AspNetCore.Builder;
@@ -81,23 +80,23 @@ public class Program
 
         builder.Configure(app =>
         {
-             app.UseWebSockets();
-             app.Run(ctx =>
-             {
-                 // This is how we determine if the request was made to the EFT backend or the Fuyu backend
-                 // -- nexus4880, 2025-4-24
-                 var requestPort = ctx.Connection.LocalPort;
+            app.UseWebSockets();
+            app.Run(ctx =>
+            {
+                // This is how we determine if the request was made to the EFT backend or the Fuyu backend
+                // -- nexus4880, 2025-4-24
+                var requestPort = ctx.Connection.LocalPort;
                 for (var i = 0; i < servers.Count; i++)
-                 {
-                     var server = servers[i];
-                     if (server.Port == requestPort)
-                     {
-                         return server.OnRequestAsync(ctx);
-                     }
-                 }
+                {
+                    var server = servers[i];
+                    if (server.Port == requestPort)
+                    {
+                        return server.OnRequestAsync(ctx);
+                    }
+                }
 
-                 throw new Exception($"Received request on unhandled port: {requestPort} how?");
-             });
+                throw new Exception($"Received request on unhandled port: {requestPort} how?");
+            });
         });
 
         return builder.Build().RunAsync(token);
@@ -119,6 +118,7 @@ public class Program
 
         Terminal.SetLogConfig("Fuyu.Backend", "Fuyu/Logs/Backend.log");
 
+        CreateCommandService(container);
         LoadDatabase(container);
         LoadServers(container);
         await LoadMods(container);
@@ -126,11 +126,6 @@ public class Program
         Terminal.WriteLine("Done!");
         Terminal.WriteLine("You can now run commands.");
         Terminal.WriteLine("Users can now connect.");
-
-        CommandService.Instance.OnSessions += _ =>
-        {
-            Terminal.WriteLine(Json.Stringify(EftOrm.Instance.GetSessions().Keys));
-        };
 
         var cts = new CancellationTokenSource();
         var serverTask = RunServer(
@@ -140,16 +135,17 @@ public class Program
             container.ResolveAll<FuyuServer>()
         );
 
-        while (CommandService.Instance.IsRunning)
+        while (Environment.ExitCode == 0)
         {
             var text = Terminal.ReadLine();
-            if (text == null)
+            if (string.IsNullOrEmpty(text))
             {
                 break;
             }
 
             var commandArgs = text.Split(' ');
-            CommandService.Instance.RunCommand(commandArgs);
+            var commandService = container.Resolve<CommandService>("CommandService");
+            await commandService.ExecuteCommand(commandArgs);
         }
 
         cts.Cancel();
@@ -165,6 +161,17 @@ public class Program
         EftLoader.Instance.OnResxSet += ItemFactoryLoader.Instance.Load;
         EftLoader.Instance.Load();
         TraderLoader.Instance.Load();
+    }
+
+    static void CreateCommandService(DependencyContainer container)
+    {
+        var commandService = new CommandService(container);
+
+        commandService.RegisterCommand<HelpCommand>();
+        commandService.RegisterCommand<SessionsCommand>();
+        commandService.RegisterCommand<ExitCommand>();
+
+        container.RegisterSingleton(commandService);
     }
 
     static void LoadServers(DependencyContainer container)
