@@ -1,6 +1,5 @@
 using System.Runtime.Serialization;
 using Fuyu.Backend.BSG.Models.Profiles;
-using Newtonsoft.Json.Linq;
 
 namespace Fuyu.Backend.BSG.Models.Raid;
 

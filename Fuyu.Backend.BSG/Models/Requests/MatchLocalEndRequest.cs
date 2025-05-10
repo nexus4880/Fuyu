@@ -8,17 +8,17 @@ namespace Fuyu.Backend.BSG.Models.Requests;
 [DataContract]
 public class MatchLocalEndRequest
 {
-    [DataMember(Name = "profile")]
+    [DataMember(Name = "serverId")]
     public string ServerId { get; set; }
 
     [DataMember(Name = "results")]
     public MatchLocalEndResult Results { get; set; }
 
     [DataMember(Name = "lostInsuredItems")]
-    public ItemInstance[] LostInsuredItems { get; set; }
+    public List<ItemInstance> LostInsuredItems { get; set; }
 
     [DataMember(Name = "transferItems")]
-    public Dictionary<string, ItemInstance[]> TransferItems { get; set; }
+    public Dictionary<string, List<ItemInstance>> TransferItems { get; set; }
 
     [DataMember(Name = "locationTransit")]
     public TransitData LocationTransit { get; set; }
