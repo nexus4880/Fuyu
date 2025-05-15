@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Fuyu.Backend.EFTMain;
 using Fuyu.Common.IO;
+using Fuyu.Common.Serialization;
 using Fuyu.DependencyInjection.Attributes;
 
 namespace Fuyu.Common.Backend.ConsoleCommands;
@@ -8,9 +10,12 @@ namespace Fuyu.Common.Backend.ConsoleCommands;
 [ConsoleCommand("sessions", helpText: "[add | remove | dump] <aid | sessionId>")]
 public class SessionsCommand : IConsoleCommand
 {
+    private readonly EftOrm _eftOrm;
+
     [Injectable]
-    public SessionsCommand()
+    public SessionsCommand(/*[Inject] EftOrm eftOrm*/)
     {
+        _eftOrm = EftOrm.Instance;
     }
 
     public Task InvokeAsync(ArraySegment<string> args)
@@ -60,7 +65,7 @@ public class SessionsCommand : IConsoleCommand
 
     private Task InvokeDump(ArraySegment<string> args)
     {
-        Terminal.WriteLine("This is where I would dump");
+        Terminal.WriteLine(Json.Stringify(_eftOrm.GetSessions()));
         return Task.CompletedTask;
     }
 }
