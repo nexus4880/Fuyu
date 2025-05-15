@@ -185,6 +185,11 @@ public class ItemFactoryService
         for (var i = 0; i < fullStacks; i++)
         {
             var itemStack = Json.Clone<List<ItemInstance>>(purchasedItem);
+            if (itemStack[0].Updatable is null)
+            {
+                itemStack[0].Updatable = new ItemUpdatable();
+            }
+
             itemStack[0].Updatable.StackObjectsCount = maxCount;
             ItemService.Instance.RegenerateItemIds(itemStack);
             stacks.Add(itemStack);
@@ -193,6 +198,11 @@ public class ItemFactoryService
         if (remainingItems > 0)
         {
             var itemStack = Json.Clone<List<ItemInstance>>(purchasedItem);
+            if (itemStack[0].Updatable is null)
+            {
+                itemStack[0].Updatable = new ItemUpdatable();
+            }
+
             itemStack[0].Updatable.StackObjectsCount = remainingItems;
             ItemService.Instance.RegenerateItemIds(itemStack);
             stacks.Add(itemStack);

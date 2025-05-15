@@ -4,6 +4,7 @@ using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Services;
+using Fuyu.Common.IO;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
@@ -33,14 +34,14 @@ public class RagFairBuyOfferItemEventController : AbstractItemEventController<Ra
                 throw new Exception("Failed to find offer");
             }
 
-            if (fleaOffer.RootItem.Updatable.StackObjectsCount < buyOffer.Count)
+            if (fleaOffer.Quantity < buyOffer.Count)
             {
                 throw new Exception("User wants to buy more than available");
             }
 
-            fleaOffer.RootItem.Updatable.StackObjectsCount -= buyOffer.Count;
+            fleaOffer.Quantity -= buyOffer.Count;
 
-            if (fleaOffer.RootItem.Updatable.StackObjectsCount <= 0)
+            if (fleaOffer.Quantity <= 0)
             {
                 _ragfairService.RemoveOffer(fleaOffer);
             }
