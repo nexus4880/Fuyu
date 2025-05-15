@@ -195,6 +195,14 @@ public class InventoryInfo
 
             // Recalculate with the target rotation in mind
             (int rootItemWidth2, int rootItemHeight2) = ItemService.Instance.CalculateItemSize(items, targetLocation.r);
+            if (targetItem.Matrices is null)
+            {
+                var props = ItemFactoryService.Instance.GetItemProperties<CompoundItemItemProperties>(targetItem.TemplateId);
+                if (props.Grids.Count > 0)
+                {
+                    targetItem.InitializeMatrices(props.Grids, items);
+                }
+            }
 
             if (targetItem.Matrices.TryGetValue(targetSlot, out var targetMatrix))
             {
