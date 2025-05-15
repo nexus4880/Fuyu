@@ -12,7 +12,7 @@ public class MatchLocalEndRequest
     public string ServerId { get; set; }
 
     [DataMember(Name = "results")]
-    public MatchLocalEndResult Results { get; set; }
+    public MatchLocalEndResult MatchEndResult { get; set; }
 
     [DataMember(Name = "lostInsuredItems")]
     public List<ItemInstance> LostInsuredItems { get; set; }

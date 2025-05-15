@@ -10,7 +10,7 @@ public class MatchLocalEndResult
     public Profile Profile { get; set; }
 
     [DataMember(Name = "result")]
-    public EExitStatus Result { get; set; }
+    public EExitStatus ExitStatus { get; set; }
 
     [DataMember(Name = "killerId")]
     public string KillerId { get; set; }
