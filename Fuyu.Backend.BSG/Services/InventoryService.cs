@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Common.Hashing;
 
@@ -33,28 +32,28 @@ public class InventoryService
         inventory.Equipment = mapping[inventory.Equipment];
 
         // regenerate inventory stash
-        if (inventory.Stash != null)
+        if (inventory.Stash.HasValue)
         {
             mapping.Add(inventory.Stash.Value, MongoId.Generate());
             inventory.Stash = mapping[inventory.Stash.Value];
         }
 
         // regenerate inventory quest raid items
-        if (inventory.QuestRaidItems != null)
+        if (inventory.QuestRaidItems.HasValue)
         {
             mapping.Add(inventory.QuestRaidItems.Value, MongoId.Generate());
             inventory.QuestRaidItems = mapping[inventory.QuestRaidItems.Value];
         }
 
         // regenerate inventory quest stash items
-        if (inventory.QuestStashItems != null)
+        if (inventory.QuestStashItems.HasValue)
         {
             mapping.Add(inventory.QuestStashItems.Value, MongoId.Generate());
             inventory.QuestStashItems = mapping[inventory.QuestStashItems.Value];
         }
 
         // regenerate inventory sorting table
-        if (inventory.SortingTable != null)
+        if (inventory.SortingTable.HasValue)
         {
             mapping.Add(inventory.SortingTable.Value, MongoId.Generate());
             inventory.SortingTable = mapping[inventory.SortingTable.Value];
