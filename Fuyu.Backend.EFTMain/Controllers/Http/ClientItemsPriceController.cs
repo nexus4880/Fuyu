@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.EFTMain.Networking;
+using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Collections;
 using Fuyu.Common.Hashing;
-using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
@@ -18,10 +18,12 @@ public partial class ClientItemsPriceController : AbstractEftHttpController
     private static partial Regex PathExpression();
 
     private readonly EftOrm _eftOrm;
+    private readonly HandbookService _handbook;
 
     public ClientItemsPriceController() : base(PathExpression())
     {
         _eftOrm = EftOrm.Instance;
+        _handbook = HandbookService.Instance;
     }
 
     public override Task RunAsync(EftHttpContext context)
@@ -39,16 +41,15 @@ public partial class ClientItemsPriceController : AbstractEftHttpController
             var currencyCourses = new Dictionary<MongoId, double>
             {
                 { "5449016a4bdc2d6f028b456f", 1d    },	// RUB
-					{ "569668774bdc2da2298b4568", 144d  },	// EUR
-					{ "5696686a4bdc2da3298b456a", 136d  },	// USD
-					{ "5d235b4d86f7742e017bc88a", 7500d }	// GP Coin
-				};
+				{ "569668774bdc2da2298b4568", 144d  },	// EUR
+				{ "5696686a4bdc2da3298b456a", 136d  },	// USD
+				{ "5d235b4d86f7742e017bc88a", 7500d }	// GP Coin
+			};
 
             response.data = new SupplyData
             {
                 CurrencyCourses = currencyCourses,
-                // Every item is worth 1000 RUB for testing
-                MarketPrices = profile.Pmc.Inventory.Items.DistinctBy(i => i.TemplateId).ToDictionary(i => i.TemplateId, _ => 1000d),
+                MarketPrices = profile.Pmc.Inventory.Items.DistinctBy(i => i.TemplateId).ToDictionary(i => i.TemplateId, i => (double)_handbook.GetPrice(i.TemplateId).Value),
                 SupplyNextTime = (int)TimeSpan.FromSeconds(5d).Ticks
             };
         }
