@@ -37,10 +37,13 @@ public class HandbookService
             added = false;
             foreach (var category in categories)
             {
-                if (!result.Contains(category) && result.Any(c => c.Id == category.ParentId))
+                if (category.ParentId.HasValue)
                 {
-                    result.Add(category);
-                    added = true;
+                    if (!result.Contains(category) && result.Any(c => c.Id == category.ParentId.Value))
+                    {
+                        result.Add(category);
+                        added = true;
+                    }
                 }
             }
         }
