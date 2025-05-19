@@ -70,7 +70,7 @@ public class ItemService
     {
         var rootItem = items.Find(i => i.Id == id);
         var result = new List<ItemInstance>() { rootItem };
-        var subItems = items.FindAll(i => i.ParentId != null && i.ParentId == rootItem.Id.ToString());
+        var subItems = items.FindAll(i => i.ParentId == rootItem.Id);
 
         foreach (var item in subItems)
         {

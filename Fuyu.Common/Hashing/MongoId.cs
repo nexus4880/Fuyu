@@ -169,6 +169,26 @@ public readonly struct MongoId : IComparable<MongoId>, IEquatable<MongoId>
         return Parse(id);
     }
 
+    public static bool operator ==(string a, MongoId b)
+    {
+        return b.Equals((object)a);
+    }
+
+    public static bool operator !=(string a, MongoId b)
+    {
+        return !b.Equals((object)a);
+    }
+
+    public static bool operator ==(MongoId a, string b)
+    {
+        return a.Equals((object)b);
+    }
+
+    public static bool operator !=(MongoId a, string b)
+    {
+        return !a.Equals((object)b);
+    }
+
     public static bool operator ==(MongoId a, MongoId b)
     {
         return a.Equals(b);
