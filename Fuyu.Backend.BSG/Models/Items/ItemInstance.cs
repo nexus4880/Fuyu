@@ -72,7 +72,7 @@ public class ItemInstance
 
     public void InitializeMatrices(IList<Grid> grids, IList<ItemInstance> children)
     {
-        Matrices = new MatricesClass(grids, children);
+        Matrices = new MatricesClass(this, grids, children);
     }
 
     public MatricesClass Matrices { get; private set; }
@@ -82,12 +82,14 @@ public class ItemInstance
 // -- nexus4880, 2025-3-10
 public class MatricesClass
 {
+    private readonly ItemInstance _owner;
     private readonly IList<Grid> _grids;
     private readonly IList<ItemInstance> _children;
     private readonly Dictionary<string, bool[,]> _cachedMatrices = [];
 
-    public MatricesClass(IList<Grid> grids, IList<ItemInstance> children)
+    public MatricesClass(ItemInstance owner, IList<Grid> grids, IList<ItemInstance> children)
     {
+        _owner = owner;
         _grids = grids;
         _children = children;
     }
@@ -111,7 +113,7 @@ public class MatricesClass
             var height = grid.Properties.CellsVertical;
             var matrix = new bool[width, height];
 
-            foreach (var itemInGrid in _children.Where(i => i.SlotId == grid.Name))
+            foreach (var itemInGrid in _children.Where(i => i.ParentId == _owner.Id && i.SlotId == grid.Name))
             {
                 if (!itemInGrid.Location.IsValue1)
                 {
