@@ -101,7 +101,11 @@ public class MatricesClass
                 return result;
             }
 
-            var grid = _grids.First(g => g.Name == name);
+            var grid = _grids.FirstOrDefault(g => g.Name == name);
+            if (grid == null)
+            {
+                return null;
+            }
 
             var width = grid.Properties.CellsHorizontal;
             var height = grid.Properties.CellsVertical;
@@ -137,6 +141,11 @@ public class MatricesClass
 
     public bool TryGetValue(string name, out bool[,] result)
     {
-        return _cachedMatrices.TryGetValue(name, out result);
+        if (!_cachedMatrices.TryGetValue(name, out result))
+        {
+            result = this[name];
+        }
+
+        return result is not null;
     }
 }
