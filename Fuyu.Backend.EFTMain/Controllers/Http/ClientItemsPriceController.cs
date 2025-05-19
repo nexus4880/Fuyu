@@ -49,7 +49,11 @@ public partial class ClientItemsPriceController : AbstractEftHttpController
             response.data = new SupplyData
             {
                 CurrencyCourses = currencyCourses,
-                MarketPrices = profile.Pmc.Inventory.Items.DistinctBy(i => i.TemplateId).ToDictionary(i => i.TemplateId, i => (double)_handbook.GetPrice(i.TemplateId).Value),
+                MarketPrices = profile.Pmc.Inventory.Items.DistinctBy(i => i.TemplateId)
+                    .ToDictionary(
+                        i => i.TemplateId,
+                        i => (double)_handbook.GetPrice(i.TemplateId).Value
+                    ),
                 SupplyNextTime = (int)TimeSpan.FromSeconds(5d).Ticks
             };
         }
