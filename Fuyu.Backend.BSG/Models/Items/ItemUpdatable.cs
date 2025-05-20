@@ -1,4 +1,5 @@
 using System.Runtime.Serialization;
+using Fuyu.Backend.BSG.Models.ItemEvents;
 
 namespace Fuyu.Backend.BSG.Models.Items;
 
@@ -84,4 +85,7 @@ public class ItemUpdatable
     // does not emit when 'null'
     [DataMember(Name = "StackObjectsCount", EmitDefaultValue = false)]
     public int? StackObjectsCount { get; set; }
+
+    [DataMember(Name = "PinLockState", EmitDefaultValue = false)]
+    public EPinLockState PinLockState { get; set; }
 }
