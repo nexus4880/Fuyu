@@ -9,18 +9,19 @@ using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
-using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class MatchLocalEndController : AbstractEftHttpController<MatchLocalEndRequest>
 {
     private readonly EftOrm _eftOrm;
+    private readonly ItemService _itemService;
     private readonly ResponseService _responseService;
 
     public MatchLocalEndController() : base("/client/match/local/end")
     {
         _eftOrm = EftOrm.Instance;
+        _itemService = ItemService.Instance;
         _responseService = ResponseService.Instance;
     }
 
@@ -39,7 +40,7 @@ public class MatchLocalEndController : AbstractEftHttpController<MatchLocalEndRe
             var existingCounters = character.TaskConditionCounters;
             var shouldLoseFIR = body.MatchEndResult.ExitStatus.ShouldItemsLoseFIR();
             var newItems = new List<ItemInstance>(body.MatchEndResult.Profile.Inventory.ItemsMap.Count);
-            foreach ((var id, var item) in body.MatchEndResult.Profile.Inventory.ItemsMap)
+            foreach (var item in body.MatchEndResult.Profile.Inventory.Items)
             {
                 // Also need to check time, ideally this would be done in a handler/service
                 if (shouldLoseFIR)
@@ -50,11 +51,9 @@ public class MatchLocalEndController : AbstractEftHttpController<MatchLocalEndRe
                     }
                 }
 
-                // TryAdd returns false if the key is already present
-                if (!character.Inventory.ItemsMap.TryAdd(id, item))
+                if (!character.Inventory.ItemsMap.TryAdd(item.Id, item))
                 {
-                    // In which case we update the existing item
-                    character.Inventory.ItemsMap[id] = item;
+                    character.Inventory.ItemsMap[item.Id] = item;
                 }
                 else
                 {
@@ -65,82 +64,117 @@ public class MatchLocalEndController : AbstractEftHttpController<MatchLocalEndRe
             // Does this code suck? Yes! Does it work? In my testing, yes!
             foreach (var newItem in newItems)
             {
-                var parent = character.Inventory.ItemsMap[newItem.ParentId];
-                try
+                if (character.Inventory.ItemsMap.TryGetValue((MongoId)newItem.ParentId, out var parent))
                 {
-                    var oldItem = character.Inventory.ItemsMap.First(i => i.Value.ParentId == newItem.ParentId && i.Value.SlotId == newItem.SlotId);
-                    character.Inventory.ItemsMap.Remove(oldItem.Key);
+                    // If slot was previously occupied
+                    var itemToReplace = character.Inventory.Items.Find(i => i.ParentId == newItem.ParentId && i.SlotId == newItem.SlotId);
+                    if (itemToReplace is not null)
+                    {
+                        // If the item that was occupying the slot is no longer in their inventory
+                        if (!body.MatchEndResult.Profile.Inventory.ItemsMap.ContainsKey(itemToReplace.Id))
+                        {
+                            // Remove the item from our inventory
+                            character.Inventory.ItemsMap.Remove(itemToReplace.Id);
+                        }
+                        // else the item is somewhere else, don't remove it, we probably will update the position
+                    }
+                    // else the slot was empty
                 }
-                catch (InvalidOperationException e)
+                else
                 {
-                    Terminal.WriteLine(e);
+                    // This shouldn't happen, leaving it here in case it does.
+                    // I have yet to see it happen though so that's good.
+                    // -- nexus4880, 2025-5-18
+                    Terminal.WriteLine($"{newItem.Id}'s parent {newItem.ParentId} is not in ItemsMap!");
                 }
             }
         }
         else
         {
-            var items = character.Inventory.Items;
-            var safeItems = new List<ItemInstance>();
-            var equipmentItem = items.Find(i => i.Id == character.Inventory.Equipment);
-            var equipmentItems = ItemService.Instance.GetItemAndChildren(items, equipmentItem);
-            safeItems.Add(equipmentItem);
+            // TODO: Redo this later, it's wrong.
+            List<MongoId> securedItems = [];
 
-            var armband = equipmentItems.Find(i => i.SlotId == "ArmBand");
-            if (armband is not null)
-            {
-                safeItems.Add(armband);
-            }
+            var inventory = body.MatchEndResult.Profile.Inventory;
+            var rootEquipmentItem = inventory.Items.Find(i => i.Id == inventory.Equipment);
+            var equipmentItems = _itemService.GetItemAndChildren(inventory.Items, rootEquipmentItem);
 
-            var dogtag = equipmentItems.Find(i => i.SlotId == "Dogtag");
-            if (dogtag is not null)
-            {
-                safeItems.Add(dogtag);
-            }
+            securedItems.Add(rootEquipmentItem.Id);
 
-            var pockets = equipmentItems.Find(i => i.SlotId == "Pockets");
-            if (pockets is not null)
-            {
-                safeItems.Add(pockets);
-            }
+            var securedContainer = equipmentItems.Find(
+                i => i.ParentId == inventory.Equipment && i.SlotId == "SecuredContainer"
+            );
 
-            var securedContainer = equipmentItems.Find(i => i.SlotId == "SecuredContainer");
             if (securedContainer is not null)
             {
-                safeItems.AddRange(ItemService.Instance.GetItemAndChildren(items, securedContainer));
+                securedItems.AddRange(
+                    _itemService.GetItemAndChildren(inventory.Items, securedContainer)
+                                .Select(i => i.Id)
+                );
             }
 
-            var scabbard = equipmentItems.Find(i => i.SlotId == "Scabbard");
+            var armband = equipmentItems.Find(
+                i => i.ParentId == inventory.Equipment && i.SlotId == "ArmBand"
+            );
+
+            if (armband is not null)
+            {
+                securedItems.Add(armband.Id);
+            }
+
+            var dogtag = equipmentItems.Find(
+                i => i.ParentId == inventory.Equipment && i.SlotId == "Dogtag"
+            );
+
+            if (dogtag is not null)
+            {
+                securedItems.Add(dogtag.Id);
+            }
+
+            var scabbard = equipmentItems.Find(
+                i => i.ParentId == inventory.Equipment && i.SlotId == "Scabbard"
+            );
+
             if (scabbard is not null)
             {
-                safeItems.Add(scabbard);
+                securedItems.Add(scabbard.Id);
             }
 
-            if (character.Inventory.Stash.HasValue)
+            var pockets = equipmentItems.Find(
+                i => i.ParentId == inventory.Equipment && i.SlotId == "Pockets"
+            );
+
+            if (pockets is not null)
             {
-                var stashItem = items.Find(i => i.Id == character.Inventory.Stash.Value);
-                safeItems.AddRange(ItemService.Instance.GetItemAndChildren(items, stashItem));
+                securedItems.Add(pockets.Id);
+                securedItems.AddRange(
+                    equipmentItems.Where(i => i.ParentId == pockets.Id &&
+                                              i.SlotId == "SpecialSlot")
+                                  .Select(i => i.Id)
+                );
+
+                /*securedItems.AddRange(
+                    _itemService.GetItemAndChildren(inventory.Items, pockets)
+                                .Select(i => i.Id)
+                );*/
             }
 
-            if (character.Inventory.QuestStashItems.HasValue)
+            foreach (var equipmentItem in equipmentItems)
             {
-                var questStash = items.Find(i => i.Id == character.Inventory.QuestStashItems.Value);
-                safeItems.AddRange(ItemService.Instance.GetItemAndChildren(items, questStash));
-            }
+                if (securedItems.Contains(equipmentItem.Id))
+                {
+                    continue;
+                }
 
-            if (character.Inventory.SortingTable.HasValue)
-            {
-                var sortingTable = items.Find(i => i.Id == character.Inventory.SortingTable.Value);
-                safeItems.AddRange(ItemService.Instance.GetItemAndChildren(items, sortingTable));
-            }
-
-            var itemsToRemove = character.Inventory.ItemsMap.Where(i => !safeItems.Contains(i.Value));
-            foreach (var itemToRemove in itemsToRemove)
-            {
-                character.Inventory.ItemsMap.Remove(itemToRemove.Key);
+                if (character.Inventory.ItemsMap.Remove(equipmentItem.Id))
+                {
+                    Terminal.WriteLine($"Removed {equipmentItem.Id}");
+                }
+                else
+                {
+                    Terminal.WriteLine($"Couldn't remove {equipmentItem.Id}, it must be a new item");
+                }
             }
         }
-        
-        GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, blocking: false, compacting: false);
 
         return context.SendJsonAsync(_responseService.EmptyJsonResponse, true, true);
     }
