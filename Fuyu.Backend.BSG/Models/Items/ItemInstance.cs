@@ -50,12 +50,19 @@ public class ItemInstance
     /// </summary>
     public ValueTuple<int, int>? Size { get; set; }
 
-    public T GetOrCreateUpdatable<T>() where T : class
+    public ItemUpdatable GetOrCreateUpdatable()
     {
         if (Updatable == null)
         {
             Updatable = _itemFactoryService.CreateItemUpdatable(TemplateId);
         }
+
+        return Updatable;
+    }
+
+    public T GetOrCreateUpdatable<T>() where T : class
+    {
+        GetOrCreateUpdatable();
 
         // NOTE: Intentionally letting this throw here. The idea is that GetOrCreateUpdatable should
         // create T if it doesn't exist meaning most usage would be GetOrCreateUpdatable<Upd>().Value

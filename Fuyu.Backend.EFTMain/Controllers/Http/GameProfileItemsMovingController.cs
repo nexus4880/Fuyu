@@ -48,6 +48,7 @@ public class GameProfileItemsMovingController : AbstractEftHttpController<JObjec
         ItemEventRouter.AddController<TransferItemEventController>();
         ItemEventRouter.AddController<MergeItemEventController>();
         ItemEventRouter.AddController<SplitItemEventController>();
+        ItemEventRouter.AddController<PinLockItemEventController>();
 
         _eftOrm = EftOrm.Instance;
     }
