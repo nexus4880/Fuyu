@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Threading.Tasks;
 using Fuyu.Common.IO;
 using Fuyu.Common.Launcher.Models.Settings;

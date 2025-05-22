@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Fuyu.Backend": {
+      "commandName": "Project",
+      "commandLineArgs": "run"
+    }
+  }
+}
