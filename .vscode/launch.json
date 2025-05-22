@@ -1,0 +1,53 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Server (Debug)",
+            "preLaunchTask": "dotnet: build debug",
+            "type": "coreclr",
+            "request": "launch",
+            "env": {
+                "DOTNET_CLI_TELEMETRY_OPTOUT": "yes",
+                "DOTNET_NOLOGO": "yes"
+            },
+            "console": "internalConsole",
+            "internalConsoleOptions": "openOnSessionStart",
+            "logging": {
+                "moduleLoad": false
+            },
+            "program": "OVERWRITTEN_BY_OS_SPECIFIC",
+            "windows": {
+                "program": "${workspaceFolder}/Fuyu.Backend/bin/Debug/net9.0/win-x64/Fuyu.Backend.dll",
+                "cwd": "${workspaceFolder}/Fuyu.Backend/bin/Debug/net9.0/win-x64/",
+            },
+            "linux": {
+                "program": "${workspaceFolder}/Fuyu.Backend/bin/Debug/net9.0/linux-x64/Fuyu.Backend.dll",
+                "cwd": "${workspaceFolder}/Fuyu.Backend/bin/Debug/net9.0/linux-x64/",
+            },
+            "osx": {
+                "program": "${workspaceFolder}/Fuyu.Backend/bin/Debug/net9.0/osx-x64/Fuyu.Backend.dll",
+                "cwd": "${workspaceFolder}/Fuyu.Backend/bin/Debug/net9.0/osx-x64/",
+            }
+        },
+        {
+            "name": "Launcher (Debug)",
+            "preLaunchTask": "dotnet: build debug",
+            "type": "coreclr",
+            "request": "launch",
+            "env": {
+                "DOTNET_CLI_TELEMETRY_OPTOUT": "yes",
+                "DOTNET_NOLOGO": "yes"
+            },
+            "console": "internalConsole",
+            "internalConsoleOptions": "openOnSessionStart",
+            "logging": {
+                "moduleLoad": false
+            },
+            "program": "OVERWRITTEN_BY_OS_SPECIFIC",
+            "windows": {
+                "program": "${workspaceFolder}/Fuyu.Launcher/bin/Debug/net9.0-windows/win-x64/Fuyu.Launcher.dll",
+                "cwd": "${workspaceFolder}/Fuyu.Launcher/bin/Debug/net9.0-windows/win-x64/",
+            }
+        }
+    ]
+}
