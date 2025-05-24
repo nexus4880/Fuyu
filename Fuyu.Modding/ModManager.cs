@@ -78,21 +78,17 @@ public class ModManager
 
         foreach (var subdirectory in subdirectories)
         {
-            var modDirectory = Path.GetFullPath(subdirectory);
-            ProcessModDirectory(modDirectory);
-        }
-
 #if NET6_0_OR_GREATER
-        var files = Directory.GetFiles(directory);
-        foreach (var file in files)
-        {
-            var fileInfo = new FileInfo(file);
+            var fileInfo = new FileInfo(subdirectory);
             if (fileInfo.LinkTarget is not null)
             {
                 ProcessModDirectory(fileInfo.LinkTarget);
+                continue;
             }
-        }
 #endif
+            var modDirectory = Path.GetFullPath(subdirectory);
+            ProcessModDirectory(modDirectory);
+        }
     }
 
     private void ProcessModDirectory(string directory)
