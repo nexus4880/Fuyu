@@ -1,23 +1,20 @@
 ﻿using System;
-using System.Security.Cryptography.X509Certificates;
+using System.Collections.Generic;
+using System.CommandLine;
+using System.IO;
 using System.Security.Cryptography;
-using System.Threading;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG;
 using Fuyu.Backend.Core;
 using Fuyu.Backend.EFTMain;
 using Fuyu.Common.Backend.Networking;
-using Fuyu.Common.Backend.Services;
 using Fuyu.Common.IO;
 using Fuyu.DependencyInjection;
 using Fuyu.Modding;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using System.IO;
-using System.CommandLine;
-using Fuyu.Common.Backend.ConsoleCommands;
-using System.Collections.Generic;
 
 namespace Fuyu.Backend;
 
@@ -62,7 +59,7 @@ public class Program
         return certificate;
     }
 
-    static Task RunServer(CancellationToken token, string certificatePath, string certificatePassword, List<FuyuServer> servers)
+    static Task RunServer(string certificatePath, string certificatePassword, List<FuyuServer> servers)
     {
         var builder = new WebHostBuilder();
         var certificate = GetCertificate(certificatePath, certificatePassword);
@@ -99,7 +96,7 @@ public class Program
             });
         });
 
-        return builder.Build().RunAsync(token);
+        return builder.Build().RunAsync();
     }
 
     static async Task<int> Main(string[] args)
@@ -113,12 +110,12 @@ public class Program
 
     static async Task Run()
     {
+        Resx.SetSource("fuyu-backend", typeof(Program).Assembly);
         var config = FuyuCommandLineConfig.Instance;
         var container = new DependencyContainer();
 
         Terminal.SetLogConfig("Fuyu.Backend", "Fuyu/Logs/Backend.log");
 
-        CreateCommandService(container);
         LoadDatabase(container);
         LoadServers(container);
         await LoadMods(container);
@@ -127,29 +124,12 @@ public class Program
         Terminal.WriteLine("You can now run commands.");
         Terminal.WriteLine("Users can now connect.");
 
-        var cts = new CancellationTokenSource();
-        var serverTask = RunServer(
-        cts.Token,
+        await RunServer(
             config.CertificatePath,
             config.CertificatePassword,
             container.ResolveAll<FuyuServer>()
         );
 
-        while (Environment.ExitCode == 0)
-        {
-            var text = await Terminal.ReadLineAsync(cts.Token);
-            if (string.IsNullOrEmpty(text))
-            {
-                break;
-            }
-
-            var commandArgs = text.Split(' ');
-            var commandService = container.Resolve<CommandService>("CommandService");
-            await commandService.ExecuteCommand(commandArgs);
-        }
-
-        cts.Cancel();
-        await serverTask;
         await ModManager.Instance.UnloadAll();
     }
 
@@ -161,17 +141,6 @@ public class Program
         EftLoader.Instance.OnResxSet += ItemFactoryLoader.Instance.Load;
         EftLoader.Instance.Load();
         TraderLoader.Instance.Load();
-    }
-
-    static void CreateCommandService(DependencyContainer container)
-    {
-        var commandService = new CommandService(container);
-
-        commandService.RegisterCommand<HelpCommand>();
-        commandService.RegisterCommand<SessionsCommand>();
-        commandService.RegisterCommand<ExitCommand>();
-
-        container.RegisterSingleton(commandService);
     }
 
     static void LoadServers(DependencyContainer container)
