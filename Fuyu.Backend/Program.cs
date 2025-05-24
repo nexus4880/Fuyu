@@ -137,7 +137,7 @@ public class Program
 
         while (Environment.ExitCode == 0)
         {
-            var text = Terminal.ReadLine();
+            var text = await Terminal.ReadLineAsync(cts.Token);
             if (string.IsNullOrEmpty(text))
             {
                 break;

@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Fuyu.Common.IO;
 
@@ -48,8 +49,8 @@ public static class Terminal
         WriteLine(o.ToString());
     }
 
-    public static string ReadLine()
+    public static ValueTask<string> ReadLineAsync(CancellationToken cancellationToken = default)
     {
-        return Console.In.ReadLine();
+        return Console.In.ReadLineAsync(cancellationToken);
     }
 }
