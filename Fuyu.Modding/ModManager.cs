@@ -79,22 +79,39 @@ public class ModManager
         foreach (var subdirectory in subdirectories)
         {
             var modDirectory = Path.GetFullPath(subdirectory);
-            var modType = GetModType(modDirectory);
+            ProcessModDirectory(modDirectory);
+        }
 
-            switch (modType)
+#if NET6_0_OR_GREATER
+        var files = Directory.GetFiles(directory);
+        foreach (var file in files)
+        {
+            var fileInfo = new FileInfo(file);
+            if (fileInfo.LinkTarget is not null)
             {
-                case EModType.DLL:
-                    ProcessDLLMod(modDirectory);
-                    break;
-
-                case EModType.Source:
-                    ProcessSourceFiles(modDirectory);
-                    break;
-                case EModType.Disabled:
-                    break;
-                default:
-                    throw new Exception($"{modDirectory} does not contain a valid mod setup");
+                ProcessModDirectory(fileInfo.LinkTarget);
             }
+        }
+#endif
+    }
+
+    private void ProcessModDirectory(string directory)
+    {
+        var modType = GetModType(directory);
+
+        switch (modType)
+        {
+            case EModType.DLL:
+                ProcessDLLMod(directory);
+                break;
+
+            case EModType.Source:
+                ProcessSourceFiles(directory);
+                break;
+            case EModType.Disabled:
+                break;
+            default:
+                throw new Exception($"{directory} does not contain a valid mod setup");
         }
     }
 
