@@ -55,6 +55,10 @@ public class ItemInstance
         if (Updatable == null)
         {
             Updatable = _itemFactoryService.CreateItemUpdatable(TemplateId);
+            if (Updatable == null)
+            {
+                Updatable = new ItemUpdatable();
+            }
         }
 
         return Updatable;
