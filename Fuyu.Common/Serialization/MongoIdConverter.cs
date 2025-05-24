@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Fuyu.Common.Hashing;
 using Newtonsoft.Json;
 
@@ -10,7 +10,7 @@ public class MongoIdConverter : JsonConverter<MongoId?>
     {
         if (reader.Value != null)
         {
-            if (MongoId.TryParse((string)reader.Value, out MongoId mongoId))
+            if (MongoId.TryParse((string)reader.Value, null, out MongoId mongoId))
             {
                 return mongoId;
             }

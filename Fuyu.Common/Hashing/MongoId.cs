@@ -6,7 +6,7 @@ namespace Fuyu.Common.Hashing;
 
 [Serializable]
 [JsonConverter(typeof(MongoIdConverter))]
-public readonly struct MongoId : IComparable<MongoId>, IEquatable<MongoId>
+public readonly struct MongoId : IComparable<MongoId>, IEquatable<MongoId>, IParsable<MongoId>
 {
     private static readonly Random _random = new Random();
     private readonly uint _timeStamp;
@@ -32,28 +32,13 @@ public readonly struct MongoId : IComparable<MongoId>, IEquatable<MongoId>
         }
     }
 
-    public static bool TryParse(string str, out MongoId id)
-    {
-        if (str == null || str.Length != RequiredStringLength)
-        {
-            id = default;
-            return false;
-        }
-
-        var timeStamp = GetTimestamp(str);
-        var counter = GetCounter(str);
-        id = new MongoId(timeStamp, counter);
-
-        return true;
-    }
-
     public MongoId(uint timeStamp, ulong counter)
     {
         _timeStamp = timeStamp;
         _counter = counter;
     }
 
-    public static MongoId Parse(string str)
+    public static MongoId Parse(string str, IFormatProvider format)
     {
         if (str == null || str.Length != RequiredStringLength)
         {
@@ -64,6 +49,22 @@ public readonly struct MongoId : IComparable<MongoId>, IEquatable<MongoId>
         var counter = GetCounter(str);
 
         return new MongoId(timeStamp, counter);
+    }
+
+    public static bool TryParse(string str, IFormatProvider format, out MongoId id)
+    {
+        if (str == null || str.Length != RequiredStringLength)
+        {
+            id = default;
+            return false;
+        }
+
+        var timeStamp = GetTimestamp(str);
+        var counter = GetCounter(str);
+
+        id = new MongoId(timeStamp, counter);
+
+        return true;
     }
 
     public static MongoId Generate()
@@ -166,7 +167,7 @@ public readonly struct MongoId : IComparable<MongoId>, IEquatable<MongoId>
 
     public static implicit operator MongoId(string id)
     {
-        return Parse(id);
+        return Parse(id, null);
     }
 
     public static bool operator ==(string a, MongoId b)
