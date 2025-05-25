@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Fuyu.Backend.BSG;
 using Fuyu.Backend.Core;
 using Fuyu.Backend.EFTMain;
+using Fuyu.Backend.EFTMain.Loaders;
 using Fuyu.Common.Backend.Networking;
 using Fuyu.Common.IO;
 using Fuyu.DependencyInjection;
@@ -138,9 +139,12 @@ public class Program
         Terminal.WriteLine("Loading database...");
 
         CoreLoader.Instance.Load();
+
         EftLoader.Instance.OnResxSet += ItemFactoryLoader.Instance.Load;
+        EftLoader.Instance.OnLoadTraders += TraderLoader.Instance.Load;
+        EftLoader.Instance.OnResxSet += SurveyLoader.Instance.Load;
+
         EftLoader.Instance.Load();
-        TraderLoader.Instance.Load();
     }
 
     static void LoadServers(DependencyContainer container)
