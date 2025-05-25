@@ -41,7 +41,7 @@ public class WebRouterContext : IRouterContext
 
     public bool HasBody()
     {
-        return Request.Body != null;
+        return Request.ContentLength.HasValue;
     }
 
     public void Close()
