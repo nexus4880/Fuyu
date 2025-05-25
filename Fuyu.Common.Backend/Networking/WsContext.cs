@@ -11,6 +11,7 @@ public class WsContext : WebRouterContext
 {
     private const int _bufferSize = 32000;
     private readonly WebSocket _ws;
+    private readonly CancellationToken _cancellationToken;
 
     public delegate Task OnTextEventHandler(WsContext sender, string text);
     public delegate Task OnBinaryEventHandler(WsContext sender, byte[] binary);
@@ -20,9 +21,10 @@ public class WsContext : WebRouterContext
     public event OnBinaryEventHandler OnBinaryEvent;
     public event OnCloseEventHandler OnCloseEvent;
 
-    public WsContext(HttpRequest request, HttpResponse response, WebSocket ws) : base(request, response)
+    public WsContext(HttpRequest request, HttpResponse response, CancellationToken cancellationToken, WebSocket ws) : base(request, response)
     {
         _ws = ws;
+        _cancellationToken = cancellationToken;
     }
 
     public bool IsOpen()
@@ -43,9 +45,13 @@ public class WsContext : WebRouterContext
         WebSocketReceiveResult received;
         try
         {
-            received = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            received = await _ws.ReceiveAsync(buffer, _cancellationToken);
         }
-        catch
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+        catch (Exception)
         {
             return false;
         }

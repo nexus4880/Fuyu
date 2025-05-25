@@ -63,7 +63,7 @@ public class FuyuServer
 
         try
         {
-            var context = new WsContext(ctx.Request, ctx.Response, ws);
+            var context = new WsContext(ctx.Request, ctx.Response, ctx.RequestAborted, ws);
             var time = DateTime.UtcNow.ToString();
             Terminal.WriteLine($"[{Name}][WS  ] {context.Path}");
             await WsRouter.RouteAsync(context);
