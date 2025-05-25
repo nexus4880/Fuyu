@@ -136,6 +136,7 @@
     <EmbeddedResource Include="Resources/database/traderavatars/rimuru.jpg" />
     <EmbeddedResource Include="Resources/database/traderavatars/rimuru.png" />
     <None Remove="Resources\database\client.trading.api.getTraderAssort.5a7c2eca46aef81a7ca2145d.json" />
+    <None Remove="Resources\example_survey.json" />
     <EmbeddedResource Include="Resources\database\client.trading.api.getTraderAssort.5a7c2eca46aef81a7ca2145d.json" />
     <None Remove="Resources\database\client.trading.api.getTraderAssort.5ac3b934156ae10c4430e83c.json" />
     <EmbeddedResource Include="Resources\database\client.trading.api.getTraderAssort.5ac3b934156ae10c4430e83c.json" />
@@ -149,5 +150,6 @@
     <EmbeddedResource Include="Resources\database\client.trading.api.getTraderAssort.5935c25fb3acc3127c3d8cd9.json" />
     <None Remove="Resources\database\client.trading.api.getTraderAssort.58330581ace78e27b8b10cee.json" />
     <EmbeddedResource Include="Resources\database\client.trading.api.getTraderAssort.58330581ace78e27b8b10cee.json" />
+    <EmbeddedResource Include="Resources\example_survey.json" />
   </ItemGroup>
 </Project>

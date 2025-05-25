@@ -1,0 +1,71 @@
+﻿using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Fuyu.Backend.BSG.Models.Requests;
+using Fuyu.Backend.BSG.Models.Survey;
+using Fuyu.Backend.EFTMain.Networking;
+using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Common.IO;
+
+namespace Fuyu.Backend.EFTMain.Controllers.Http;
+
+public class ClientSurveyOpinionController : AbstractEftHttpController<ClientSurveyOpinionRequest>
+{
+    private readonly EftOrm _eftOrm;
+    private readonly SurveyOrm _surveyOrm;
+
+    public ClientSurveyOpinionController() : base("/client/survey/opinion")
+    {
+        _eftOrm = EftOrm.Instance;
+        _surveyOrm = SurveyOrm.Instance;
+    }
+
+    public override Task RunAsync(EftHttpContext context, ClientSurveyOpinionRequest body)
+    {
+        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var account = _eftOrm.GetAccount(profile.Pmc.aid);
+        var completionLog = new StringBuilder();
+        completionLog.AppendLine($"{account.Username} has completed the survey");
+        var surveyTemplate = _surveyOrm.GetSurveyTemplate();
+
+        foreach (var answer in body.Answers)
+        {
+            var questionAnswered = surveyTemplate.Questions.Find(q => q.Id == answer.QuestionId);
+            completionLog.AppendLine($"Question: {questionAnswered.TitleLocaleKey}");
+
+            switch (answer.AnswerType)
+            {
+                case EAnswerType.MultiOption:
+                    {
+                        var indexes = answer.Answers.Value.Value3;
+                        var selectedAnswers = questionAnswered.Answers
+                            .Where((value, index) => indexes.Contains(index))
+                            .ToList();
+                        completionLog.AppendLine($"Answer: {string.Join(", ", selectedAnswers.Select(answer => answer.LocaleKey))}");
+                        break;
+                    }
+                case EAnswerType.Text:
+                    {
+                        completionLog.AppendLine( $"Answer: {answer.Answers.Value.Value2.Trim()}");
+                        break;
+                    }
+                case EAnswerType.SingleOption:
+                    {
+                        // If we abstained from voting or couldn't find the
+                        // answer then create a new one with error text
+                        // -- nexus4880, 2025-5-15
+                        var index = answer.Answers.Value.Value1;
+                        var selectedAnswer = index.HasValue && index >= 0 && index < questionAnswered.Answers.Count
+                            ? questionAnswered.Answers[index.Value]
+                            : new Answer { LocaleKey = $"Unknown, integer value was: {index}" };
+                        completionLog.AppendLine($"Answer: {selectedAnswer.LocaleKey}");
+                        break;
+                    }
+            }
+        }
+
+        Terminal.WriteLine(completionLog.ToString());
+
+        return Task.CompletedTask;
+    }
+}

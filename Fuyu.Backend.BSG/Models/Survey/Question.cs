@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Fuyu.Backend.BSG.Models.Survey;
 
@@ -17,6 +18,12 @@ public class Question
     [DataMember(Name = "hintLocaleKey")]
     public string HintLocaleKey { get; set; }
 
+    /// <summary>
+    /// If <see cref="AnswerType"/> is <see cref="EAnswerType.MultiOption"/> then
+    /// this is the maximum amount of answers they can supply to that question, if
+    /// it is <see cref="EAnswerType.Text"/> then this is the character limit
+    /// </summary>
+    // -- nexus4880, 2025-5-24
     [DataMember(Name = "answerLimit")]
     public int AnswerLimit { get; set; }
 
@@ -24,5 +31,5 @@ public class Question
     public EAnswerType AnswerType { get; set; }
 
     [DataMember(Name = "answers")]
-    public Answer[] Answers { get; set; }
+    public List<Answer> Answers { get; set; }
 }

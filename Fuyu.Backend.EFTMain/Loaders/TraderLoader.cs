@@ -2,10 +2,11 @@
 using System.IO;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
+using Fuyu.Backend.EFTMain.Databases;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
 
-namespace Fuyu.Backend.EFTMain;
+namespace Fuyu.Backend.EFTMain.Loaders;
 
 public class TraderLoader
 {

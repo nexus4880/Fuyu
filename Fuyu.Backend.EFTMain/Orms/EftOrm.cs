@@ -7,9 +7,10 @@ using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
+using Fuyu.Backend.EFTMain.Databases;
 using Newtonsoft.Json.Linq;
 
-namespace Fuyu.Backend.EFTMain;
+namespace Fuyu.Backend.EFTMain.Orms;
 
 public class EftOrm
 {

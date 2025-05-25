@@ -9,7 +9,7 @@ using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Services;
-using Fuyu.Backend.EFTMain;
+using Fuyu.Backend.EFTMain.Orms;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;

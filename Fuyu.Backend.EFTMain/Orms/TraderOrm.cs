@@ -1,8 +1,9 @@
 ﻿using System;
 using Fuyu.Backend.BSG.Models.Trading;
+using Fuyu.Backend.EFTMain.Databases;
 using Fuyu.Common.Hashing;
 
-namespace Fuyu.Backend.EFTMain.Services;
+namespace Fuyu.Backend.EFTMain.Orms;
 
 public class TraderOrm
 {

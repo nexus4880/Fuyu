@@ -19,8 +19,8 @@ public class SurveyTemplate
     public FarewellPageData FarewellPageData { get; set; }
 
     [DataMember(Name = "pages")]
-    public List<int[]> Pages { get; set; }
+    public List<List<int>> Pages { get; set; }
 
     [DataMember(Name = "questions")]
-    public Question[] Questions { get; set; }
+    public List<Question> Questions { get; set; }
 }

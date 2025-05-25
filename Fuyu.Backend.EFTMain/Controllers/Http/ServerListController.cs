@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Servers;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
@@ -14,15 +13,11 @@ public class ServerListController : AbstractEftHttpController
 
     public override Task RunAsync(EftHttpContext context)
     {
+        // The client doesn't actually do anything from what I see, no need to do anything here
+        // - nexus4880, 2025-5-17
         var response = new ResponseBody<ServerInfo[]>()
         {
-            data = [
-                new ServerInfo
-                {
-                    ip = "127.0.0.1",
-                    port = 8000
-                }
-            ]
+            data = []
         };
 
         return context.SendResponseAsync(response, true, true);

@@ -11,7 +11,7 @@ using Fuyu.Common.Collections;
 using Fuyu.Common.IO;
 using Newtonsoft.Json.Linq;
 
-namespace Fuyu.Backend.EFTMain;
+namespace Fuyu.Backend.EFTMain.Databases;
 
 // NOTE: The properties of this class should _NEVER_ be accessed from the
 //       outside. Use EftOrm instead.

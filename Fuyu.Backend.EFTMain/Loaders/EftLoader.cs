@@ -7,6 +7,8 @@ using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
+using Fuyu.Backend.EFTMain.Databases;
+using Fuyu.Backend.EFTMain.Orms;
 using Fuyu.Common.Delegates;
 using Fuyu.Common.IO;
 using Fuyu.Common.Networking;
@@ -14,7 +16,7 @@ using Fuyu.Common.Serialization;
 using Fuyu.Common.Services;
 using Newtonsoft.Json.Linq;
 
-namespace Fuyu.Backend.EFTMain;
+namespace Fuyu.Backend.EFTMain.Loaders;
 
 public class EftLoader
 {

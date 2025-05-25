@@ -6,7 +6,7 @@ using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Collections;
 using Fuyu.Common.Hashing;
 
-namespace Fuyu.Backend.EFTMain;
+namespace Fuyu.Backend.EFTMain.Databases;
 
 public class TraderDatabase
 {

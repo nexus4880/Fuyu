@@ -70,6 +70,8 @@ public class EftMainServer : FuyuServer
         HttpRouter.AddController<RepeatableQuestActivityPeriodsController>();
         HttpRouter.AddController<ServerListController>();
         HttpRouter.AddController<SettingsController>();
+        HttpRouter.AddController<ClientSurveyViewController>();
+        HttpRouter.AddController<ClientSurveyOpinionController>();
         HttpRouter.AddController<SurveyController>();
         HttpRouter.AddController<TraderSettingsController>();
         HttpRouter.AddController<WeatherController>();
