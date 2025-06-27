@@ -41,6 +41,7 @@ public class EftMainServer : FuyuServer
         HttpRouter.AddController<GameStartController>();
         HttpRouter.AddController<GameVersionValidateController>();
         HttpRouter.AddController<GetMetricsConfigController>();
+        HttpRouter.AddController<PutHWMetricsController>();
         HttpRouter.AddController<GlobalsController>();
         HttpRouter.AddController<HandbookTemplatesController>();
         HttpRouter.AddController<HideoutAreasController>();
