@@ -9,6 +9,8 @@ using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.Core;
 using Fuyu.Backend.Core.Models.Accounts;
 using Fuyu.Backend.EFTMain;
+using Fuyu.Backend.EFTMain.Loaders;
+using Fuyu.Backend.EFTMain.Orms;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.Serialization;
@@ -61,11 +63,9 @@ public class BackendTest
         // setup servers
         var coreServer = new CoreServer();
         coreServer.RegisterServices();
-        coreServer.Start();
 
         var eftMainServer = new EftMainServer();
         eftMainServer.RegisterServices();
-        eftMainServer.Start();
 
         // register test account
         var coreSessionId = CreateFuyuAccount("TestUser1", "TestPass1!");
@@ -640,7 +640,7 @@ public class BackendTest
         // get request data
         var request = new MatchLocalEndRequest()
         {
-            Results = new MatchLocalEndResult()
+            MatchEndResult = new MatchLocalEndResult()
             {
                 Profile = profile.Pmc
             }
