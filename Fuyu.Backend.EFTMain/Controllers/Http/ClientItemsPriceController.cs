@@ -53,7 +53,7 @@ public partial class ClientItemsPriceController : AbstractEftHttpController
                 MarketPrices = profile.Pmc.Inventory.Items.DistinctBy(i => i.TemplateId)
                     .ToDictionary(
                         i => i.TemplateId,
-                        i => (double)_handbook.GetPrice(i.TemplateId).Value
+                        i => (double)_handbook.GetPrice(i.TemplateId).GetValueOrDefault(1)
                     ),
                 SupplyNextTime = (int)TimeSpan.FromSeconds(5d).Ticks
             };
