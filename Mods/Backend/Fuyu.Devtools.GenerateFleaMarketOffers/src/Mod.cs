@@ -4,15 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG;
 using Fuyu.Backend.BSG.ItemTemplates;
-using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Services;
-using Fuyu.Backend.EFTMain;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
-using Fuyu.DependencyInjection;
 using Fuyu.Modding;
 
 namespace Fuyu.Devtools.GenerateFleaMarketOffers;
@@ -33,7 +30,7 @@ public class Mod : AbstractMod
 
     private Thread _generateOffersThread;
 
-    public override Task OnLoad(DependencyContainer container)
+    public override Task OnLoad()
     {
         _handbookService = HandbookService.Instance;
         _itemFactoryService = ItemFactoryService.Instance;

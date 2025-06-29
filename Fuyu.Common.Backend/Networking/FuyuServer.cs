@@ -8,22 +8,21 @@ namespace Fuyu.Common.Backend.Networking;
 
 public class FuyuServer
 {
-    public readonly HttpRouter HttpRouter;
-    public readonly WsRouter WsRouter;
+    public HttpRouter HttpRouter { get; protected set; }
+    public WsRouter WsRouter { get; protected set; }
+
     public readonly int Port;
     public readonly string Name;
     public readonly string SubProtocol;
 
     public FuyuServer(string name, int port, string subprotocol = null)
     {
-        HttpRouter = new HttpRouter();
-        WsRouter = new WsRouter();
         Port = port;
         Name = name;
         SubProtocol = subprotocol;
     }
 
-    public Task OnRequestAsync(AspNetHttpContext ctx)
+    public virtual Task OnRequestAsync(AspNetHttpContext ctx)
     {
         if (ctx.WebSockets.IsWebSocketRequest)
         {
@@ -37,6 +36,12 @@ public class FuyuServer
 
     private async Task OnHttpRequestAsync(AspNetHttpContext ctx)
     {
+        if (HttpRouter is null)
+        {
+            Terminal.WriteLine($"[{Name}] {nameof(HttpRouter)} is null, cannot handle {ctx.Request.Path}");
+            return;
+        }
+
         var context = new HttpContext(ctx.Request, ctx.Response);
 
         Terminal.WriteLine($"[{Name}][HTTP] {context.Path}");
@@ -59,6 +64,12 @@ public class FuyuServer
 
     private async Task OnWsRequestAsync(AspNetHttpContext ctx)
     {
+        if (WsRouter is null)
+        {
+            Terminal.WriteLine($"[{Name}] {nameof(WsRouter)} is null, cannot handle {ctx.Request.Path}");
+            return;
+        }
+
         var ws = await ctx.WebSockets.AcceptWebSocketAsync(SubProtocol);
 
         try

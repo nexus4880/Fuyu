@@ -3,17 +3,36 @@ using System.Windows;
 using Fuyu.Common.IO;
 using Fuyu.Common.Launcher.Services;
 using Fuyu.Common.Services;
-using Fuyu.DependencyInjection;
 using Fuyu.Launcher.Core;
 using Fuyu.Launcher.EFT;
-using Fuyu.Modding;
 
 namespace Fuyu.Launcher;
 
 public partial class MainWindow : Window
 {
-    public MainWindow()
+    private readonly ContentService _contentService;
+    private readonly MessageService _messageService;
+    private readonly NavigationService _navigationService;
+    private readonly WebViewService _webViewService;
+    private readonly RequestService _requestService;
+    private readonly SettingsService _settingsService;
+
+    public MainWindow(
+        ContentService contentService,
+        MessageService messageService,
+        NavigationService navigationService,
+        WebViewService webViewService,
+        RequestService requestService,
+        SettingsService settingsService
+        )
     {
+        _contentService = contentService;
+        _messageService = messageService;
+        _navigationService = navigationService;
+        _webViewService = webViewService;
+        _requestService = requestService;
+        _settingsService = settingsService;
+
         // initialize page
         InitializeComponent();
         InitializeAsync();
@@ -22,38 +41,21 @@ public partial class MainWindow : Window
     // lazy initialize _webview
     async void InitializeAsync()
     {
-        // resolve dependencies
-        var container = new DependencyContainer();
-
-        Terminal.SetLogConfig("Fuyu.Launcher", "Fuyu/Logs/Launcher.log");
-
-        var contentService = ContentService.Instance;
-        var messageService = MessageService.Instance;
-        var modManager = ModManager.Instance;
-        var navigationService = NavigationService.Instance;
-        var webViewService = WebViewService.Instance;
-
-        container.RegisterSingleton(contentService);
-        container.RegisterSingleton(messageService);
-        container.RegisterSingleton(modManager);
-        container.RegisterSingleton(navigationService);
-        container.RegisterSingleton(webViewService);
-        container.RegisterSingleton(RequestService.Instance);
-        container.RegisterSingleton(SettingsService.Instance);
+        Terminal.SetLogConfig("Fuyu/Logs/Launcher.log");
 
         // initialize webview
         await browser.EnsureCoreWebView2Async(null);
         var webview = browser.CoreWebView2;
 
         // initialize services
-        webViewService.Initialize(webview);
-        navigationService.Initialize(webview);
-        messageService.Initialize(webview);
+        _webViewService.Initialize(webview);
+        _navigationService.Initialize(webview);
+        _messageService.Initialize(webview);
 
         // set content
         Resx.SetSource("Fuyu.Launcher", this.GetType().Assembly);
-        contentService.SetOrAddLoader("index.html", LoadContent);
-        contentService.SetOrAddLoader("favicon.ico", LoadContent);
+        _contentService.SetOrAddLoader("index.html", LoadContent);
+        _contentService.SetOrAddLoader("favicon.ico", LoadContent);
 
         // load mods
         Terminal.WriteLine("Loading mods...");
@@ -65,18 +67,15 @@ public partial class MainWindow : Window
         var modPath = "./Fuyu/Mods/Launcher";
 #endif
 
-        var core = container.Resolve<LauncherCoreExtension>();
+        var core = new LauncherCoreExtension(_contentService, _requestService, _settingsService);
         await core.Initialize();
 
-        var launcher = container.Resolve<EFTLauncherExtension>();
+        var launcher = new EFTLauncherExtension(_contentService, _requestService, _settingsService);
         await launcher.Initialize();
 
-        modManager.AddMods(modPath);
-        await modManager.Load(container);
-
         // load initial page
-        var url = navigationService.GetInternalUrl("index.html");
-        navigationService.NavigateInternal(url);
+        var url = _navigationService.GetInternalUrl("index.html");
+        _navigationService.NavigateInternal(url);
     }
 
     Stream LoadContent(string path)

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Fuyu.Common.Client.Services;
-using Fuyu.DependencyInjection;
 using Fuyu.Modding;
 using NLog.Targets;
 

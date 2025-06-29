@@ -13,7 +13,6 @@ using Fuyu.Backend.EFTMain.Orms;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
-using Fuyu.DependencyInjection;
 using Fuyu.Modding;
 
 namespace Fuyu.Devtools.GenerateFleaMarketWeapons;
@@ -36,7 +35,7 @@ public class Mod : AbstractMod
 
     private Thread _generateOffersThread;
 
-    public override Task OnLoad(DependencyContainer container)
+    public override Task OnLoad()
     {
         _eftOrm = EftOrm.Instance;
         _itemFactoryService = ItemFactoryService.Instance;

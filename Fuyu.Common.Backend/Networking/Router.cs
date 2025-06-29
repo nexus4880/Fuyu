@@ -9,6 +9,11 @@ public class Router<TController, TContext> where TController : IRouterController
 {
     public List<TController> Controllers { get; private set; }
 
+    public Router(IEnumerable<TController> controllers)
+    {
+        Controllers = [.. controllers];
+    }
+
     public Router()
     {
         Controllers = new List<TController>();

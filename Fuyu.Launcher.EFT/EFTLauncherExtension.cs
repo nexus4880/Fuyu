@@ -5,7 +5,6 @@ using Fuyu.Common.Launcher.Models.Settings;
 using Fuyu.Common.Launcher.Services;
 using Fuyu.Common.Networking;
 using Fuyu.Common.Services;
-using Fuyu.DependencyInjection.Attributes;
 using Fuyu.Launcher.EFT.Pages;
 
 namespace Fuyu.Launcher.EFT;
@@ -18,11 +17,10 @@ public class EFTLauncherExtension
     private readonly RequestService _requestService;
     private readonly SettingsService _settingsService;
 
-    [Injectable]
     public EFTLauncherExtension(
-        [Inject] ContentService contentService,
-        [Inject] RequestService requestService,
-        [Inject] SettingsService settingsService)
+        ContentService contentService,
+        RequestService requestService,
+        SettingsService settingsService)
     {
         _contentService = contentService;
         _requestService = requestService;

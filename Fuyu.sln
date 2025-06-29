@@ -29,8 +29,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Tests.Backend.EFT", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Tests.Backend.Core", "Tests\Fuyu.Tests.Backend.Core\Fuyu.Tests.Backend.Core.csproj", "{C36F6974-2E1E-4327-B82C-AE8DD0954DDD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fuyu.DependencyInjection", "Fuyu.DependencyInjection\Fuyu.DependencyInjection.csproj", "{8B94FFE8-658E-4261-8B96-7FBD0C08374B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Modding", "Fuyu.Modding\Fuyu.Modding.csproj", "{1687E80C-E174-4844-9939-7AAF6E1139F0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fuyu.Modding.NLog", "Fuyu.Modding.NLog\Fuyu.Modding.NLog.csproj", "{335E42B4-0EDD-4CDD-908A-C109272FB181}"
@@ -109,10 +107,6 @@ Global
 		{C36F6974-2E1E-4327-B82C-AE8DD0954DDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C36F6974-2E1E-4327-B82C-AE8DD0954DDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C36F6974-2E1E-4327-B82C-AE8DD0954DDD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B94FFE8-658E-4261-8B96-7FBD0C08374B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B94FFE8-658E-4261-8B96-7FBD0C08374B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B94FFE8-658E-4261-8B96-7FBD0C08374B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B94FFE8-658E-4261-8B96-7FBD0C08374B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1687E80C-E174-4844-9939-7AAF6E1139F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1687E80C-E174-4844-9939-7AAF6E1139F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1687E80C-E174-4844-9939-7AAF6E1139F0}.Release|Any CPU.ActiveCfg = Release|Any CPU

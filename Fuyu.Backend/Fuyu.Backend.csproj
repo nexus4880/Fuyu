@@ -21,9 +21,17 @@
         <ProjectReference Include="../Fuyu.Common.Backend/Fuyu.Common.Backend.csproj" />
         <ProjectReference Include="../Fuyu.Backend.Core/Fuyu.Backend.Core.csproj" />
         <ProjectReference Include="..\Fuyu.Backend.EFTMain\Fuyu.Backend.EFTMain.csproj" />
-        <ProjectReference Include="../Fuyu.DependencyInjection/Fuyu.DependencyInjection.csproj" />
         <ProjectReference Include="../Fuyu.Modding/Fuyu.Modding.csproj" />
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.Development.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <Target Name="PostClean" AfterTargets="Clean">

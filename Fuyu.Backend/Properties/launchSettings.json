@@ -2,7 +2,7 @@
   "profiles": {
     "Fuyu.Backend": {
       "commandName": "Project",
-      "commandLineArgs": "run"
+      "commandLineArgs": "run --certificate=C:\\Users\\nexus\\Desktop\\cert.pfx --certificate-password=123"
     }
   }
 }

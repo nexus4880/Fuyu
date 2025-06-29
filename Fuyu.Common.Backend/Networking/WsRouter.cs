@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Fuyu.Common.Backend.Networking;
@@ -5,6 +6,10 @@ namespace Fuyu.Common.Backend.Networking;
 public class WsRouter : Router<WsController, WsContext>
 {
     public WsRouter() : base()
+    {
+    }
+
+    public WsRouter(IEnumerable<WsController> controllers) : base(controllers)
     {
     }
 

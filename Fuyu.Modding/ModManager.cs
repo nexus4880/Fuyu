@@ -7,22 +7,19 @@ using System.Net.Http;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using Fuyu.DependencyInjection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Fuyu.Modding;
 
 // This should live during the entire lifetime of the application
 public class ModManager
 {
-    public static ModManager Instance => instance.Value;
-    private static readonly Lazy<ModManager> instance = new Lazy<ModManager>(() => new ModManager());
-
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
-    private ModManager()
+    public ModManager()
     {
     }
 
@@ -66,7 +63,7 @@ public class ModManager
         return resources;
     }
 
-    public void AddMods(string directory)
+    public void AddMods(string directory, IServiceCollection services)
     {
         if (!Directory.Exists(directory))
         {
@@ -82,27 +79,26 @@ public class ModManager
             var fileInfo = new FileInfo(subdirectory);
             if (fileInfo.LinkTarget is not null)
             {
-                ProcessModDirectory(fileInfo.LinkTarget);
+                ProcessModDirectory(fileInfo.LinkTarget, services);
                 continue;
             }
 #endif
             var modDirectory = Path.GetFullPath(subdirectory);
-            ProcessModDirectory(modDirectory);
+            ProcessModDirectory(modDirectory, services);
         }
     }
 
-    private void ProcessModDirectory(string directory)
+    private void ProcessModDirectory(string directory, IServiceCollection services)
     {
         var modType = GetModType(directory);
 
         switch (modType)
         {
             case EModType.DLL:
-                ProcessDLLMod(directory);
+                ProcessDLLMod(directory, services);
                 break;
-
             case EModType.Source:
-                ProcessSourceFiles(directory);
+                ProcessSourceFiles(directory, services);
                 break;
             case EModType.Disabled:
                 break;
@@ -134,18 +130,18 @@ public class ModManager
         return EModType.Invalid;
     }
 
-    private void ProcessDLLMod(string directory)
+    private void ProcessDLLMod(string directory, IServiceCollection services)
     {
         var dllPaths = Directory.GetFiles(directory, "*.dll");
 
         foreach (var dllPath in dllPaths)
         {
             var assembly = Assembly.LoadFrom(dllPath);
-            ProcessAssembly(assembly, EModType.DLL);
+            ProcessAssembly(assembly, EModType.DLL, services);
         }
     }
 
-    private void ProcessAssembly(Assembly assembly, EModType assemblyModType)
+    private void ProcessAssembly(Assembly assembly, EModType assemblyModType, IServiceCollection services)
     {
         // Get types where T inherits from Mod
         var modTypes = assembly.GetExportedTypes()
@@ -154,34 +150,22 @@ public class ModManager
         // Technically you could export multiple mods per assembly
         foreach (var modType in modTypes)
         {
-            var mod = (AbstractMod)Activator.CreateInstance(modType);
-
-            if (_mods.FindIndex(m => m.Id == mod.Id) != -1)
-            {
-                throw new Exception($"A mod with the id {mod.Id} has already been added");
-            }
-
-            Console.WriteLine($"Adding mod {mod.Name} ({mod.Id})");
-            _mods.Add(mod);
+            services.AddSingleton(typeof(AbstractMod), modType);
+            modType.ConfigureServices(services);
         }
     }
 
-    public async Task Load(DependencyContainer container)
+    public async Task Load(IServiceProvider provider)
     {
+        _mods.AddRange(provider.GetServices<AbstractMod>());
         CheckDependencies();
         SortMods();
 
         foreach (var mod in _mods)
         {
-            // All mods WILL be registered in the DependencyContainer
-            container.RegisterSingleton(mod.Id, mod);
-        }
-
-        foreach (var mod in _mods)
-        {
             if (!mod.IsLoaded)
             {
-                await mod.OnLoad(container);
+                await mod.OnLoad();
                 mod.IsLoaded = true;
             }
         }
@@ -266,7 +250,7 @@ public class ModManager
         );
     }
 
-    private void ProcessSourceFiles(string directory)
+    private void ProcessSourceFiles(string directory, IServiceCollection services)
     {
         var sourceFiles = Directory.GetFiles(Path.Combine(directory, "src"), "*.cs", SearchOption.AllDirectories);
 
@@ -319,6 +303,6 @@ public class ModManager
             assembly = Assembly.Load(ms.ToArray());
         }
 
-        ProcessAssembly(assembly, EModType.Source);
+        ProcessAssembly(assembly, EModType.Source, services);
     }
 }

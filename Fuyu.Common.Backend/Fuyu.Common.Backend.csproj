@@ -6,7 +6,6 @@
 
     <ItemGroup>
         <ProjectReference Include="../Fuyu.Common/Fuyu.Common.csproj" />
-        <ProjectReference Include="..\Fuyu.DependencyInjection\Fuyu.DependencyInjection.csproj" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.3.0" />
         <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.3.0" />

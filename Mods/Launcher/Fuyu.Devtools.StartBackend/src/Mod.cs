@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Fuyu.DependencyInjection;
 using Fuyu.Modding;
 
 namespace Fuyu.Launcher.EFT;
@@ -11,7 +10,7 @@ public class Mod : AbstractMod
     public override string Name { get; } = "Fuyu.Devtools.StartBackend";
     public override string[] Dependencies { get; } = [];
 
-    public override Task OnLoad(DependencyContainer container)
+    public override Task OnLoad()
     {
         var cwd = "../../../../../Fuyu.Backend/bin/Debug/net9.0/win-x64";
         var process = new Process()

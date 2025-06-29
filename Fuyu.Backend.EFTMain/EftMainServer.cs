@@ -1,24 +1,24 @@
-using Fuyu.Backend.EFT.Controllers.Http;
-using Fuyu.Backend.EFTMain.Controllers.Http;
-using Fuyu.Backend.EFTMain.Controllers.Websocket;
+using System.Collections.Generic;
+using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Common.Backend.Networking;
 
 namespace Fuyu.Backend.EFTMain;
 
 public class EftMainServer : FuyuServer
 {
-    public EftMainServer() : base("eft-main", 44301)
+    public EftMainServer(IEnumerable<AbstractEftHttpController> controllers) : base("eft-main", 44301)
     {
+        HttpRouter = new HttpRouter(controllers);
     }
 
-    public void RegisterServices()
+    private void RegisterServices()
     {
         // Fuyu
-        HttpRouter.AddController<FuyuGameLoginController>();
-        HttpRouter.AddController<FuyuGameRegisterController>();
+        /*HttpRouter.AddController<FuyuGameLoginController>();
+        HttpRouter.AddController<FuyuGameRegisterController>();*/
 
         // EFT
-        HttpRouter.AddController<AchievementListController>();
+        /*HttpRouter.AddController<AchievementListController>();
         HttpRouter.AddController<AchievementStatisticController>();
         HttpRouter.AddController<BuildsListController>();
         HttpRouter.AddController<CheckVersionController>();
@@ -90,9 +90,9 @@ public class EftMainServer : FuyuServer
         HttpRouter.AddController<SearchOtherProfileController>();
         HttpRouter.AddController<ClientRagfairFindController>();
         HttpRouter.AddController<ClientRagfairItemMarketPriceController>();
-        HttpRouter.AddController<ClientMatchingAvailableController>();
+        HttpRouter.AddController<ClientMatchingAvailableController>();*/
 
         // EFT-WS
-        WsRouter.AddController<PushNotiferGetWebsocketController>();
+        //WsRouter.AddController<PushNotiferGetWebsocketController>();
     }
 }

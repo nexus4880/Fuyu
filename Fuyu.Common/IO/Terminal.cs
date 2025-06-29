@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,18 +9,15 @@ namespace Fuyu.Common.IO;
 public static class Terminal
 {
     private static readonly Lock _lock = new Lock();
-    private static string _prefix;
     private static string _filepath;
 
     static Terminal()
     {
-        _prefix = "Fuyu";
         _filepath = "./Fuyu/Logs/trace.log";
     }
 
-    public static void SetLogConfig(string prefix, string filepath)
+    public static void SetLogConfig(string filepath)
     {
-        _prefix = prefix;
         _filepath = filepath;
     }
 
@@ -27,10 +26,12 @@ public static class Terminal
         VFS.WriteTextFile(_filepath, text, true);
     }
 
-    public static void WriteLine(string text)
+    public static void WriteLine(string text, [CallerLineNumber] int callerLineNumber = default, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
     {
-        var time = DateTime.UtcNow;
-        var line = $"[{_prefix}][{time}]{text}\n";
+        var time = DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss");
+        var fileName = Path.GetFileNameWithoutExtension(callerFilePath);
+        // Assuming file name matches class name (it will more often than not)
+        var line = $"[{time} - {fileName}.{callerMemberName}:{callerLineNumber}] {text}\n";
 
         lock (_lock)
         {
@@ -39,18 +40,13 @@ public static class Terminal
         }
     }
 
-    public static void WriteLine(object o)
+    public static void WriteLine(object o, [CallerLineNumber] int callerLineNumber = default, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
     {
         if (o == null)
         {
             throw new NullReferenceException();
         }
 
-        WriteLine(o.ToString());
-    }
-
-    public static ValueTask<string> ReadLineAsync(CancellationToken cancellationToken = default)
-    {
-        return Console.In.ReadLineAsync(cancellationToken);
+        WriteLine(o.ToString(), callerLineNumber, callerFilePath, callerMemberName);
     }
 }

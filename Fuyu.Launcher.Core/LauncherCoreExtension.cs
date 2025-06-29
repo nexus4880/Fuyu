@@ -1,13 +1,10 @@
-using System;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using Fuyu.Common.IO;
 using Fuyu.Common.Launcher.Models.Settings;
 using Fuyu.Common.Launcher.Services;
 using Fuyu.Common.Networking;
 using Fuyu.Common.Services;
-using Fuyu.DependencyInjection.Attributes;
 using Fuyu.Launcher.Core.Pages;
 
 namespace Fuyu.Launcher.Core;
@@ -20,11 +17,10 @@ public class LauncherCoreExtension
     private readonly RequestService _requestService;
     private readonly SettingsService _settingsService;
 
-    [Injectable]
     public LauncherCoreExtension(
-        [Inject] ContentService contentService,
-        [Inject] RequestService requestService,
-        [Inject] SettingsService settingsService
+        ContentService contentService,
+        RequestService requestService,
+        SettingsService settingsService
         )
     {
         _contentService = contentService;

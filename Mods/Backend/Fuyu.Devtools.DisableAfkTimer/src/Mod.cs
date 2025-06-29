@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Fuyu.Backend.EFTMain;
 using Fuyu.Backend.EFTMain.Controllers.Http;
-using Fuyu.Common.Backend.Networking;
-using Fuyu.DependencyInjection;
 using Fuyu.Devtools.DisableAfkTimer.Controllers;
 using Fuyu.Modding;
 
@@ -14,10 +12,16 @@ public class Mod : AbstractMod
 
     public override string Name { get; } = "Fuyu-DisableAfkTimer";
 
-    public override Task OnLoad(DependencyContainer container)
+    private readonly EftMainServer _eftMainServer;
+
+    public Mod(EftMainServer eftMainServer)
     {
-        var eftMainServer = container.Resolve<FuyuServer, EftMainServer>();
-        var router = eftMainServer.HttpRouter;
+        _eftMainServer = eftMainServer;
+    }
+
+    public override Task OnLoad()
+    {
+        var router = _eftMainServer.HttpRouter;
         router.ReplaceController<SettingsController, OverrideSettingsController>();
 
         return Task.CompletedTask;

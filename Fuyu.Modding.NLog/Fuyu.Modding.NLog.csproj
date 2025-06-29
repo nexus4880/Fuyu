@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fuyu.Common.Client\Fuyu.Common.Client.csproj" />
-    <ProjectReference Include="..\Fuyu.DependencyInjection\Fuyu.DependencyInjection.csproj" />
     <ProjectReference Include="..\Fuyu.Modding\Fuyu.Modding.csproj" />
   </ItemGroup>
 

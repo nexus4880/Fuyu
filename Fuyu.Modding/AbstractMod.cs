@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Fuyu.DependencyInjection;
 
 namespace Fuyu.Modding;
 
@@ -24,7 +23,7 @@ public abstract class AbstractMod
     /// Gets called after the server has set up everything.
     /// </summary>
     /// <param name="container"></param>
-    public virtual Task OnLoad(DependencyContainer container)
+    public virtual Task OnLoad()
     {
         return Task.CompletedTask;
     }
