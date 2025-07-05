@@ -3,23 +3,24 @@ using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class GameProfileListController : AbstractEftHttpController
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public GameProfileListController() : base("/client/game/profile/list")
+    public GameProfileListController(IProfileRepository profiles) : base("/client/game/profile/list")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
         var sessionId = context.SessionId;
-        var profile = _eftOrm.GetActiveProfile(sessionId);
+        var profile = await _profiles.GetActiveProfileAsync(sessionId);
         Profile[] profiles;
 
         if (profile.ShouldWipe)
@@ -36,6 +37,6 @@ public class GameProfileListController : AbstractEftHttpController
             data = profiles
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

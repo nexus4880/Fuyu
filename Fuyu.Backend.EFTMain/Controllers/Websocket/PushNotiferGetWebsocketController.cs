@@ -11,7 +11,7 @@ namespace Fuyu.Backend.EFTMain.Controllers.Websocket;
 public partial class PushNotiferGetWebsocketController : WsController
 {
     public static ThreadDictionary<string, WsContext> ActiveContexts { get; } = new ThreadDictionary<string, WsContext>();
-    
+
     public PushNotiferGetWebsocketController() : base(PathExpression())
     {
     }

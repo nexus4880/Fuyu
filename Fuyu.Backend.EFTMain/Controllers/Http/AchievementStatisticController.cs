@@ -1,27 +1,27 @@
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Backend.EFTMain.Services;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class AchievementStatisticController : AbstractEftHttpController
 {
-    private readonly AchievementService _achievementService;
+    private readonly IGameDataRepository _gameData;
 
-    public AchievementStatisticController() : base("/client/achievement/statistic")
+    public AchievementStatisticController(IGameDataRepository gameData) : base("/client/achievement/statistic")
     {
-        _achievementService = AchievementService.Instance;
+        _gameData = gameData;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
-        var statistics = _achievementService.GetStatistics();
+        var statistics = await _gameData.GetAchievementStatisticsAsync();
         var response = new ResponseBody<AchievementStatisticResponse>()
         {
             data = statistics
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

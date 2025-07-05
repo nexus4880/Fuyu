@@ -5,23 +5,28 @@ using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class SplitItemEventController : AbstractItemEventController<SplitItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
+    private readonly ItemService _itemService;
+    private readonly ItemFactoryService _itemFactoryService;
 
-    public SplitItemEventController() : base("Split")
+    public SplitItemEventController(IProfileRepository profiles, ItemService itemService, ItemFactoryService itemFactoryService) : base("Split")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
+        _itemService = itemService;
+        _itemFactoryService = itemFactoryService;
     }
 
     // TODO: Clean this up later. Probably using methods on grids themselves.
-    public override Task RunAsync(ItemEventContext context, SplitItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, SplitItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
-        var sourceItemStack = profile.Pmc.Inventory.GetItemAndChildren(ItemService.Instance, request.SplitItem);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
+        var sourceItemStack = profile.Pmc.Inventory.GetItemAndChildren(_itemService, request.SplitItem);
 
         if (sourceItemStack.Count == 0)
         {
@@ -44,12 +49,13 @@ public class SplitItemEventController : AbstractItemEventController<SplitItemEve
 
         if (request.Container.Location != null)
         {
-            if (!targetLocationItem.Matrices.TryGetValue(request.Container.Container, out var matrix))
+            var matrix = await targetLocationItem.Matrices.GetMatrixAsync(_itemService, request.Container.Container);
+            if (matrix is null)
             {
                 throw new Exception($"Failed to get matrix for slot {request.Container.Container}");
             }
 
-            (int width, int height) = ItemService.Instance.CalculateItemSize(sourceItemStack, request.Container.Location.r);
+            (int width, int height) = await _itemService.CalculateItemSizeAsync(sourceItemStack, request.Container.Location.r);
             var x = request.Container.Location.x;
             var y = request.Container.Location.y;
 
@@ -73,7 +79,7 @@ public class SplitItemEventController : AbstractItemEventController<SplitItemEve
         sourceItem.Updatable.StackObjectsCount -= request.Count;
 
         var newItemStacks =
-            ItemFactoryService.Instance.CreateItemsFromTradeRequest(sourceItemStack, request.Count);
+            await _itemFactoryService.CreateItemsFromTradeRequestAsync(sourceItemStack, request.Count);
 
         var newItemStack = newItemStacks[0];
         var newItem = newItemStack[0];
@@ -83,7 +89,7 @@ public class SplitItemEventController : AbstractItemEventController<SplitItemEve
             { newItem.Id, request.NewItem }
         };
 
-        ItemService.Instance.RegenerateItemIds(newItemStack, mapping);
+        ItemService.RegenerateItemIds(newItemStack, mapping);
 
         foreach (var item in newItemStack)
         {
@@ -93,7 +99,5 @@ public class SplitItemEventController : AbstractItemEventController<SplitItemEve
         newItem.Location = request.Container.Location;
         newItem.ParentId = request.Container.Id;
         newItem.SlotId = request.Container.Container;
-
-        return Task.CompletedTask;
     }
 }

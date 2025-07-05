@@ -1,6 +1,9 @@
 ﻿using System.Threading.Tasks;
+using Fuyu.Backend.BSG.Extensions;
 using Fuyu.Backend.Configuration;
 using Fuyu.Backend.EFTMain.Databases;
+using Fuyu.Backend.EFTMain.Extensions;
+using Fuyu.Backend.Logging;
 using Fuyu.Backend.Services;
 using Fuyu.Common.IO;
 using Fuyu.Modding;
@@ -33,17 +36,21 @@ public class Program
     private static void ConfigureServices(HostApplicationBuilder builder)
     {
         builder.Logging.ClearProviders();
-        builder.Logging.AddConsole();
-        builder.Logging.AddDebug();
+        builder.Logging.AddConsole(options => options.FormatterName = "custom");
+        builder.Logging.AddConsoleFormatter<CustomConsoleFormatter, CustomConsoleFormatterOptions>();
 
         builder.Services.Configure<FuyuConfiguration>(
             builder.Configuration.GetSection(FuyuConfiguration.SectionName));
 
-        var modManager = new ModManager();
+        var loggerFactory = new LoggerFactory();
+        var modManagerLogger = new Logger<ModManager>(loggerFactory);
+        var modManager = new ModManager(modManagerLogger);
         builder.Services.AddSingleton(modManager);
 
         modManager.AddMods("./Fuyu/Mods/Backend", builder.Services);
 
-        builder.Services.AddFuyuServices();
+        builder.Services.AddFuyuServices()
+            .AddBSGServices()
+            .AddEftServices();
     }
 }

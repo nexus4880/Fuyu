@@ -8,6 +8,7 @@ using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 
@@ -15,22 +16,22 @@ namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class MatchLocalEndController : AbstractEftHttpController<MatchLocalEndRequest>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
     private readonly ItemService _itemService;
     private readonly ResponseService _responseService;
 
-    public MatchLocalEndController() : base("/client/match/local/end")
+    public MatchLocalEndController(IProfileRepository profiles, ItemService itemService) : base("/client/match/local/end")
     {
-        _eftOrm = EftOrm.Instance;
-        _itemService = ItemService.Instance;
+        _profiles = profiles;
+        _itemService = itemService;
         _responseService = ResponseService.Instance;
     }
 
-    public override Task RunAsync(EftHttpContext context, MatchLocalEndRequest body)
+    public override async Task RunAsync(EftHttpContext context, MatchLocalEndRequest body)
     {
         var sessionId = context.SessionId;
 
-        var profile = _eftOrm.GetActiveProfile(sessionId);
+        var profile = await _profiles.GetActiveProfileAsync(sessionId);
         var character = profile.Pmc._id == body.MatchEndResult.Profile._id ?
             profile.Pmc :
             profile.Savage;
@@ -177,6 +178,6 @@ public class MatchLocalEndController : AbstractEftHttpController<MatchLocalEndRe
             }
         }
 
-        return context.SendJsonAsync(_responseService.EmptyJsonResponse, true, true);
+        await context.SendJsonAsync(_responseService.EmptyJsonResponse, true, true);
     }
 }

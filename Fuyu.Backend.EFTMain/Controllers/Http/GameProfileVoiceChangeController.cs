@@ -3,22 +3,23 @@ using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class GameProfileVoiceChangeController : AbstractEftHttpController<GameProfileVoiceChangeRequest>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public GameProfileVoiceChangeController() : base("/client/game/profile/voice/change")
+    public GameProfileVoiceChangeController(IProfileRepository profiles) : base("/client/game/profile/voice/change")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(EftHttpContext context, GameProfileVoiceChangeRequest body)
+    public override async Task RunAsync(EftHttpContext context, GameProfileVoiceChangeRequest body)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
 
         profile.Pmc.Info.Voice = body.Voice;
 
@@ -29,6 +30,6 @@ public class GameProfileVoiceChangeController : AbstractEftHttpController<GamePr
             data = null
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

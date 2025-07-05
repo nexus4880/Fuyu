@@ -3,24 +3,25 @@ using Fuyu.Backend.BSG.Models.Multiplayer;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class ProfileStatusController : AbstractEftHttpController
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public ProfileStatusController() : base("/client/profile/status")
+    public ProfileStatusController(IProfileRepository profiles) : base("/client/profile/status")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
         var sessionId = context.SessionId;
 
-        var profile = _eftOrm.GetActiveProfile(sessionId);
+        var profile = await _profiles.GetActiveProfileAsync(sessionId);
 
         // TODO: generate this
         // --seionmoya, 2024-11-18
@@ -53,6 +54,6 @@ public class ProfileStatusController : AbstractEftHttpController
             }
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

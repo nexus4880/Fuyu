@@ -2,28 +2,27 @@
 using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class RemoveFromWishListItemEventController : AbstractItemEventController<RemoveFromWishListItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public RemoveFromWishListItemEventController() : base("RemoveFromWishList")
+    public RemoveFromWishListItemEventController(IProfileRepository profiles) : base("RemoveFromWishList")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(ItemEventContext context, RemoveFromWishListItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, RemoveFromWishListItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var wishList = profile.Pmc.GetWishList();
 
         foreach (var itemToRemove in request.Items)
         {
             wishList.Remove(itemToRemove);
         }
-
-        return Task.CompletedTask;
     }
 }

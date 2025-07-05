@@ -10,9 +10,9 @@ public class RagFairRenewOfferController : AbstractItemEventController<RagFairRe
 {
     private readonly RagfairService _ragfairService;
 
-    public RagFairRenewOfferController() : base("RagFairRenewOffer")
+    public RagFairRenewOfferController(RagfairService ragfairService) : base("RagFairRenewOffer")
     {
-        _ragfairService = RagfairService.Instance;
+        _ragfairService = ragfairService;
     }
 
     public override Task RunAsync(ItemEventContext context, RagFairRenewOfferItemEvent request)

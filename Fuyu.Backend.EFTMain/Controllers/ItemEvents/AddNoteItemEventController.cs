@@ -2,24 +2,23 @@
 using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class AddNoteItemEventController : AbstractItemEventController<AddNoteItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public AddNoteItemEventController() : base("AddNote")
+    public AddNoteItemEventController(IProfileRepository profiles) : base("AddNote")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(ItemEventContext context, AddNoteItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, AddNoteItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
 
         profile.Pmc.Notes.Notes.Add(request.Note);
-
-        return Task.CompletedTask;
     }
 }

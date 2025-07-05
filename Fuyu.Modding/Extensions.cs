@@ -10,7 +10,7 @@ public static class Extensions
     {
         if (typeof(IConfigureServices).IsAssignableFrom(type))
         {
-            var methodName = nameof(IConfigureServices.ConfigureServices);
+            var methodName = "ConfigureServices";
             var flags = BindingFlags.Public | BindingFlags.Static;
             var methodInfo = type.GetMethod(methodName, flags);
             var method = GetDelegate(methodInfo);

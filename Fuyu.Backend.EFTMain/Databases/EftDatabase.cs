@@ -19,7 +19,7 @@ namespace Fuyu.Backend.EFTMain.Databases;
 
 public class EftDatabase
 {
-    public static EftDatabase Instance => instance.Value;
+    /*public static EftDatabase Instance => instance.Value;
     private static readonly Lazy<EftDatabase> instance = new(() => new EftDatabase());
 
     internal readonly ThreadList<EftAccount> Accounts;
@@ -102,5 +102,5 @@ public class EftDatabase
         Settings = new ThreadObject<JObject>(null);
         Traders = new ThreadObject<JObject>(null);
         Weather = new ThreadObject<JObject>(null);
-    }
+    }*/
 }

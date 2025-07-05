@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Fuyu.Backend.EFTMain;
-using Fuyu.Backend.EFTMain.Controllers.Http;
-using Fuyu.Devtools.DisableAfkTimer.Controllers;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Modding;
 
 namespace Fuyu.Devtools.DisableAfkTimer;
@@ -12,18 +10,20 @@ public class Mod : AbstractMod
 
     public override string Name { get; } = "Fuyu-DisableAfkTimer";
 
-    private readonly EftMainServer _eftMainServer;
+    private readonly IGameDataRepository _gameData;
 
-    public Mod(EftMainServer eftMainServer)
+    public Mod(IGameDataRepository gameData)
     {
-        _eftMainServer = eftMainServer;
+        _gameData = gameData;
     }
 
-    public override Task OnLoad()
+    public override async Task OnLoad()
     {
-        var router = _eftMainServer.HttpRouter;
-        router.ReplaceController<SettingsController, OverrideSettingsController>();
+        var settings = await _gameData.GetSettingsAsync();
 
-        return Task.CompletedTask;
+        // The client disables the timer if it's not positive
+        settings["data"]["config"]["AFKTimeoutSeconds"] = -1;
+
+        await _gameData.SetSettingsAsync(settings);
     }
 }

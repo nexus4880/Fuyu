@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Services;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
@@ -20,42 +22,39 @@ public class Mod : AbstractMod
 
     public override string Name { get; } = "Fuyu-GenerateFleaMarketOffers";
 
-    private HandbookService _handbookService;
+    private readonly IGameDataRepository _gameDataRepository;
+    private readonly HandbookService _handbookService;
 
-    private ItemFactoryService _itemFactoryService;
+    private readonly ItemFactoryService _itemFactoryService;
 
-    private RagfairService _ragfairService;
+    private readonly RagfairService _ragfairService;
 
-    private ItemFactoryOrm _itemFactoryOrm;
-
-    private Thread _generateOffersThread;
+    public Mod(
+        IGameDataRepository gameDataRepository,
+        HandbookService handbookService,
+        ItemFactoryService itemFactoryService,
+        RagfairService ragfairService
+        )
+    {
+        _gameDataRepository = gameDataRepository;
+        _handbookService = handbookService;
+        _itemFactoryService = itemFactoryService;
+        _ragfairService = ragfairService;
+    }
 
     public override Task OnLoad()
     {
-        _handbookService = HandbookService.Instance;
-        _itemFactoryService = ItemFactoryService.Instance;
-        _ragfairService = RagfairService.Instance;
-        _itemFactoryOrm = ItemFactoryOrm.Instance;
-
-        _generateOffersThread = new Thread(GenerateOffers)
-        {
-            // This thread will not keep the application alive
-            IsBackground = true
-        };
-
-        _generateOffersThread.Start();
-
-        return Task.CompletedTask;
+        return Task.Run(GenerateOffers);
     }
 
-    private void GenerateOffers()
+    private async Task GenerateOffers()
     {
         var player = new RagfairPlayerUser(MongoId.Generate(), 301, EMemberCategory.Developer, EMemberCategory.Developer,
             "GenerateFleaMarketOffers", 1f, true);
         Terminal.WriteLine("Generating offers...");
 
         var sw = Stopwatch.StartNew();
-        var templates = _itemFactoryOrm.GetItemTemplates();
+        var templates = await _gameDataRepository.GetItemTemplatesAsync();
         var success = 0;
         var failed = 0;
 
@@ -66,11 +65,11 @@ public class Mod : AbstractMod
                 continue;
             }
 
-            int price = _handbookService.GetPrice(tid, 100).Value;
+            int price = (await _handbookService.GetPriceAsync(tid, 100)).Value;
 
             try
             {
-                var items = _itemFactoryService.CreateItem(template);
+                var items = await _itemFactoryService.CreateItemAsync(template);
                 var count = Random.Shared.Next(100, 100000);
                 var createdOffer = _ragfairService.CreateAndAddOffer(
                     user: player,

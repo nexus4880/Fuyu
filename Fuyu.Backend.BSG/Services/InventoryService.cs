@@ -7,17 +7,14 @@ namespace Fuyu.Backend.BSG.Services;
 
 public class InventoryService
 {
-    public static InventoryService Instance => instance.Value;
-    private static readonly Lazy<InventoryService> instance = new(() => new InventoryService());
-
     private readonly ItemService _itemService;
 
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
-    private InventoryService()
+    public InventoryService(ItemService itemService)
     {
-        _itemService = ItemService.Instance;
+        _itemService = itemService;
     }
 
     // NOTE:
@@ -70,7 +67,7 @@ public class InventoryService
                 }
             }
 
-            _itemService.RegenerateItemIds(inventory.Items, mapping);
+            ItemService.RegenerateItemIds(inventory.Items, mapping);
         }
 
         // regenerate inventory fastpanel

@@ -4,6 +4,7 @@ using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Serialization;
 
@@ -12,15 +13,15 @@ namespace Fuyu.Backend.EFT.Controllers.Http;
 public class GameProfileNicknameChangeController : AbstractEftHttpController<GameProfileNicknameChangeRequest>
 {
     private readonly ProfileService _profileService;
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public GameProfileNicknameChangeController() : base("/client/game/profile/nickname/change")
+    public GameProfileNicknameChangeController(IProfileRepository profiles, ProfileService profileService) : base("/client/game/profile/nickname/change")
     {
-        _profileService = ProfileService.Instance;
-        _eftOrm = EftOrm.Instance;
+        _profileService = profileService;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(EftHttpContext context, GameProfileNicknameChangeRequest request)
+    public override async Task RunAsync(EftHttpContext context, GameProfileNicknameChangeRequest request)
     {
         // TODO:
         // * validate nickname usage
@@ -44,13 +45,13 @@ public class GameProfileNicknameChangeController : AbstractEftHttpController<Gam
         if (result == ENicknameChangeResult.Ok)
         {
             //TODO: Save profile properly, currently doesn't persist?
-            var profile = _eftOrm.GetActiveProfile(context.SessionId);
+            var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
 
             profile.Pmc.Info.Nickname = request.Nickname;
             profile.Pmc.Info.LowerNickname = request.Nickname.ToLower();
             //profile.Pmc.Info.NicknameChangeDate = ???
 
-            _profileService.WriteToDisk(profile);
+            await _profiles.AddOrUpdateAsync(profile);
         }
 
         var response = new ResponseBody<GameProfileNicknameChangeResponse>()
@@ -64,6 +65,6 @@ public class GameProfileNicknameChangeController : AbstractEftHttpController<Gam
         };
 
         var text = Json.Stringify(response);
-        return context.SendJsonAsync(text, true, true);
+        await context.SendJsonAsync(text, true, true);
     }
 }

@@ -8,12 +8,15 @@ using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
 using Fuyu.Backend.BSG.Models.Trading;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.Modding;
+using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Devtools.GenerateFleaMarketWeapons;
 
@@ -23,41 +26,43 @@ public class Mod : AbstractMod
 
     public override string Name => "Fuyu.GenerateFleaMarketWeapons";
 
-    private EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
 
-    private ItemFactoryService _itemFactoryService;
+    private readonly IItemTemplateRepository _itemTemplateRepository;
 
-    private HandbookService _handbookService;
+    private readonly ItemFactoryService _itemFactoryService;
 
-    private RagfairService _ragfairService;
+    private readonly HandbookService _handbookService;
 
-    private ItemFactoryOrm _itemFactoryOrm;
+    private readonly RagfairService _ragfairService;
 
-    private Thread _generateOffersThread;
+    private readonly ILogger<Mod> _logger;
+
+    public Mod(
+        ILogger<Mod> logger,
+        HandbookService handbookService,
+        RagfairService ragfairService,
+        ItemFactoryService itemFactoryService,
+        IItemTemplateRepository itemTemplateRepository,
+        IGameDataRepository gameData)
+    {
+        _logger = logger;
+        _gameData = gameData;
+        _itemFactoryService = itemFactoryService;
+        _handbookService = handbookService;
+        _itemTemplateRepository = itemTemplateRepository;
+        _ragfairService = ragfairService;
+    }
 
     public override Task OnLoad()
     {
-        _eftOrm = EftOrm.Instance;
-        _itemFactoryService = ItemFactoryService.Instance;
-        _handbookService = HandbookService.Instance;
-        _ragfairService = RagfairService.Instance;
-        _itemFactoryOrm = ItemFactoryOrm.Instance;
-
-        _generateOffersThread = new Thread(GenerateOffers)
-        {
-            // This thread will not keep the application alive
-            IsBackground = true
-        };
-
-        _generateOffersThread.Start();
-
-        return Task.CompletedTask;
+        return Task.Run(GenerateOffersAsync);
     }
 
-    private List<ItemInstance> CreateItemAndFillSlots(ItemTemplate template, string parent, string slotId)
+    private async Task<List<ItemInstance>> CreateItemAndFillSlotsAsync(ItemTemplate template, string parent, string slotId)
     {
         var items = new List<ItemInstance>();
-        var createdItems = _itemFactoryService.CreateItem(template);
+        var createdItems = await _itemFactoryService.CreateItemAsync(template);
 
         items.AddRange(createdItems);
 
@@ -67,7 +72,7 @@ public class Mod : AbstractMod
         rootItem.SlotId = slotId;
 
         var weaponProperties = _itemFactoryService.GetItemProperties<WeaponItemProperties>(template);
-        var handbook = _eftOrm.GetHandbook();
+        var handbook = await _gameData.GetHandbookAsync();
 
         foreach (var slot in weaponProperties.Slots)
         {
@@ -86,8 +91,8 @@ public class Mod : AbstractMod
             }
 
             var subTemplateId = itemFilters[Random.Shared.Next(0, itemFilters.Length)];
-            var subTemplate = _itemFactoryOrm.GetItemTemplate(subTemplateId);
-            var subItems = CreateItemAndFillSlots(subTemplate, rootItem.Id, slot.Name);
+            var subTemplate = await _itemTemplateRepository.GetItemTemplateAsync(subTemplateId);
+            var subItems = await CreateItemAndFillSlotsAsync(subTemplate, rootItem.Id, slot.Name);
 
             // Only happens when cancellation is requested, hence break
             if (subItems == null)
@@ -101,22 +106,22 @@ public class Mod : AbstractMod
         return items;
     }
 
-    private void GenerateOffers()
+    private async Task GenerateOffersAsync()
     {
         var sw = Stopwatch.StartNew();
         var created = 0;
         var failed = 0;
-        var weapons = _handbookService.GetAllItemsOfType("5b5f78dc86f77409407a7f8e");
+        var weapons = await _handbookService.GetAllItemsOfTypeAsync("5b5f78dc86f77409407a7f8e");
         var user = new RagfairPlayerUser(MongoId.Generate(), 300, EMemberCategory.Developer, EMemberCategory.Developer, "GenerateFleaMarketWeapons", 1f, true);
 
-        Terminal.WriteLine($"Generating weapons...");
+        _logger.LogInformation("Generating weapons...");
 
         foreach (var weapon in weapons)
         {
             try
             {
-                var weaponTemplate = _itemFactoryOrm.GetItemTemplate(weapon.Id);
-                var weaponItemStack = CreateItemAndFillSlots(weaponTemplate, "hideout", "hideout");
+                var weaponTemplate = await _itemTemplateRepository.GetItemTemplateAsync(weapon.Id);
+                var weaponItemStack = await CreateItemAndFillSlotsAsync(weaponTemplate, "hideout", "hideout");
 
                 if (weaponItemStack[0].Updatable == null)
                 {
@@ -155,6 +160,6 @@ public class Mod : AbstractMod
             }
         }
 
-        Terminal.WriteLine($"Done generating weapons: {sw.ElapsedMilliseconds}ms, {created} succeeded and {failed} failed");
+        _logger.LogInformation("Done generating weapons: {ElapsedMs}ms, {Created} succeeded and {Failed} failed", sw.ElapsedMilliseconds, created, failed);
     }
 }

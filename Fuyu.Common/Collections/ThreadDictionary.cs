@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -12,6 +14,46 @@ public class ThreadDictionary<T1, T2>
 {
     private readonly Dictionary<T1, T2> _dictionary;
     private readonly Lock _lock;
+
+    public struct Enumerator : IEnumerator<KeyValuePair<T1, T2>>
+    {
+        private readonly Lock _lock;
+        private Dictionary<T1, T2>.Enumerator _enumerator;
+
+        public Enumerator(Lock @lock, Dictionary<T1, T2>.Enumerator enumerator)
+        {
+            _lock = @lock;
+            _enumerator = enumerator;
+            _lock.Enter();
+        }
+
+        public KeyValuePair<T1, T2> Current => _enumerator.Current;
+        object IEnumerator.Current => ((IEnumerator)_enumerator).Current;
+
+        public void Dispose()
+        {
+            _enumerator.Dispose();
+            _lock.Exit();
+        }
+
+        public bool MoveNext()
+        {
+            return _enumerator.MoveNext();
+        }
+
+        public void Reset()
+        {
+            ((IEnumerator<KeyValuePair<T1, T2>>)_enumerator).Reset();
+        }
+    }
+
+    public Enumerator GetEnumerator()
+    {
+        lock (_lock)
+        {
+            return new Enumerator(_lock, _dictionary.GetEnumerator());
+        }
+    }
 
     public ThreadDictionary()
     {

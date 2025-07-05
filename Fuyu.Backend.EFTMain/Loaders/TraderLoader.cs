@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.EFTMain.Databases;
@@ -20,7 +21,7 @@ public class TraderLoader
         _traderDatabase = TraderDatabase.Instance;
     }
 
-    public void Load()
+    public async Task Load()
     {
         var tradersJson = Resx.GetText("eft", "database.client.trading.api.traderSettings.json");
         var body = Json.Parse<ResponseBody<TraderTemplate[]>>(tradersJson);
@@ -43,7 +44,7 @@ public class TraderLoader
             }
 
             var traderAssort = Json.Parse<TraderAssort>(assortJson);
-            _traderDatabase.SetTraderAssort(traderTemplate.Id, traderAssort);
+            await _traderDatabase.SetTraderAssortAsync(traderTemplate.Id, traderAssort);
 
             Terminal.WriteLine($"Got assort for {traderTemplate.Id}");
         }

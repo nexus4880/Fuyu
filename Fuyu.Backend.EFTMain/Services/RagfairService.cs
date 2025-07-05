@@ -1,33 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Models.Trading;
-using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 
 namespace Fuyu.Backend.EFTMain.Services;
 
 public class RagfairService
 {
-    private static readonly Lazy<RagfairService> instance = new(() => new RagfairService());
-
-    private readonly EftOrm _eftOrm;
     private readonly HandbookService _handbookService;
+    private readonly IGameDataRepository _gameData;
 
     public Dictionary<MongoId, int> CategoricalOffers { get; } = [];
 
-    private RagfairService()
+    public RagfairService(HandbookService handbookService, IGameDataRepository gameData)
     {
-        _eftOrm = EftOrm.Instance;
-        _handbookService = HandbookService.Instance;
+        _handbookService = handbookService;
+        _gameData = gameData;
     }
-
-    public static RagfairService Instance => instance.Value;
 
     public List<Offer> Offers { get; } = [];
 
-    public Offer CreateAndAddOffer(IRagfairUser user, List<ItemInstance> items, bool isBatch,
+    public async Task<Offer> CreateAndAddOffer(IRagfairUser user, List<ItemInstance> items, bool isBatch,
         List<HandoverRequirement> requirements, TimeSpan lifetime, int quantity = 1, bool unlimitedCount = false, int loyaltyLevel = 1)
     {
         if (quantity <= 0)
@@ -60,7 +56,17 @@ public class RagfairService
             throw new Exception($"{nameof(requirements)} is empty");
         }
 
-        var cost = items.Sum(i => _handbookService.GetPrice(i.TemplateId, 100).Value);
+        var cost = 0;
+        for (var i = 0; i < items.Count; i++)
+        {
+            cost += (await _handbookService.GetPriceAsync(items[i].TemplateId, 100)).Value;
+        }
+
+        var requirementsCost = 0;
+        for (var i = 0; i < requirements.Count; i++)
+        {
+            requirementsCost += (await _handbookService.GetPriceAsync(requirements[i].TemplateId, 100)).Value * requirements[i].Count;
+        }
 
         if (isBatch)
         {
@@ -76,9 +82,8 @@ public class RagfairService
             Items = items,
             ItemsCost = cost,
             Requirements = requirements,
-            RequirementsCost =
-                requirements.Sum(i => _handbookService.GetPrice(i.TemplateId).GetValueOrDefault(1) * i.Count),
-            SummaryCost = 0,
+            RequirementsCost = requirementsCost,
+            SummaryCost = cost,
             SellInOnePiece = isBatch,
             StartTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000d,
             EndTime = (DateTimeOffset.UtcNow + lifetime).ToUnixTimeMilliseconds() / 1000d,
@@ -87,7 +92,7 @@ public class RagfairService
             Quantity = quantity
         };
 
-        return AddOffer(offer);
+        return await AddOffer(offer);
     }
 
     public Offer GetOffer(MongoId offerId)
@@ -95,10 +100,10 @@ public class RagfairService
         return Offers.Find(o => o.Id == offerId);
     }
 
-    public Offer AddOffer(Offer offer)
+    public async Task<Offer> AddOffer(Offer offer)
     {
         var items = offer.Items;
-        var handbook = _eftOrm.GetHandbook();
+        var handbook = await _gameData.GetHandbookAsync();
         var handbookItem = handbook.Items.Find(i => i.Id == items[0].TemplateId);
 
         if (!CategoricalOffers.TryAdd(handbookItem.ParentId, 1))
@@ -116,14 +121,14 @@ public class RagfairService
         return offer;
     }
 
-    public void RemoveOffer(Offer offer)
+    public async Task RemoveOfferAsync(Offer offer)
     {
         if (!Offers.Remove(offer))
         {
             throw new Exception($"Failed to remove offer {offer.Id}");
         }
 
-        var handbook = _eftOrm.GetHandbook();
+        var handbook = await _gameData.GetHandbookAsync();
         var handbookItem = handbook.Items.Find(i => i.Id == offer.RootItem.TemplateId);
 
         if (handbookItem != null)

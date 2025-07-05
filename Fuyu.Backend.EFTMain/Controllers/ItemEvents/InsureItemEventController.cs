@@ -5,21 +5,22 @@ using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class InsureEventController : AbstractItemEventController<InsureItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public InsureEventController() : base("Insure")
+    public InsureEventController(IProfileRepository profiles) : base("Insure")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(ItemEventContext context, InsureItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, InsureItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var insuredItems = new List<InsuredItem>(request.Items.Length);
 
         foreach (var itemIdToInsure in request.Items)
@@ -35,7 +36,5 @@ public class InsureEventController : AbstractItemEventController<InsureItemEvent
         }
 
         profile.Pmc.InsuredItems.AddRange(insuredItems);
-
-        return Task.CompletedTask;
     }
 }

@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Hideout;
 using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Common.Hashing;
-using Fuyu.Common.IO;
 
 namespace Fuyu.Backend.BSG.Models.Profiles;
 
@@ -30,11 +30,11 @@ public class InventoryInfo
     [OnDeserialized]
     private void OnDeserialized(StreamingContext _)
     {
-        var itemFactoryService = ItemFactoryService.Instance;
-        var itemService = ItemService.Instance;
 
         ItemsMap = _itemsForSerialization.ToDictionary(i => i.Id);
 
+        /*var itemFactoryService = ItemFactoryService.Instance;
+        var itemService = ItemService.Instance;
         foreach (var item in Items)
         {
             var props = itemFactoryService.GetItemProperties<CompoundItemItemProperties>(item.TemplateId);
@@ -53,7 +53,7 @@ public class InventoryInfo
                     Terminal.WriteLine($"Failed to initialize matrices: {ex}");
                 }
             }
-        }
+        }*/
     }
 
     [DataMember(Name = "equipment")]
@@ -84,15 +84,15 @@ public class InventoryInfo
     [DataMember(Name = "hideoutCustomizationStashId")]
     public MongoId? HideoutCustomizationStashId { get; set; }
 
-    public LocationInGrid GetNextFreeSlot(ItemService itemService, int width, int height, out string gridName,
+    public async Task<(LocationInGrid, string)> GetNextFreeSlotAsync(ItemService itemService, int width, int height,
         EItemRotation desiredRotation = EItemRotation.Horizontal)
     {
-        var result = itemService.GetNextFreeSlot(StashItem, Items, width, height, StashItem.Matrices["hideout"],
-            out gridName, desiredRotation);
+        var stashMatrix = await StashItem.Matrices.GetMatrixAsync(itemService, "hideout");
+        var result = await itemService.GetNextFreeSlotAsync(StashItem, Items, width, height, stashMatrix, desiredRotation);
         return result;
     }
 
-    public void AddItems(ItemService itemService, List<ItemInstance> itemStack)
+    public async Task AddItems(ItemService itemService, List<ItemInstance> itemStack)
     {
         if (itemStack.Count == 0)
         {
@@ -118,12 +118,13 @@ public class InventoryInfo
             throw new Exception($"Failed to find stash");
         }
 
-        if (!stash.Matrices.TryGetValue(rootItem.SlotId, out var matrix))
+        var matrix = await stash.Matrices.GetMatrixAsync(itemService, rootItem.SlotId);
+        if (matrix is null)
         {
             throw new Exception("Matrix not initialized");
         }
 
-        (int width, int height) = itemService.CalculateItemSize(itemStack, rootItem.Location.Value1.r);
+        (int width, int height) = await itemService.CalculateItemSizeAsync(itemStack, rootItem.Location.Value1.r);
         var x = rootItem.Location.Value1.x;
         var y = rootItem.Location.Value1.y;
 
@@ -160,7 +161,7 @@ public class InventoryInfo
         return item;
     }
 
-    public void MoveItem(List<ItemInstance> items, MongoId parentItemId, string targetSlot, LocationInGrid targetLocation)
+    public async Task MoveItemAsync(ItemService itemService, ItemFactoryService itemFactoryService, List<ItemInstance> items, MongoId parentItemId, string targetSlot, LocationInGrid targetLocation)
     {
         var rootItem = items[0];
         var previousOwnerItem = FindItem(rootItem.ParentId);
@@ -170,9 +171,10 @@ public class InventoryInfo
         if (rootItem.Location.IsValue1 && rootItem.Location.Value1 != null)
         {
             var previousLocation = rootItem.Location.Value1;
-            (int rootItemWidth, int rootItemHeight) = ItemService.Instance.CalculateItemSize(items, rootItem.Location.Value1.r);
+            (int rootItemWidth, int rootItemHeight) = await itemService.CalculateItemSizeAsync(items, rootItem.Location.Value1.r);
 
-            if (previousOwnerItem.Matrices.TryGetValue(rootItem.SlotId, out var matrix))
+            var matrix = await previousOwnerItem.Matrices.GetMatrixAsync(itemService, rootItem.SlotId);
+            if (matrix is not null)
             {
                 for (var dy = 0; dy < rootItemHeight; dy++)
                 {
@@ -194,17 +196,18 @@ public class InventoryInfo
             rootItem.Size = null;
 
             // Recalculate with the target rotation in mind
-            (int rootItemWidth2, int rootItemHeight2) = ItemService.Instance.CalculateItemSize(items, targetLocation.r);
+            (int rootItemWidth2, int rootItemHeight2) = await itemService.CalculateItemSizeAsync(items, targetLocation.r);
             if (targetItem.Matrices is null)
             {
-                var props = ItemFactoryService.Instance.GetItemProperties<CompoundItemItemProperties>(targetItem.TemplateId);
+                var props = await itemFactoryService.GetItemPropertiesAsync<CompoundItemItemProperties>(targetItem.TemplateId);
                 if (props.Grids.Count > 0)
                 {
                     targetItem.InitializeMatrices(props.Grids, items);
                 }
             }
 
-            if (targetItem.Matrices.TryGetValue(targetSlot, out var targetMatrix))
+            var targetMatrix = await targetItem.Matrices.GetMatrixAsync(itemService, targetSlot);
+            if (targetMatrix is not null)
             {
                 for (var dy = 0; dy < rootItemHeight2; dy++)
                 {
@@ -230,7 +233,7 @@ public class InventoryInfo
         rootItem.SlotId = targetSlot;
     }
 
-    public List<ItemInstance> RemoveItem(ItemInstance rootItem)
+    public async Task<List<ItemInstance>> RemoveItemAsync(ItemService itemService, ItemInstance rootItem)
     {
         if (rootItem == null)
         {
@@ -249,19 +252,19 @@ public class InventoryInfo
             throw new Exception($"Failed to find container {rootItem.ParentId} for {rootItem.Id}");
         }
 
-        var itemService = ItemService.Instance;
         var itemAndChildren = itemService.GetItemAndChildren(Items, rootItem);
 
         /// We only need to update the <see cref="ItemInstance.Matrices"/> if the
         /// <see cref="ItemInstance.Location"/> is <see cref="LocationInGrid"/>
         if (rootItem.Location.IsValue1 && rootItem.Location.Value1 != null)
         {
-            if (!containerItem.Matrices.TryGetValue(rootItem.SlotId, out var matrix))
+            var matrix = await containerItem.Matrices.GetMatrixAsync(itemService, rootItem.SlotId);
+            if (matrix is null)
             {
                 throw new Exception("Matrix not initialized");
             }
 
-            (int width, int height) = itemService.CalculateItemSize(itemAndChildren, rootItem.Location.Value1.r);
+            (int width, int height) = await itemService.CalculateItemSizeAsync(itemAndChildren, rootItem.Location.Value1.r);
             var previousX = rootItem.Location.Value1.x;
             var previousY = rootItem.Location.Value1.y;
 
@@ -286,9 +289,9 @@ public class InventoryInfo
     }
 
     /// <returns>The item and children that were removed</returns>
-    public List<ItemInstance> RemoveItem(MongoId id)
+    public Task<List<ItemInstance>> RemoveItemAsync(ItemService itemService, MongoId id)
     {
-        return RemoveItem(ItemsMap[id]);
+        return RemoveItemAsync(itemService, ItemsMap[id]);
     }
 
     public List<ItemInstance> GetItemAndChildren(ItemService itemService, MongoId id)

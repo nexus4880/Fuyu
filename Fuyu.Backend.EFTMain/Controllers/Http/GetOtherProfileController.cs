@@ -8,21 +8,24 @@ using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class GetOtherProfileController : AbstractEftHttpController<GetOtherProfileRequest>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IAccountRepository _accounts;
+    private readonly IProfileRepository _profiles;
 
-    public GetOtherProfileController() : base("/client/profile/view")
+    public GetOtherProfileController(IAccountRepository accounts, IProfileRepository profiles) : base("/client/profile/view")
     {
-        _eftOrm = EftOrm.Instance;
+        _accounts = accounts;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(EftHttpContext context, GetOtherProfileRequest body)
+    public override async Task RunAsync(EftHttpContext context, GetOtherProfileRequest body)
     {
-        var activeProfile = _eftOrm.GetAccount(context.SessionId);
+        var activeProfile = await _accounts.GetBySessionAsync(context.SessionId);
         var currentSession = activeProfile.CurrentSession;
 
         if (!currentSession.HasValue)
@@ -30,9 +33,9 @@ public class GetOtherProfileController : AbstractEftHttpController<GetOtherProfi
             throw new Exception("SessionMode is missing");
         }
 
-        var account = _eftOrm.GetAccount(body.AccountId);
+        var account = await _accounts.GetByIdAsync(body.AccountId);
         var targetProfileId = currentSession == ESessionMode.Regular ? account.PvpId : account.PveId;
-        var targetProfile = _eftOrm.GetProfile(targetProfileId);
+        var targetProfile = await _profiles.GetByIdAsync(targetProfileId);
 
         if (targetProfile == null)
         {
@@ -75,6 +78,6 @@ public class GetOtherProfileController : AbstractEftHttpController<GetOtherProfi
             }
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

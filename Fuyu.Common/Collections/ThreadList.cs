@@ -14,6 +14,17 @@ public class ThreadList<T>
     private readonly List<T> _list;
     private readonly Lock _lock;
 
+    public int Count
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _list.Count;
+            }
+        }
+    }
+
     public ThreadList()
     {
         _list = new List<T>();

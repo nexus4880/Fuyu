@@ -4,22 +4,23 @@ using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class GameModeController : AbstractEftHttpController<ClientGameModeRequest>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IAccountRepository _accounts;
 
-    public GameModeController() : base("/client/game/mode")
+    public GameModeController(IAccountRepository accounts) : base("/client/game/mode")
     {
-        _eftOrm = EftOrm.Instance;
+        _accounts = accounts;
     }
 
-    public override Task RunAsync(EftHttpContext context, ClientGameModeRequest body)
+    public override async Task RunAsync(EftHttpContext context, ClientGameModeRequest body)
     {
-        var account = _eftOrm.GetAccount(context.SessionId);
+        var account = await _accounts.GetBySessionAsync(context.SessionId);
 
         if (body.SessionMode == null)
         {
@@ -40,6 +41,6 @@ public class GameModeController : AbstractEftHttpController<ClientGameModeReques
             }
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

@@ -4,6 +4,7 @@ using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.IO;
 
@@ -11,20 +12,27 @@ namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class RagFairBuyOfferItemEventController : AbstractItemEventController<RagFairBuyOfferItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
     private readonly RagfairService _ragfairService;
     private readonly ItemService _itemService;
+    private readonly ItemFactoryService _itemFactoryService;
 
-    public RagFairBuyOfferItemEventController() : base("RagFairBuyOffer")
+    public RagFairBuyOfferItemEventController(
+        IProfileRepository profiles,
+        RagfairService ragfairService,
+        ItemService itemService,
+        ItemFactoryService itemFactoryService
+        ) : base("RagFairBuyOffer")
     {
-        _eftOrm = EftOrm.Instance;
-        _ragfairService = RagfairService.Instance;
-        _itemService = ItemService.Instance;
+        _profiles = profiles;
+        _ragfairService = ragfairService;
+        _itemService = itemService;
+        _itemFactoryService = itemFactoryService;
     }
 
-    public override Task RunAsync(ItemEventContext context, RagFairBuyOfferItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, RagFairBuyOfferItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
 
         foreach (var buyOffer in request.BuyOffers)
         {
@@ -44,7 +52,7 @@ public class RagFairBuyOfferItemEventController : AbstractItemEventController<Ra
 
             if (fleaOffer.Quantity <= 0)
             {
-                _ragfairService.RemoveOffer(fleaOffer);
+                await _ragfairService.RemoveOfferAsync(fleaOffer);
             }
 
             // Remove items from player stash
@@ -73,7 +81,7 @@ public class RagFairBuyOfferItemEventController : AbstractItemEventController<Ra
 
                 if (handOverItem.Updatable.StackObjectsCount.Value <= 0)
                 {
-                    profile.Pmc.Inventory.RemoveItem(handOverItem);
+                    await profile.Pmc.Inventory.RemoveItemAsync(_itemService, handOverItem);
                     context.Response.ProfileChanges[profile.Pmc._id].Items.Delete.Add(handOverItem);
                 }
                 else
@@ -82,12 +90,12 @@ public class RagFairBuyOfferItemEventController : AbstractItemEventController<Ra
                 }
             }
 
-            var stacks = ItemFactoryService.Instance.CreateItemsFromTradeRequest(fleaOffer.Items, buyOffer.Count);
+            var stacks = await _itemFactoryService.CreateItemsFromTradeRequestAsync(fleaOffer.Items, buyOffer.Count);
 
             foreach (var stack in stacks)
             {
-                (int itemWidth, int itemHeight) = _itemService.CalculateItemSize(stack, BSG.Models.Items.EItemRotation.Horizontal);
-                var targetLocation = profile.Pmc.Inventory.GetNextFreeSlot(_itemService, itemWidth, itemHeight, out string gridName);
+                (int itemWidth, int itemHeight) = await _itemService.CalculateItemSizeAsync(stack, BSG.Models.Items.EItemRotation.Horizontal);
+                var (targetLocation, gridName) = await profile.Pmc.Inventory.GetNextFreeSlotAsync(_itemService, itemWidth, itemHeight);
 
                 if (targetLocation == null)
                 {
@@ -99,12 +107,10 @@ public class RagFairBuyOfferItemEventController : AbstractItemEventController<Ra
                 rootItem.SlotId = gridName;
                 rootItem.ParentId = profile.Pmc.Inventory.Stash;
 
-                profile.Pmc.Inventory.AddItems(_itemService, stack);
+                await profile.Pmc.Inventory.AddItems(_itemService, stack);
 
                 context.Response.ProfileChanges[profile.Pmc._id].Items.New.AddRange(stack);
             }
         }
-
-        return Task.CompletedTask;
     }
 }

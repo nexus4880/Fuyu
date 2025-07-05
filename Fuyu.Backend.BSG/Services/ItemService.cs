@@ -1,30 +1,29 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Models.Trading;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 
 namespace Fuyu.Backend.BSG.Services;
 
 public class ItemService
 {
-    public static ItemService Instance => instance.Value;
-    private static readonly Lazy<ItemService> instance = new(() => new ItemService());
-
     private readonly ItemFactoryService _itemFactoryService;
-    private readonly ItemFactoryOrm _itemFactoryOrm;
+    private readonly IItemTemplateRepository _itemTemplates;
 
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
-    private ItemService()
+    public ItemService(ItemFactoryService itemFactoryService, IItemTemplateRepository itemTemplates)
     {
-        _itemFactoryService = ItemFactoryService.Instance;
-        _itemFactoryOrm = ItemFactoryOrm.Instance;
+        _itemFactoryService = itemFactoryService;
+        _itemTemplates = itemTemplates;
     }
 
-    public void RegenerateItemIds(IEnumerable<ItemInstance> items, Dictionary<string, string> mapping)
+    public static void RegenerateItemIds(IEnumerable<ItemInstance> items, Dictionary<string, string> mapping)
     {
         // replace ids
         foreach (var item in items)
@@ -40,7 +39,7 @@ public class ItemService
         }
     }
 
-    public void RegenerateItemIds(List<ItemInstance> items)
+    public static void RegenerateItemIds(List<ItemInstance> items)
     {
         var mapping = new Dictionary<string, string>();
         foreach (var item in items)
@@ -85,7 +84,7 @@ public class ItemService
     /// <summary>
     /// Only an item and its children should be passed into this
     /// </summary>
-    public (int width, int height) CalculateItemSize(List<ItemInstance> items, EItemRotation rotation)
+    public async Task<(int width, int height)> CalculateItemSizeAsync(List<ItemInstance> items, EItemRotation rotation)
     {
         if (items == null)
         {
@@ -102,7 +101,7 @@ public class ItemService
 
         if (root.Size == null)
         {
-            var rootProperties = _itemFactoryService.GetItemProperties<CompoundItemItemProperties>(root.TemplateId);
+            var rootProperties = await _itemFactoryService.GetItemPropertiesAsync<CompoundItemItemProperties>(root.TemplateId);
 
             var width = rootProperties.Width;
             var height = rootProperties.Height;
@@ -121,7 +120,7 @@ public class ItemService
             {
                 for (var i = 1; i < items.Count; i++)
                 {
-                    var itemProperties = _itemFactoryService.GetItemProperties<ItemProperties>(items[i].TemplateId);
+                    var itemProperties = await _itemFactoryService.GetItemPropertiesAsync<ItemProperties>(items[i].TemplateId);
 
                     if (itemProperties == null)
                     {
@@ -168,9 +167,8 @@ public class ItemService
         return root.Size.Value;
     }
 
-    public LocationInGrid GetNextFreeSlot(ItemInstance containerItem,
-        List<ItemInstance> items, int width, int height, bool[,] matrix, out string gridName,
-        EItemRotation desiredRotation = EItemRotation.Horizontal)
+    public async Task<(LocationInGrid, string)> GetNextFreeSlotAsync(ItemInstance containerItem,
+        List<ItemInstance> items, int width, int height, bool[,] matrix, EItemRotation desiredRotation = EItemRotation.Horizontal)
     {
         if (width <= 0)
         {
@@ -182,14 +180,14 @@ public class ItemService
             throw new ArgumentOutOfRangeException(nameof(height));
         }
 
-        gridName = null;
+        string gridName = null;
 
         var containerItemProperties =
-            _itemFactoryService.GetItemProperties<CompoundItemItemProperties>(containerItem.TemplateId);
+            await _itemFactoryService.GetItemPropertiesAsync<CompoundItemItemProperties>(containerItem.TemplateId);
 
         if (containerItemProperties?.Grids == null)
         {
-            return null;
+            return (null, null);
         }
 
         foreach (var grid in containerItemProperties.Grids)
@@ -206,7 +204,7 @@ public class ItemService
 
             if (matrix == null)
             {
-                matrix = GenerateMatrix(gridWidth, gridHeight, items);
+                matrix = await GenerateMatrixAsync(gridWidth, gridHeight, items);
             }
 
             for (var y = 0; y <= gridHeight - height; y++)
@@ -229,16 +227,16 @@ public class ItemService
 
                     if (canFit)
                     {
-                        return new LocationInGrid { x = x, y = y, r = desiredRotation };
+                        return (new LocationInGrid { x = x, y = y, r = desiredRotation }, gridName);
                     }
                 }
             }
         }
 
-        return null;
+        return (null, null);
     }
 
-    public bool[,] GenerateMatrix(int gridWidth, int gridHeight, List<ItemInstance> items)
+    public async Task<bool[,]> GenerateMatrixAsync(int gridWidth, int gridHeight, List<ItemInstance> items)
     {
         var matrix = new bool[gridWidth, gridHeight];
 
@@ -251,7 +249,7 @@ public class ItemService
 
             var itemLocation = itemInThisGrid.Location.Value1;
             var itemAndChildren = GetItemAndChildren(items, itemInThisGrid);
-            (int itemWidth, int itemHeight) = CalculateItemSize(itemAndChildren, itemLocation.r);
+            (int itemWidth, int itemHeight) = await CalculateItemSizeAsync(itemAndChildren, itemLocation.r);
 
             if (itemLocation.x < 0 || itemLocation.y < 0 ||
                 itemLocation.x + itemWidth > gridWidth ||
@@ -274,7 +272,7 @@ public class ItemService
         return matrix;
     }
 
-    public bool IsFunctional(List<ItemInstance> items, ItemInstance rootItem)
+    public async Task<bool> IsFunctionalAsync(List<ItemInstance> items, ItemInstance rootItem)
     {
         if (items.Count == 0)
         {
@@ -286,7 +284,7 @@ public class ItemService
             throw new ArgumentNullException(nameof(rootItem));
         }
 
-        var rootItemTemplate = _itemFactoryOrm.GetItemTemplate(rootItem.TemplateId);
+        var rootItemTemplate = await _itemTemplates.GetItemTemplateAsync(rootItem.TemplateId);
 
         if (rootItemTemplate == null)
         {

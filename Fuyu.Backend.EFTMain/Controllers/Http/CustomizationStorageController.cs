@@ -1,28 +1,30 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Customization;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class CustomizationStorageController : AbstractEftHttpController
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
 
-    public CustomizationStorageController() : base("/client/customization/storage")
+    public CustomizationStorageController(IGameDataRepository gameData) : base("/client/customization/storage")
     {
-        _eftOrm = EftOrm.Instance;
+        _gameData = gameData;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
-        var response = new ResponseBody<CustomizationStorageEntry[]>()
+        var response = new ResponseBody<IEnumerable<CustomizationStorageEntry>>()
         {
-            data = _eftOrm.GetCustomizationStorage().ToArray()
+            data = await _gameData.GetCustomizationStorageAsync()
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

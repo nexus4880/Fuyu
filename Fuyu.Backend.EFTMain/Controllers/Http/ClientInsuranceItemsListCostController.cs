@@ -7,6 +7,7 @@ using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.Serialization;
 
@@ -14,16 +15,16 @@ namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class ClientInsuranceItemsListCostController : AbstractEftHttpController<InsuranceCostRequest>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public ClientInsuranceItemsListCostController() : base("/client/insurance/items/list/cost")
+    public ClientInsuranceItemsListCostController(IProfileRepository profiles) : base("/client/insurance/items/list/cost")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(EftHttpContext context, InsuranceCostRequest body)
+    public override async Task RunAsync(EftHttpContext context, InsuranceCostRequest body)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var items = body.ItemIds.Select(id => profile.Pmc.Inventory.ItemsMap[id]).ToArray();
         var response = new ResponseBody<InsuranceCostResponse>();
 
@@ -49,6 +50,6 @@ public class ClientInsuranceItemsListCostController : AbstractEftHttpController<
             response.errmsg = "One or more items could not be found on the backend";
         }
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

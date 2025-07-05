@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Fuyu.Backend.Core.Models.Accounts;
 using Fuyu.Backend.Core.Models.Responses;
 using Fuyu.Common.Backend.Models.Requests;
 using Fuyu.Common.Backend.Models.Responses;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
+using Fuyu.Common.Networking;
 using Fuyu.Common.Serialization;
 using Fuyu.Common.Services;
 
@@ -31,6 +33,8 @@ public class AccountService
     {
         _coreOrm = CoreOrm.Instance;
         _requestService = RequestService.Instance;
+        var eftHttpClient = new HttpClient("https://localhost:44301");
+        _requestService.AddOrSetClient("eft", eftHttpClient);
     }
 
     public int AccountExists(string username)

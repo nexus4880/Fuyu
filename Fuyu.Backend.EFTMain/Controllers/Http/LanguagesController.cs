@@ -3,27 +3,28 @@ using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class LanguagesController : AbstractEftHttpController
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
 
-    public LanguagesController() : base("/client/languages")
+    public LanguagesController(IGameDataRepository gameData) : base("/client/languages")
     {
-        _eftOrm = EftOrm.Instance;
+        _gameData = gameData;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
-        var languages = _eftOrm.GetLanguages();
+        var languages = await _gameData.GetLanguagesAsync();
         var response = new ResponseBody<Dictionary<string, string>>
         {
             data = languages
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

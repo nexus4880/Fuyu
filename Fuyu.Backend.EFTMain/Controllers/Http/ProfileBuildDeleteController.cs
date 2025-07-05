@@ -4,23 +4,24 @@ using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class ProfileBuildDeleteController : AbstractEftHttpController<BuildDeleteRequest>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
     private readonly ResponseService _responseService;
 
-    public ProfileBuildDeleteController() : base("/client/builds/delete")
+    public ProfileBuildDeleteController(IProfileRepository profiles) : base("/client/builds/delete")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
         _responseService = ResponseService.Instance;
     }
 
-    public override Task RunAsync(EftHttpContext context, BuildDeleteRequest request)
+    public override async Task RunAsync(EftHttpContext context, BuildDeleteRequest request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
 
         var index = profile.Builds.EquipmentBuilds.RemoveAll(x => x.Id == request.Id);
         if (index > 0)
@@ -44,6 +45,6 @@ public class ProfileBuildDeleteController : AbstractEftHttpController<BuildDelet
 
     completed:
 
-        return context.SendJsonAsync(_responseService.EmptyJsonResponse, true, true);
+        await context.SendJsonAsync(_responseService.EmptyJsonResponse, true, true);
     }
 }

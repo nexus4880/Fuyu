@@ -8,30 +8,33 @@ using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class RagFairAddOfferItemEventController : AbstractItemEventController<RagFairAddOfferItemEvent>
 {
+    private readonly IProfileRepository _profiles;
     private readonly RagfairService _ragfairService;
-    private readonly EftOrm _eftOrm;
+    private readonly ItemService _itemService;
 
-    public RagFairAddOfferItemEventController() : base("RagFairAddOffer")
+    public RagFairAddOfferItemEventController(IProfileRepository profiles, RagfairService ragfairService, ItemService itemService) : base("RagFairAddOffer")
     {
-        _ragfairService = RagfairService.Instance;
-        _eftOrm = EftOrm.Instance;
+        _ragfairService = ragfairService;
+        _profiles = profiles;
+        _itemService = itemService;
     }
 
-    public override Task RunAsync(ItemEventContext context, RagFairAddOfferItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, RagFairAddOfferItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var ragfairUser = new RagfairPlayerUser(profile.Pmc);
         var items = new List<ItemInstance>();
 
         foreach (var itemToSellId in request.Items)
         {
-            var itemsRemoved = profile.Pmc.Inventory.RemoveItem(itemToSellId);
+            var itemsRemoved = await profile.Pmc.Inventory.RemoveItemAsync(_itemService, itemToSellId);
 
             if (itemsRemoved.Count == 0)
             {
@@ -50,7 +53,5 @@ public class RagFairAddOfferItemEventController : AbstractItemEventController<Ra
         {
             throw new Exception("Failed to create offer");
         }
-
-        return Task.CompletedTask;
     }
 }

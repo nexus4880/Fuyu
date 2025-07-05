@@ -11,9 +11,9 @@ public class ClientRagfairItemMarketPriceController : AbstractEftHttpController<
 {
     private readonly RagfairService _ragfairService;
 
-    public ClientRagfairItemMarketPriceController() : base("/client/ragfair/itemMarketPrice")
+    public ClientRagfairItemMarketPriceController(RagfairService ragfairService) : base("/client/ragfair/itemMarketPrice")
     {
-        _ragfairService = RagfairService.Instance;
+        _ragfairService = ragfairService;
     }
 
     public override Task RunAsync(EftHttpContext context, ClientRagfairItemMarketPriceRequest body)

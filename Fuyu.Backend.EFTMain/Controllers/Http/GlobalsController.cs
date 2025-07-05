@@ -1,25 +1,26 @@
 using System.Threading.Tasks;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class GlobalsController : AbstractEftHttpController
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
 
-    public GlobalsController() : base("/client/globals")
+    public GlobalsController(IGameDataRepository gameData) : base("/client/globals")
     {
-        _eftOrm = EftOrm.Instance;
+        _gameData = gameData;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
         // TODO: generate this
         // --seionmoya, 2024-11-18
-        var response = _eftOrm.GetGlobals();
+        var response = await _gameData.GetGlobalsAsync();
         var text = response.ToString();
 
-        return context.SendJsonAsync(text, true, true);
+        await context.SendJsonAsync(text, true, true);
     }
 }

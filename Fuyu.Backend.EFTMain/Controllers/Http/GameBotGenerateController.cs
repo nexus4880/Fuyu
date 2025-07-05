@@ -12,9 +12,9 @@ public class GameBotGenerateController : AbstractEftHttpController<GameBotGenera
 {
     private readonly BotService _botService;
 
-    public GameBotGenerateController() : base("/client/game/bot/generate")
+    public GameBotGenerateController(BotService botService) : base("/client/game/bot/generate")
     {
-        _botService = BotService.Instance;
+        _botService = botService;
     }
 
     public override Task RunAsync(EftHttpContext context, GameBotGenerateRequest request)

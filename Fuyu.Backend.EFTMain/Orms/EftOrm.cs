@@ -14,7 +14,7 @@ namespace Fuyu.Backend.EFTMain.Orms;
 
 public class EftOrm
 {
-    public static EftOrm Instance => instance.Value;
+    /*public static EftOrm Instance => instance.Value;
     private static readonly Lazy<EftOrm> instance = new(() => new EftOrm());
 
     private readonly EftDatabase _eftDatabase;
@@ -620,5 +620,5 @@ public class EftOrm
     {
         _eftDatabase.Weather.Set(weather);
     }
-    #endregion
+    #endregion*/
 }

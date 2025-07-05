@@ -10,17 +10,18 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Modding;
 
 // This should live during the entire lifetime of the application
 public class ModManager
 {
-    /// <summary>
-    /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
-    /// </summary>
-    public ModManager()
+    private readonly ILogger<ModManager> _logger;
+
+    public ModManager(ILogger<ModManager> logger)
     {
+        _logger = logger;
     }
 
     private readonly List<AbstractMod> _mods = new List<AbstractMod>();
@@ -165,6 +166,7 @@ public class ModManager
         {
             if (!mod.IsLoaded)
             {
+                _logger.LogInformation("[{ModName} - ({ModId})] loading", mod.Name, mod.Id);
                 await mod.OnLoad();
                 mod.IsLoaded = true;
             }
@@ -207,7 +209,7 @@ public class ModManager
     {
         if (mod.IsLoaded)
         {
-            Console.WriteLine($"[{mod.Name} - ({mod.Id})] Unloading");
+            _logger.LogInformation("[{ModName} - ({ModId})] unloading", mod.Name, mod.Id);
             await mod.OnShutdown();
             mod.IsLoaded = false;
         }

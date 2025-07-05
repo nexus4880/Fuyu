@@ -6,15 +6,12 @@ namespace Fuyu.Backend.EFTMain.Services;
 
 public class LocationService
 {
-    public static LocationService Instance => instance.Value;
-    private static readonly Lazy<LocationService> instance = new(() => new LocationService());
-
     private readonly Dictionary<string, string> _locationLoot;
 
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
-    private LocationService()
+    public LocationService()
     {
         _locationLoot = new Dictionary<string, string>()
         {

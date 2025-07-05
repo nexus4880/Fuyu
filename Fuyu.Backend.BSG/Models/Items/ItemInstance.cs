@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Common.Collections;
@@ -14,13 +15,6 @@ namespace Fuyu.Backend.BSG.Models.Items;
 [DataContract]
 public class ItemInstance
 {
-    private readonly ItemFactoryService _itemFactoryService;
-
-    public ItemInstance()
-    {
-        _itemFactoryService = ItemFactoryService.Instance;
-    }
-
     [DataMember(Name = "_id")]
     public MongoId Id { get; set; }
 
@@ -50,11 +44,11 @@ public class ItemInstance
     /// </summary>
     public ValueTuple<int, int>? Size { get; set; }
 
-    public ItemUpdatable GetOrCreateUpdatable()
+    public async Task<ItemUpdatable> GetOrCreateUpdatableAsync(ItemFactoryService itemFactoryService)
     {
         if (Updatable == null)
         {
-            Updatable = _itemFactoryService.CreateItemUpdatable(TemplateId);
+            Updatable = await itemFactoryService.CreateItemUpdatableAsync(TemplateId);
             if (Updatable == null)
             {
                 Updatable = new ItemUpdatable();
@@ -64,9 +58,9 @@ public class ItemInstance
         return Updatable;
     }
 
-    public T GetOrCreateUpdatable<T>() where T : class
+    public async Task<T> GetOrCreateUpdatableAsync<T>(ItemFactoryService itemFactoryService) where T : class
     {
-        GetOrCreateUpdatable();
+        await GetOrCreateUpdatableAsync(itemFactoryService);
 
         // NOTE: Intentionally letting this throw here. The idea is that GetOrCreateUpdatable should
         // create T if it doesn't exist meaning most usage would be GetOrCreateUpdatable<Upd>().Value
@@ -105,60 +99,47 @@ public class MatricesClass
         _children = children;
     }
 
-    public bool[,] this[string name]
+    public async Task<bool[,]> GetMatrixAsync(ItemService itemService, string name)
     {
-        get
+        if (_cachedMatrices.TryGetValue(name, out var result))
         {
-            if (_cachedMatrices.TryGetValue(name, out var result))
-            {
-                return result;
-            }
-
-            var grid = _grids.FirstOrDefault(g => g.Name == name);
-            if (grid == null)
-            {
-                return null;
-            }
-
-            var width = grid.Properties.CellsHorizontal;
-            var height = grid.Properties.CellsVertical;
-            var matrix = new bool[width, height];
-
-            foreach (var itemInGrid in _children.Where(i => i.ParentId == _owner.Id && i.SlotId == grid.Name))
-            {
-                if (!itemInGrid.Location.IsValue1)
-                {
-                    throw new Exception("!itemInGrid.Location.IsValue1");
-                }
-
-                var itemsInGrid = ItemService.Instance.GetItemAndChildren(_children.ToList(), itemInGrid);
-                (int itemWidth, int itemHeight) = ItemService.Instance.CalculateItemSize(itemsInGrid, itemInGrid.Location.Value1.r);
-
-                for (var dx = 0; dx < itemWidth; dx++)
-                {
-                    for (var dy = 0; dy < itemHeight; dy++)
-                    {
-                        var x = itemInGrid.Location.Value1.x + dx;
-                        var y = itemInGrid.Location.Value1.y + dy;
-
-                        matrix[x, y] = true;
-                    }
-                }
-            }
-
-            _cachedMatrices[grid.Name] = matrix;
-
-            return matrix;
-        }
-    }
-
-    public bool TryGetValue(string name, out bool[,] result)
-    {
-        if (!_cachedMatrices.TryGetValue(name, out result))
-        {
-            result = this[name];
+            return result;
         }
 
-        return result is not null;
+        var grid = _grids.FirstOrDefault(g => g.Name == name);
+        if (grid == null)
+        {
+            return null;
+        }
+
+        var width = grid.Properties.CellsHorizontal;
+        var height = grid.Properties.CellsVertical;
+        var matrix = new bool[width, height];
+
+        foreach (var itemInGrid in _children.Where(i => i.ParentId == _owner.Id && i.SlotId == grid.Name))
+        {
+            if (!itemInGrid.Location.IsValue1)
+            {
+                throw new Exception("!itemInGrid.Location.IsValue1");
+            }
+
+            var itemsInGrid = itemService.GetItemAndChildren(_children.ToList(), itemInGrid);
+            (int itemWidth, int itemHeight) = await itemService.CalculateItemSizeAsync(itemsInGrid, itemInGrid.Location.Value1.r);
+
+            for (var dx = 0; dx < itemWidth; dx++)
+            {
+                for (var dy = 0; dy < itemHeight; dy++)
+                {
+                    var x = itemInGrid.Location.Value1.x + dx;
+                    var y = itemInGrid.Location.Value1.y + dy;
+
+                    matrix[x, y] = true;
+                }
+            }
+        }
+
+        _cachedMatrices[grid.Name] = matrix;
+
+        return matrix;
     }
 }

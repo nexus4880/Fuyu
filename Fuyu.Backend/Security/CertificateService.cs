@@ -53,7 +53,7 @@ public class CertificateService : ICertificateService
 
     private static X509Certificate2 GenerateSelfSignedCertificate(string password, out byte[] certificateBytes)
     {
-        
+
         using var rsa = RSA.Create();
         var request = new CertificateRequest("cn=Fuyu", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         var certificate = request.CreateSelfSigned(DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(30));

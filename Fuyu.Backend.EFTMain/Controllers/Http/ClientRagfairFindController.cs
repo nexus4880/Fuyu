@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Fuyu.Backend.BSG;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
 using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
@@ -21,7 +21,8 @@ namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class ClientRagfairFindController : AbstractEftHttpController<RagfairFindRequest>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
+    private readonly IItemTemplateRepository _itemTemplateRepository;
     private readonly RagfairService _ragfairService;
     private readonly HandbookService _handbookService;
     private readonly ItemFactoryService _itemFactoryService;
@@ -39,20 +40,27 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         "5d235b4d86f7742e017bc88a"
     };
 
-    public ClientRagfairFindController() : base("/client/ragfair/find")
+    public ClientRagfairFindController(
+        IGameDataRepository gameData,
+        RagfairService ragfairService,
+        ItemService itemService,
+        ItemFactoryService itemFactoryService,
+        IItemTemplateRepository itemTemplateRepository,
+        HandbookService handbookService) : base("/client/ragfair/find")
     {
-        _eftOrm = EftOrm.Instance;
-        _ragfairService = RagfairService.Instance;
-        _handbookService = HandbookService.Instance;
-        _itemService = ItemService.Instance;
-        _itemFactoryService = ItemFactoryService.Instance;
+        _gameData = gameData;
+        _ragfairService = ragfairService;
+        _handbookService = handbookService;
+        _itemService = itemService;
+        _itemTemplateRepository = itemTemplateRepository;
+        _itemFactoryService = itemFactoryService;
     }
 
-    public override Task RunAsync(EftHttpContext context, RagfairFindRequest body)
+    public override async Task RunAsync(EftHttpContext context, RagfairFindRequest body)
     {
         Terminal.WriteLine(Json.Stringify(body));
         var sw = Stopwatch.StartNew();
-        var handbook = _eftOrm.GetHandbook();
+        var handbook = await _gameData.GetHandbookAsync();
 
         ResponseBody<OffersListResponse> responseBody;
         List<Offer> selectedOffers;
@@ -71,7 +79,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
             // of one of the available template ids (linked search mag should return bullets
             // and selectedCategory should be ammo)
             // -- nexus4880, 2025-1-26
-            selectedOffers = LinkedSearch(handbook, body.LinkedSearchId.Value, out selectedCategory);
+            (selectedOffers, selectedCategory) = await LinkedSearchAsync(handbook, body.LinkedSearchId.Value, null);
             selectedCategory = body.LinkedSearchId;
         }
         else if (body.NeededSearchId.HasValue)
@@ -130,7 +138,15 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
 
         if (body.ConditionFrom > 0 || body.ConditionTo < 100)
         {
-            selectedOffers.RemoveAll(o => !MeetsConditions(o, body.ConditionTo, body.ConditionFrom));
+            for (var i = 0; i < selectedOffers.Count; i++)
+            {
+                var offer = selectedOffers[i];
+                if (!await MeetsConditionsAsync(offer, body.ConditionTo, body.ConditionFrom))
+                {
+                    selectedOffers.RemoveAt(i);
+                    i--;
+                }
+            }
         }
 
         if (body.PriceFrom > 0)
@@ -146,7 +162,15 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         if (body.OnlyFunctional)
         {
             // Maybe only needs to run on RootItem?
-            selectedOffers.RemoveAll(o => !o.Items.TrueForAll(i => _itemService.IsFunctional(o.Items, i)));
+            for (var i = 0; i < selectedOffers.Count; i++)
+            {
+                var offer = selectedOffers[i];
+                if (!await _itemService.IsFunctionalAsync(offer.Items, offer.Items[0]))
+                {
+                    selectedOffers.RemoveAt(i);
+                    i--;
+                }
+            }
         }
 
         // Ascending
@@ -193,7 +217,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         Terminal.WriteLine(sw.ElapsedMilliseconds);
 
     sendResponse:
-        return context.SendResponseAsync(responseBody, true, true);
+        await context.SendResponseAsync(responseBody, true, true);
     }
 
     private List<Offer> SearchByItem(HandbookTemplates handbook, MongoId handbookId)
@@ -231,7 +255,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         return selectedOffers;
     }
 
-    private List<Offer> LinkedSearch(HandbookTemplates handbook, MongoId linkedSearchId, out string selectedCategory)
+    private async Task<(List<Offer>, string)> LinkedSearchAsync(HandbookTemplates handbook, MongoId linkedSearchId, string selectedCategory)
     {
         var handbookItem = handbook.Items.Find(i => i.Id == linkedSearchId);
 
@@ -249,7 +273,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
 
         selectedCategory = handbookCategory.Id;
 
-        var rootItemTemplate = ItemFactoryOrm.Instance.GetItemTemplate(linkedSearchId);
+        var rootItemTemplate = await _itemTemplateRepository.GetItemTemplateAsync(linkedSearchId);
         var baseItemProperties = rootItemTemplate.Props;
         var itemProperties = baseItemProperties.ToObject<CompoundItemItemProperties>();
         var magazineItemProperties = baseItemProperties.ToObject<MagazineItemProperties>();
@@ -289,7 +313,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
             }
         }
 
-        return result;
+        return (result, selectedCategory);
     }
 
     private List<Offer> RequiredSearch(HandbookTemplates handbook, MongoId neededSearchId, out string selectedCategory)
@@ -309,7 +333,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         return result;
     }
 
-    private bool MeetsConditions(Offer offer, int conditionFrom, int conditionTo)
+    private async Task<bool> MeetsConditionsAsync(Offer offer, int conditionFrom, int conditionTo)
     {
         var repairable = offer.RootItem.Updatable.Repairable;
 
@@ -327,7 +351,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
 
         if (repairKit != null)
         {
-            var properties = _itemFactoryService.GetItemProperties<RepairKitsItemProperties>(offer.RootItem.TemplateId);
+            var properties = await _itemFactoryService.GetItemPropertiesAsync<RepairKitsItemProperties>(offer.RootItem.TemplateId);
 
             if (properties == null)
             {

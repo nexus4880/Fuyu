@@ -21,7 +21,7 @@ public class WsRouter : Router<WsController, WsContext>
         {
             tasks[i] = matches[i].RunAsync(context);
         }
-        
+
         // Let them all initialize first
         await Task.WhenAll(tasks);
 

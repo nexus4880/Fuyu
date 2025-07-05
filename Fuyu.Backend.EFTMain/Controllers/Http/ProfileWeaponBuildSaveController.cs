@@ -4,23 +4,24 @@ using Fuyu.Backend.BSG.Models.Templates;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class ProfileWeaponBuildSaveController : AbstractEftHttpController<WeaponBuildSaveRequest>
 {
     private readonly ResponseService _responseService;
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public ProfileWeaponBuildSaveController() : base("/client/builds/weapon/save")
+    public ProfileWeaponBuildSaveController(IProfileRepository profiles) : base("/client/builds/weapon/save")
     {
         _responseService = ResponseService.Instance;
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(EftHttpContext context, WeaponBuildSaveRequest request)
+    public override async Task RunAsync(EftHttpContext context, WeaponBuildSaveRequest request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var weaponBuild = profile.Builds.WeaponBuilds.Find(x => x.Id == request.Id);
 
         if (weaponBuild != null)
@@ -44,6 +45,6 @@ public class ProfileWeaponBuildSaveController : AbstractEftHttpController<Weapon
 
         profile.Builds.WeaponBuilds.Add(weaponBuild);
 
-        return context.SendJsonAsync(_responseService.EmptyJsonResponse, true, true);
+        await context.SendJsonAsync(_responseService.EmptyJsonResponse, true, true);
     }
 }

@@ -3,27 +3,28 @@ using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class HandbookTemplatesController : AbstractEftHttpController
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
 
-    public HandbookTemplatesController() : base("/client/handbook/templates")
+    public HandbookTemplatesController(IGameDataRepository gameData) : base("/client/handbook/templates")
     {
-        _eftOrm = EftOrm.Instance;
+        _gameData = gameData;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
         // TODO: generate this
         // --seionmoya, 2024-11-18
         var response = new ResponseBody<HandbookTemplates>()
         {
-            data = _eftOrm.GetHandbook()
+            data = await _gameData.GetHandbookAsync()
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

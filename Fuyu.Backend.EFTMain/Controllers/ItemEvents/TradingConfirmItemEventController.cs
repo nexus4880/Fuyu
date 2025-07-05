@@ -5,6 +5,7 @@ using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.IO;
 
@@ -12,15 +13,17 @@ namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class TradingConfirmEventController : AbstractItemEventController<TradingConfirmItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
     private readonly ItemService _itemService;
     private readonly RagfairService _ragfairService;
+    private readonly ItemFactoryService _itemFactoryService;
 
-    public TradingConfirmEventController() : base("TradingConfirm")
+    public TradingConfirmEventController(IProfileRepository profiles, ItemService itemService, RagfairService ragfairService, ItemFactoryService itemFactoryService) : base("TradingConfirm")
     {
-        _eftOrm = EftOrm.Instance;
-        _itemService = ItemService.Instance;
-        _ragfairService = RagfairService.Instance;
+        _profiles = profiles;
+        _itemService = itemService;
+        _ragfairService = ragfairService;
+        _itemFactoryService = itemFactoryService;
     }
 
     public override Task RunAsync(ItemEventContext context, TradingConfirmItemEvent request)
@@ -42,31 +45,29 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
         throw new Exception($"Unhandled TradingConfirm.Type '{request.Type}'");
     }
 
-    public Task SellToTrader(ItemEventContext context, TradingConfirmSellItemEvent request)
+    public async Task SellToTrader(ItemEventContext context, TradingConfirmSellItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var inventory = profile.Pmc.Inventory;
         var roubles = inventory.GetItemsByTemplate("5449016a4bdc2d6f028b456f");
 
         if (roubles.Count == 0)
         {
             context.AppendInventoryError("You don't have any roubles and I'm too dumb to add items so I can't pay you");
-
-            return Task.CompletedTask;
+            return;
         }
 
         foreach (var tradingItem in request.Items)
         {
             try
             {
-                var removedItems = inventory.RemoveItem(tradingItem.Id);
+                var removedItems = await inventory.RemoveItemAsync(_itemService, tradingItem.Id);
                 context.Response.ProfileChanges[profile.Pmc._id].Items.Delete.AddRange(removedItems);
             }
             catch (Exception ex)
             {
                 context.AppendInventoryError(ex.Message);
-
-                return Task.CompletedTask;
+                return;
             }
         }
 
@@ -74,12 +75,12 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
         roublesItem.Updatable.StackObjectsCount += request.Price;
         context.Response.ProfileChanges[profile.Pmc._id].Items.Change.Add(roublesItem);
 
-        return Task.CompletedTask;
+        return;
     }
 
-    public Task BuyFromTrader(ItemEventContext context, TradingConfirmBuyItemEvent request)
+    public async Task BuyFromTrader(ItemEventContext context, TradingConfirmBuyItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var offer = _ragfairService.GetOfferByRootItemId(request.ItemId);
 
         if (offer == null)
@@ -115,7 +116,7 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
 
             if (itemInstance.Updatable.StackObjectsCount <= 0)
             {
-                profile.Pmc.Inventory.RemoveItem(itemInstance);
+                await profile.Pmc.Inventory.RemoveItemAsync(_itemService, itemInstance);
                 context.Response.ProfileChanges[profile.Pmc._id].Items.Delete.Add(itemInstance);
             }
             else
@@ -124,15 +125,15 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
             }
         }
 
-        var stacks = ItemFactoryService.Instance.CreateItemsFromTradeRequest(itemsToBuy, request.Count);
+        var stacks = await _itemFactoryService.CreateItemsFromTradeRequestAsync(itemsToBuy, request.Count);
 
         // Add new items to player inventory
         foreach (var stack in stacks)
         {
             // Assume horizontal rotation when purchasing items. I'm unsure of live behavior.
             // I think it tries horizontal and then vertical if it doesn't fit?
-            (int itemWidth, int itemHeight) = _itemService.CalculateItemSize(stack, EItemRotation.Horizontal);
-            var targetLocation = profile.Pmc.Inventory.GetNextFreeSlot(_itemService, itemWidth, itemHeight, out string gridName);
+            (int itemWidth, int itemHeight) = await _itemService.CalculateItemSizeAsync(stack, EItemRotation.Horizontal);
+            var (targetLocation, gridName) = await profile.Pmc.Inventory.GetNextFreeSlotAsync(_itemService, itemWidth, itemHeight);
 
             if (targetLocation == null)
             {
@@ -145,7 +146,7 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
             rootItem.SlotId = gridName;
             rootItem.ParentId = profile.Pmc.Inventory.Stash;
 
-            profile.Pmc.Inventory.AddItems(_itemService, stack);
+            await profile.Pmc.Inventory.AddItems(_itemService, stack);
 
             context.Response.ProfileChanges[profile.Pmc._id].Items.New.AddRange(stack);
         }
@@ -158,7 +159,5 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
         {
             _salesSum = traderInfo.salesSum
         };
-
-        return Task.CompletedTask;
     }
 }

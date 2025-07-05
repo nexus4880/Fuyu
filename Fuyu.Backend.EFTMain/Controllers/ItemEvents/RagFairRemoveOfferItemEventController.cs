@@ -9,12 +9,12 @@ public class RagFairRemoveOfferItemEventController : AbstractItemEventController
 {
     private readonly RagfairService _ragfairService;
 
-    public RagFairRemoveOfferItemEventController() : base("RagFairRemoveOffer")
+    public RagFairRemoveOfferItemEventController(RagfairService ragfairService) : base("RagFairRemoveOffer")
     {
-        _ragfairService = RagfairService.Instance;
+        _ragfairService = ragfairService;
     }
 
-    public override Task RunAsync(ItemEventContext context, RagFairRemoveOfferItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, RagFairRemoveOfferItemEvent request)
     {
         var offer = _ragfairService.GetOffer(request.OfferId);
 
@@ -26,9 +26,7 @@ public class RagFairRemoveOfferItemEventController : AbstractItemEventController
         {
             // TODO: do not remove offer immediately, match live behavior
             // -- nexus4880, 2025-1-13
-            _ragfairService.RemoveOffer(offer);
+            await _ragfairService.RemoveOfferAsync(offer);
         }
-
-        return Task.CompletedTask;
     }
 }

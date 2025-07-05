@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Accounts;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
@@ -15,22 +17,21 @@ public class AccountService
     // * account login state tracking
     // -- seionmoya, 2024/09/06
 
-    public static AccountService Instance => instance.Value;
-    private static readonly Lazy<AccountService> instance = new(() => new AccountService());
-
-    private readonly EftOrm _eftOrm;
+    private readonly IAccountRepository _accounts;
+    private readonly ISessionRepository _sessions;
     private readonly ProfileService _profileService;
 
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
-    private AccountService()
+    public AccountService(IAccountRepository accounts, ISessionRepository sessions, ProfileService profileService)
     {
-        _eftOrm = EftOrm.Instance;
-        _profileService = ProfileService.Instance;
+        _sessions = sessions;
+        _accounts = accounts;
+        _profileService = profileService;
     }
 
-    public string LoginAccount(int accountId)
+    public async Task<string> LoginAccount(int accountId)
     {
         if (accountId == -1)
         {
@@ -39,7 +40,7 @@ public class AccountService
         }
 
         // find active account session
-        var sessions = _eftOrm.GetSessions();
+        var sessions = await _sessions.GetAllAsync();
 
         foreach (var kvp in sessions)
         {
@@ -57,50 +58,18 @@ public class AccountService
         //       for each login.
         // -- seionmoya, 2024/09/02
         var sessionId = new MongoId(accountId).ToString();
-        _eftOrm.SetOrAddSession(sessionId, accountId);
+        await _sessions.SetAsync(sessionId, accountId);
+
         return sessionId.ToString();
     }
 
-    private int GetNewAccountId()
+    public async Task<int> RegisterAccountAsync(string username, string edition)
     {
-        var accounts = _eftOrm.GetAccounts();
-
-        // using linq because sorting otherwise takes up too much code
-        var sorted = accounts.OrderBy(account => account.Id).ToArray();
-
-        // find all gap entries
-        var found = new List<int>();
-
-        // accounts must start at 1 as there are checks handle 0 as error in the client
-        var offset = 1;
-
-        for (var i = offset; i < sorted.Length; ++i)
-        {
-            if (sorted[i].Id != i)
-            {
-                found.Add(sorted[i].Id);
-            }
-        }
-
-        if (found.Count > 0)
-        {
-            // use first gap entry
-            return found[0];
-        }
-        else
-        {
-            // use new entry
-            return sorted.Length + offset;
-        }
-    }
-
-    public int RegisterAccount(string username, string edition)
-    {
-        var accountId = GetNewAccountId();
+        var accountId = await _accounts.GetNewAccountIdAsync();
 
         // create profiles
-        var pvpId = _profileService.CreateProfile(accountId);
-        var pveId = _profileService.CreateProfile(accountId);
+        var pvpId = await _profileService.CreateProfile(accountId);
+        var pveId = await _profileService.CreateProfile(accountId);
 
         // create account   
         var account = new EftAccount()
@@ -113,16 +82,8 @@ public class AccountService
             CurrentSession = ESessionMode.Pve
         };
 
-        _eftOrm.SetOrAddAccount(account);
-        WriteToDisk(account);
+        await _accounts.AddOrUpdateAsync(account);
 
         return accountId;
-    }
-
-    public void WriteToDisk(EftAccount account)
-    {
-        VFS.WriteTextFile(
-            $"./Fuyu/Accounts/EFT/{account.Id}.json",
-            Json.Stringify(account));
     }
 }

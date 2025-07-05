@@ -6,21 +6,24 @@ using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class SearchOtherProfileController : AbstractEftHttpController<SearchOtherProfileRequest>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
+    private readonly IAccountRepository _accounts;
 
-    public SearchOtherProfileController() : base("/client/game/profile/search")
+    public SearchOtherProfileController(IProfileRepository profiles, IAccountRepository accounts) : base("/client/game/profile/search")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
+        _accounts = accounts;
     }
 
-    public override Task RunAsync(EftHttpContext context, SearchOtherProfileRequest body)
+    public override async Task RunAsync(EftHttpContext context, SearchOtherProfileRequest body)
     {
-        var activeProfile = _eftOrm.GetAccount(context.SessionId);
+        var activeProfile = await _accounts.GetBySessionAsync(context.SessionId);
         var currentSession = activeProfile.CurrentSession;
 
         if (!currentSession.HasValue)
@@ -29,10 +32,11 @@ public class SearchOtherProfileController : AbstractEftHttpController<SearchOthe
         }
 
         var profiles = new List<SearchOtherProfileResponse>();
-        foreach (var account in _eftOrm.GetAccounts())
+        var allAccounts = await _accounts.GetAllAsync();
+        foreach (var account in allAccounts)
         {
             var targetProfileId = currentSession == ESessionMode.Regular ? account.PvpId : account.PveId;
-            var profile = _eftOrm.GetProfile(targetProfileId);
+            var profile = await _profiles.GetByIdAsync(targetProfileId);
 
             if (profile.Pmc == null) continue; // nullcheck in case profile hasn't created their PMC yet
 
@@ -59,6 +63,6 @@ public class SearchOtherProfileController : AbstractEftHttpController<SearchOthe
             data = [.. profiles]
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

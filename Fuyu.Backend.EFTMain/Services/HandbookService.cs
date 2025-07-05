@@ -1,24 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 
 namespace Fuyu.Backend.EFTMain.Services;
 
 public class HandbookService
 {
-    public static HandbookService Instance => _instance.Value;
-
-    private static readonly Lazy<HandbookService> _instance = new(() => new HandbookService());
-
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
     private readonly MongoId _generatedCategoryId;
 
-    public HandbookService()
+    public HandbookService(IGameDataRepository gameData)
     {
-        _eftOrm = EftOrm.Instance;
+        _gameData = gameData;
         _generatedCategoryId = MongoId.Generate();
     }
 
@@ -53,9 +51,9 @@ public class HandbookService
     }
 
     /// <param name="price">If null will not create a handbook entry in the event no entry was found</param>
-    public int? GetPrice(MongoId templateId, int? price = null)
+    public async Task<int?> GetPriceAsync(MongoId templateId, int? price = null)
     {
-        var handbook = _eftOrm.GetHandbook();
+        var handbook = await _gameData.GetHandbookAsync();
         var entry = handbook.Items.Find(i => i.Id == templateId);
 
         if (entry != null)
@@ -91,9 +89,9 @@ public class HandbookService
         return price;
     }
 
-    public List<HandbookCategory> GetAllCategoriesOfType(HandbookCategory root)
+    public async Task<List<HandbookCategory>> GetAllCategoriesOfTypeAsync(HandbookCategory root)
     {
-        var handbook = _eftOrm.GetHandbook();
+        var handbook = await _gameData.GetHandbookAsync();
         var result = new List<HandbookCategory> { root };
         var added = true;
 
@@ -118,11 +116,11 @@ public class HandbookService
         return result;
     }
 
-    public List<HandbookItem> GetAllItemsOfType(MongoId id)
+    public async Task<List<HandbookItem>> GetAllItemsOfTypeAsync(MongoId id)
     {
-        var handbook = _eftOrm.GetHandbook();
+        var handbook = await _gameData.GetHandbookAsync();
         var rootCategory = handbook.Categories.Find(c => c.Id == id);
-        var categories = GetAllCategoriesOfType(rootCategory).Select(c => c.Id).ToList();
+        var categories = (await GetAllCategoriesOfTypeAsync(rootCategory)).Select(c => c.Id).ToList();
 
         var itemIds = new List<MongoId>();
         var added = true;
@@ -146,9 +144,9 @@ public class HandbookService
         return handbook.Items.Where(i => itemIds.Contains(i.Id)).ToList();
     }
 
-    public List<HandbookItem> GetAllItemsOfTypeAndSubcategories(MongoId id)
+    public async Task<List<HandbookItem>> GetAllItemsOfTypeAndSubcategoriesAsync(MongoId id)
     {
-        var handbook = _eftOrm.GetHandbook();
+        var handbook = await _gameData.GetHandbookAsync();
         var items = new List<HandbookItem>();
 
         for (var i = 0; i < handbook.Items.Count; i++)

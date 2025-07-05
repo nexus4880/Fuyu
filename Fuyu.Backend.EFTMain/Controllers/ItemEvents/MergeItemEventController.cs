@@ -2,22 +2,26 @@
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Networking;
+using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class MergeItemEventController : AbstractItemEventController<MergeItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
+    private readonly ItemService _itemService;
 
-    public MergeItemEventController() : base("Merge")
+    public MergeItemEventController(IProfileRepository profiles, ItemService itemService) : base("Merge")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
+        _itemService = itemService;
     }
 
-    public override Task RunAsync(ItemEventContext context, MergeItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, MergeItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var source = profile.Pmc.Inventory.FindItem(request.Item);
 
         if (source == null)
@@ -32,7 +36,7 @@ public class MergeItemEventController : AbstractItemEventController<MergeItemEve
             throw new Exception($"Target item {request.With} not found on backend");
         }
 
-        var removedItems = profile.Pmc.Inventory.RemoveItem(source);
+        var removedItems = await profile.Pmc.Inventory.RemoveItemAsync(_itemService, source);
 
         if (removedItems.Count == 0)
         {
@@ -40,7 +44,5 @@ public class MergeItemEventController : AbstractItemEventController<MergeItemEve
         }
 
         target.Updatable.StackObjectsCount += source.Updatable.StackObjectsCount;
-
-        return Task.CompletedTask;
     }
 }

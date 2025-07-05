@@ -7,14 +7,17 @@ namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class MatchLocalStartController : AbstractEftHttpController<MatchLocalStartRequest>
 {
-    public MatchLocalStartController() : base("/client/match/local/start")
+    private readonly LocationService _locationService;
+
+    public MatchLocalStartController(LocationService locationService) : base("/client/match/local/start")
     {
+        _locationService = locationService;
     }
 
     public override Task RunAsync(EftHttpContext context, MatchLocalStartRequest request)
     {
         var location = request.location;
-        var text = LocationService.Instance.GetLoot(location);
+        var text = _locationService.GetLoot(location);
         return context.SendJsonAsync(text, true, true);
     }
 }

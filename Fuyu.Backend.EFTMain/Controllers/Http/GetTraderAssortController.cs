@@ -5,6 +5,7 @@ using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
 
@@ -15,16 +16,16 @@ public partial class GetTraderAssortController : AbstractEftHttpController
     [GeneratedRegex("/client/trading/api/getTraderAssort/(?<traderId>[A-Za-z0-9]+)")]
     private static partial Regex PathExpression();
 
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
     private readonly TraderOrm _traderOrm;
 
-    public GetTraderAssortController() : base(PathExpression())
+    public GetTraderAssortController(IProfileRepository profiles) : base(PathExpression())
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
         _traderOrm = TraderOrm.Instance;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
         var parameters = context.GetPathParameters(this);
         var traderId = parameters["traderId"];
@@ -35,7 +36,7 @@ public partial class GetTraderAssortController : AbstractEftHttpController
             throw new Exception($"Failed to find assort for trader {traderId}");
         }
 
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
 
         if (!profile.Pmc.TradersInfo.HasValue)
         {
@@ -85,6 +86,6 @@ public partial class GetTraderAssortController : AbstractEftHttpController
             data = assortClone
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

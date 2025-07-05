@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Services;
@@ -10,8 +11,7 @@ namespace Fuyu.Backend.EFTMain.Databases;
 
 public class TraderDatabase
 {
-    public static TraderDatabase Instance => instance.Value;
-    private static readonly Lazy<TraderDatabase> instance = new(() => new TraderDatabase());
+    public static TraderDatabase Instance => null;
 
     private readonly ThreadDictionary<MongoId, TraderTemplate> _traders;
     private readonly ThreadDictionary<MongoId, TraderAssort> _traderAssort;
@@ -22,12 +22,12 @@ public class TraderDatabase
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
-    private TraderDatabase()
+    public TraderDatabase(ItemService itemService, RagfairService ragfairService)
     {
         _traders = new ThreadDictionary<MongoId, TraderTemplate>();
         _traderAssort = new ThreadDictionary<MongoId, TraderAssort>();
-        _ragfairService = RagfairService.Instance;
-        _itemService = ItemService.Instance;
+        _ragfairService = ragfairService;
+        _itemService = itemService;
     }
 
     public Dictionary<MongoId, TraderTemplate> GetTraderTemplates()
@@ -50,7 +50,7 @@ public class TraderDatabase
         _traders.Set(id, traderTemplate);
     }
 
-    public void SetTraderAssort(MongoId id, TraderAssort traderAssort)
+    public async Task SetTraderAssortAsync(MongoId id, TraderAssort traderAssort)
     {
         _traderAssort.Set(id, traderAssort);
 
@@ -77,9 +77,9 @@ public class TraderDatabase
 
             // This is called so that the item will be in the 
             // generated category if it doesn't exist
-            HandbookService.Instance.GetPrice(items[0].TemplateId, handOverRequirements[0].Count);
+            //HandbookService.Instance.GetPrice(items[0].TemplateId, handOverRequirements[0].Count);
 
-            _ragfairService.CreateAndAddOffer(traderRagfairUser, items, false, handOverRequirements,
+            await _ragfairService.CreateAndAddOffer(traderRagfairUser, items, false, handOverRequirements,
                 TimeSpan.FromHours(30d), loyaltyLevel: loyaltyLevel, quantity: (items[0].Updatable?.StackObjectsCount).GetValueOrDefault(1));
         }
     }

@@ -3,21 +3,22 @@ using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class TransferItemEventController : AbstractItemEventController<TransferItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public TransferItemEventController() : base("Transfer")
+    public TransferItemEventController(IProfileRepository profiles) : base("Transfer")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(ItemEventContext context, TransferItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, TransferItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var item = profile.Pmc.Inventory.FindItem(request.Item);
 
         if (item == null)
@@ -42,7 +43,5 @@ public class TransferItemEventController : AbstractItemEventController<TransferI
         }
 
         with.Updatable.StackObjectsCount += request.Count;
-
-        return Task.CompletedTask;
     }
 }

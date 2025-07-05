@@ -4,27 +4,28 @@ using Fuyu.Backend.BSG.Models.Customization;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class CustomizationController : AbstractEftHttpController
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
 
-    public CustomizationController() : base("/client/customization")
+    public CustomizationController(IGameDataRepository gameData) : base("/client/customization")
     {
-        _eftOrm = EftOrm.Instance;
+        _gameData = gameData;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
-        var customizations = _eftOrm.GetCustomizations();
+        var customizations = await _gameData.GetCustomizationsAsync();
         var response = new ResponseBody<Dictionary<string, CustomizationTemplate>>()
         {
             data = customizations
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

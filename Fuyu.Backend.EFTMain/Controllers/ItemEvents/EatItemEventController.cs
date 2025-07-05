@@ -2,45 +2,49 @@
 using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Networking;
+using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.IO;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class EatItemEventController : AbstractItemEventController<EatItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
+    private readonly ItemFactoryService _itemFactoryService;
+    private readonly ItemService _itemService;
 
-    public EatItemEventController() : base("Eat")
+    public EatItemEventController(IProfileRepository profiles, ItemFactoryService itemFactoryService, ItemService itemService) : base("Eat")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
+        _itemFactoryService = itemFactoryService;
+        _itemService = itemService;
     }
 
     // This method only finds the item, as well as the index. Actually consuming/deleting the item needs to be done.
-    public override Task RunAsync(ItemEventContext context, EatItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, EatItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var item = profile.Pmc.Inventory.FindItem(request.Item);
 
         if (item == null)
         {
             Terminal.WriteLine($"Failed to find item {request.Item}");
-            return Task.CompletedTask;
+            return;
         }
 
-        var foodDrink = item.GetOrCreateUpdatable<ItemFoodDrinkComponent>();
+        var foodDrink = await item.GetOrCreateUpdatableAsync<ItemFoodDrinkComponent>(_itemFactoryService);
         if (foodDrink == null)
         {
             Terminal.WriteLine("Could not find ItemFoodDrinkComponent on item: " + request.Item);
-            return Task.CompletedTask;
+            return;
         }
 
         foodDrink.HpPercent -= request.Count;
         if (foodDrink.HpPercent <= 0)
         {
-            profile.Pmc.Inventory.RemoveItem(item);
+            await profile.Pmc.Inventory.RemoveItemAsync(_itemService, item);
         }
-
-        return Task.CompletedTask;
     }
 }

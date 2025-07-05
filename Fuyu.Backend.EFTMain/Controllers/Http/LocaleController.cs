@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Serialization;
 
@@ -13,24 +14,25 @@ public partial class LocaleController : AbstractEftHttpController
 {
     [GeneratedRegex("^/client/locale/(?<languageId>[a-z]+(-[a-z]+)?)$")]
     private static partial Regex PathExpression();
-    private readonly EftOrm _eftOrm;
 
-    public LocaleController() : base(PathExpression())
+    private readonly IGameDataRepository _gameData;
+
+    public LocaleController(IGameDataRepository gameData) : base(PathExpression())
     {
-        _eftOrm = EftOrm.Instance;
+        _gameData = gameData;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
         var parameters = context.GetPathParameters(this);
 
         var languageId = parameters["languageId"];
-        var locale = _eftOrm.GetGlobalLocale(languageId);
+        var locale = await _gameData.GetGlobalLocaleAsync(languageId);
         var response = new ResponseBody<Dictionary<string, string>>
         {
             data = locale
         };
 
-        return context.SendJsonAsync(Json.Stringify(response), true, true);
+        await context.SendJsonAsync(Json.Stringify(response), true, true);
     }
 }

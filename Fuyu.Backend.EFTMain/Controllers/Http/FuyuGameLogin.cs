@@ -11,14 +11,14 @@ public class FuyuGameLoginController : AbstractEftHttpController<FuyuGameLoginRe
 {
     private readonly AccountService _accountService;
 
-    public FuyuGameLoginController() : base("/fuyu/game/login")
+    public FuyuGameLoginController(AccountService accountService) : base("/fuyu/game/login")
     {
-        _accountService = AccountService.Instance;
+        _accountService = accountService;
     }
 
-    public override Task RunAsync(EftHttpContext context, FuyuGameLoginRequest request)
+    public override async Task RunAsync(EftHttpContext context, FuyuGameLoginRequest request)
     {
-        var sessionId = _accountService.LoginAccount(request.AccountId);
+        var sessionId = await _accountService.LoginAccount(request.AccountId);
         var response = new FuyuGameLoginResponse()
         {
             SessionId = sessionId
@@ -27,6 +27,6 @@ public class FuyuGameLoginController : AbstractEftHttpController<FuyuGameLoginRe
         var text = Json.Stringify(response);
         // NOTE: no need for encryption, request runs internal
         // -- seionmoya, 2024-11-18
-        return context.SendJsonAsync(text, false, false);
+        await context.SendJsonAsync(text, false, false);
     }
 }

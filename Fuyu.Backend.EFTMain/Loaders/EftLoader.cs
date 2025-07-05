@@ -19,10 +19,10 @@ namespace Fuyu.Backend.EFTMain.Loaders;
 
 public class EftLoader
 {
-    public static EftLoader Instance => instance.Value;
+    /*public static EftLoader Instance => instance.Value;
     private static readonly Lazy<EftLoader> instance = new(() => new EftLoader());
 
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
 
     public LoadCallback OnLoadAccounts;
     public LoadCallback OnLoadProfiles;
@@ -58,7 +58,7 @@ public class EftLoader
     /// </summary>
     private EftLoader()
     {
-        _eftOrm = EftOrm.Instance;
+        _gameData = gameData;
 
         OnLoadAccounts += LoadAccounts;
         OnLoadProfiles += LoadProfiles;
@@ -158,7 +158,7 @@ public class EftLoader
         {
             var json = VFS.ReadTextFile(filepath);
             var account = Json.Parse<EftAccount>(json);
-            _eftOrm.SetOrAddAccount(account);
+            _gameData.SetOrAddAccount(account);
 
             Terminal.WriteLine($"Loaded EFT account {account.Id}");
         }
@@ -179,7 +179,7 @@ public class EftLoader
         {
             var json = VFS.ReadTextFile(filepath);
             var profile = Json.Parse<EftProfile>(json);
-            _eftOrm.SetOrAddProfile(profile);
+            _gameData.SetOrAddProfile(profile);
 
             Terminal.WriteLine($"Loaded EFT profile {profile.Pmc._id}");
         }
@@ -199,7 +199,7 @@ public class EftLoader
 
         foreach (var kvp in response.data)
         {
-            _eftOrm.SetOrAddCustomization(kvp.Key, kvp.Value);
+            _gameData.SetOrAddCustomization(kvp.Key, kvp.Value);
         }
     }
 
@@ -210,7 +210,7 @@ public class EftLoader
 
         foreach (var entry in response.data)
         {
-            _eftOrm.SetOrAddCustomizationStorage(entry);
+            _gameData.SetOrAddCustomizationStorage(entry);
         }
     }
 
@@ -221,33 +221,33 @@ public class EftLoader
 
         foreach (var kvp in response.data)
         {
-            _eftOrm.SetOrAddLanguage(kvp.Key, kvp.Value);
+            _gameData.SetOrAddLanguage(kvp.Key, kvp.Value);
         }
     }
 
     private void LoadGlobalLocales()
     {
-        var languages = _eftOrm.GetLanguages();
+        var languages = _gameData.GetLanguages();
 
         foreach (var languageId in languages.Keys)
         {
             var json = Resx.GetText("eft", $"database.locales.client.locale-{languageId}.json");
             var response = Json.Parse<ResponseBody<Dictionary<string, string>>>(json);
 
-            _eftOrm.SetOrAddGlobalLocale(languageId, response.data);
+            _gameData.SetOrAddGlobalLocale(languageId, response.data);
         }
     }
 
     private void LoadMenuLocales()
     {
-        var languages = _eftOrm.GetLanguages();
+        var languages = _gameData.GetLanguages();
 
         foreach (var languageId in languages.Keys)
         {
             var json = Resx.GetText("eft", $"database.locales.client.menu.locale-{languageId}.json");
             var response = Json.Parse<ResponseBody<MenuLocaleResponse>>(json);
 
-            _eftOrm.SetOrAddMenuLocale(languageId, response.data);
+            _gameData.SetOrAddMenuLocale(languageId, response.data);
         }
     }
 
@@ -255,7 +255,7 @@ public class EftLoader
     {
         var json = Resx.GetText("eft", "database.client.builds.list.json");
         var response = Json.Parse<ResponseBody<BuildsListResponse>>(json);
-        _eftOrm.SetDefaultBuilds(response.data);
+        _gameData.SetDefaultBuilds(response.data);
     }
 
     private void LoadWipeProfiles()
@@ -265,7 +265,7 @@ public class EftLoader
         var usecJson = Resx.GetText("eft", "database.profiles.player.unheard-usec.json");
         var savageJson = Resx.GetText("eft", "database.profiles.player.savage.json");
 
-        _eftOrm.SetOrAddWipeProfile("unheard", new Dictionary<EPlayerSide, Profile>()
+        _gameData.SetOrAddWipeProfile("unheard", new Dictionary<EPlayerSide, Profile>()
         {
             { EPlayerSide.Bear, Json.Parse<Profile>(bearJson) },
             { EPlayerSide.Usec, Json.Parse<Profile>(usecJson) },
@@ -277,7 +277,7 @@ public class EftLoader
     {
         var json = Resx.GetText("eft", "database.client.achievement.statistic.json");
         var statistics = Json.Parse<AchievementStatisticResponse>(json);
-        _eftOrm.SetAchievementStatistics(statistics);
+        _gameData.SetAchievementStatistics(statistics);
     }
 
     // TODO: parse from model
@@ -287,111 +287,111 @@ public class EftLoader
         var json = Resx.GetText("eft", "database.client.locations.json");
         //var worldmap = Json.Parse<WorldMap>(json);
         var worldmap = JObject.Parse(json);
-        _eftOrm.SetWorldMap(worldmap);
+        _gameData.SetWorldMap(worldmap);
     }
 
     private void LoadHideoutSettings()
     {
         var json = Resx.GetText("eft", "database.client.hideout.settings.json");
         var settings = Json.Parse<HideoutSettingsResponse>(json);
-        _eftOrm.SetHideoutSettings(settings);
+        _gameData.SetHideoutSettings(settings);
     }
 
     private void LoadAchievements()
     {
         var json = Resx.GetText("eft", "database.client.achievement.list.json");
         var achievements = JObject.Parse(json);
-        _eftOrm.SetAchievements(achievements);
+        _gameData.SetAchievements(achievements);
     }
 
     private void LoadGlobals()
     {
         var json = Resx.GetText("eft", "database.client.globals.json");
         var globals = JObject.Parse(json);
-        _eftOrm.SetGlobals(globals);
+        _gameData.SetGlobals(globals);
     }
 
     private void LoadHandbook()
     {
         var json = Resx.GetText("eft", "database.client.handbook.templates.json");
         var handbook = Json.Parse<HandbookTemplates>(json);
-        _eftOrm.SetHandbook(handbook);
+        _gameData.SetHandbook(handbook);
     }
 
     private void LoadHideoutAreas()
     {
         var json = Resx.GetText("eft", "database.client.hideout.areas.json");
         var areas = JObject.Parse(json);
-        _eftOrm.SetHideoutAreas(areas);
+        _gameData.SetHideoutAreas(areas);
     }
 
     private void LoadHideoutCustomizationOffers()
     {
         var json = Resx.GetText("eft", "database.client.hideout.customization.offer.list.json");
         var offers = JObject.Parse(json);
-        _eftOrm.SetHideoutCustomizationOffers(offers);
+        _gameData.SetHideoutCustomizationOffers(offers);
     }
 
     private void LoadHideoutProductionRecipes()
     {
         var json = Resx.GetText("eft", "database.client.hideout.production.recipes.json");
         var recipes = JObject.Parse(json);
-        _eftOrm.SetHideoutProductionRecipes(recipes);
+        _gameData.SetHideoutProductionRecipes(recipes);
     }
 
     private void LoadHideoutQtes()
     {
         var json = Resx.GetText("eft", "database.client.hideout.qte.list.json");
         var qtes = JObject.Parse(json);
-        _eftOrm.SetHideoutQtes(qtes);
+        _gameData.SetHideoutQtes(qtes);
     }
 
     private void LoadItemTemplates()
     {
         var json = Resx.GetText("eft", "database.client.items.json");
         var items = JObject.Parse(json);
-        _eftOrm.SetItemTemplates(items);
+        _gameData.SetItemTemplates(items);
     }
 
     private void LoadLocalWeather()
     {
         var json = Resx.GetText("eft", "database.client.localGame.weather.json");
         var weather = JObject.Parse(json);
-        _eftOrm.SetLocalWeather(weather);
+        _gameData.SetLocalWeather(weather);
     }
 
     private void LoadPrestige()
     {
         var json = Resx.GetText("eft", "database.client.prestige.list.json");
         var prestige = JObject.Parse(json);
-        _eftOrm.SetPrestige(prestige);
+        _gameData.SetPrestige(prestige);
     }
 
     private void LoadQuests()
     {
         var json = Resx.GetText("eft", "database.client.quest.list.json");
         var quests = JObject.Parse(json);
-        _eftOrm.SetQuests(quests);
+        _gameData.SetQuests(quests);
     }
 
     private void LoadSettings()
     {
         var json = Resx.GetText("eft", "database.client.settings.json");
         var settings = JObject.Parse(json);
-        _eftOrm.SetSettings(settings);
+        _gameData.SetSettings(settings);
     }
 
     private void LoadTraders()
     {
         var json = Resx.GetText("eft", "database.client.trading.api.traderSettings.json");
         var traders = JObject.Parse(json);
-        _eftOrm.SetTraders(traders);
+        _gameData.SetTraders(traders);
     }
 
     private void LoadWeather()
     {
         var json = Resx.GetText("eft", "database.client.weather.json");
         var weather = JObject.Parse(json);
-        _eftOrm.SetWeather(weather);
-    }
+        _gameData.SetWeather(weather);
+    }*/
 }

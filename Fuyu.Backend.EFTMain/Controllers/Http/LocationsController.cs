@@ -1,23 +1,24 @@
 using System.Threading.Tasks;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class LocationsController : AbstractEftHttpController
 {
     // private readonly LocationService _locationService;
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
 
-    public LocationsController() : base("/client/locations")
+    public LocationsController(IGameDataRepository gameData) : base("/client/locations")
     {
         // _locationService = LocationService.Instance;
-        _eftOrm = EftOrm.Instance;
+        _gameData = gameData;
     }
 
     // TODO: parse from model
     // -- seionmoya, 2024-01-09
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
         /*
         var worldmap = _locationService.GetWorldMap();
@@ -28,8 +29,8 @@ public class LocationsController : AbstractEftHttpController
         
         */
 
-        var response = _eftOrm.GetWorldMap();
+        var response = await _gameData.GetWorldMapAsync();
         var text = response.ToString();
-        return context.SendJsonAsync(text, true, true);
+        await context.SendJsonAsync(text, true, true);
     }
 }

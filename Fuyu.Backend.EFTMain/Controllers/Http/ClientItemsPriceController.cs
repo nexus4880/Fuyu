@@ -7,6 +7,7 @@ using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Collections;
 using Fuyu.Common.Hashing;
@@ -18,19 +19,21 @@ public partial class ClientItemsPriceController : AbstractEftHttpController
     [GeneratedRegex(@"^/client/items/prices(/(?<traderId>[A-Za-z0-9]+))?$")]
     private static partial Regex PathExpression();
 
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
     private readonly HandbookService _handbook;
+    private readonly IProfileRepository _profiles;
 
-    public ClientItemsPriceController() : base(PathExpression())
+    public ClientItemsPriceController(IGameDataRepository gameData, IProfileRepository profiles, HandbookService handbookService) : base(PathExpression())
     {
-        _eftOrm = EftOrm.Instance;
-        _handbook = HandbookService.Instance;
+        _gameData = gameData;
+        _handbook = handbookService;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
         var parameters = context.GetPathParameters(this);
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var response = new ResponseBody<Union<SupplyData, Dictionary<MongoId, float>>>();
 
         if (parameters.TryGetValue("traderId", out var traderId))
@@ -47,14 +50,17 @@ public partial class ClientItemsPriceController : AbstractEftHttpController
 				{ "5d235b4d86f7742e017bc88a", 7500d }	// GP Coin
 			};
 
+            var uniqueItems = profile.Pmc.Inventory.Items.DistinctBy(i => i.TemplateId).ToList();
+            var marketPrices = new Dictionary<MongoId, double>(uniqueItems.Count);
+            foreach (var item in uniqueItems)
+            {
+                marketPrices[item.TemplateId] = (await _handbook.GetPriceAsync(item.TemplateId)).GetValueOrDefault(1);
+            }
+
             response.data = new SupplyData
             {
                 CurrencyCourses = currencyCourses,
-                MarketPrices = profile.Pmc.Inventory.Items.DistinctBy(i => i.TemplateId)
-                    .ToDictionary(
-                        i => i.TemplateId,
-                        i => (double)_handbook.GetPrice(i.TemplateId).GetValueOrDefault(1)
-                    ),
+                MarketPrices = marketPrices,
                 SupplyNextTime = (int)TimeSpan.FromSeconds(5d).Ticks
             };
         }
@@ -64,6 +70,6 @@ public partial class ClientItemsPriceController : AbstractEftHttpController
             response.data = new Dictionary<MongoId, float>();
         }
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

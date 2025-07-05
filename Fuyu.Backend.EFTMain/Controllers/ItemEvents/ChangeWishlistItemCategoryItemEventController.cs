@@ -2,25 +2,24 @@
 using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class ChangeWishlistItemCategoryItemEventController : AbstractItemEventController<ChangeWishlistItemCategoryItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public ChangeWishlistItemCategoryItemEventController() : base("ChangeWishlistItemCategory")
+    public ChangeWishlistItemCategoryItemEventController(IProfileRepository profiles) : base("ChangeWishlistItemCategory")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(ItemEventContext context, ChangeWishlistItemCategoryItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, ChangeWishlistItemCategoryItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var wishList = profile.Pmc.GetWishList();
 
         wishList[request.Item] = request.Category;
-
-        return Task.CompletedTask;
     }
 }

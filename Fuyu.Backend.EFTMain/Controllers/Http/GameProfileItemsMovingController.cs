@@ -6,6 +6,7 @@ using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Newtonsoft.Json.Linq;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
@@ -13,12 +14,13 @@ namespace Fuyu.Backend.EFTMain.Controllers.Http;
 public class GameProfileItemsMovingController : AbstractEftHttpController<JObject>
 {
     public ItemEventRouter ItemEventRouter { get; }
-    private readonly EftOrm _eftOrm;
 
-    public GameProfileItemsMovingController(IEnumerable<IItemEventController> controllers) : base("/client/game/profile/items/moving")
+    private readonly IProfileRepository _profiles;
+
+    public GameProfileItemsMovingController(IEnumerable<IItemEventController> controllers, IProfileRepository profiles) : base("/client/game/profile/items/moving")
     {
         ItemEventRouter = new ItemEventRouter(controllers);
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
     public override async Task RunAsync(EftHttpContext context, JObject request)
@@ -29,7 +31,7 @@ public class GameProfileItemsMovingController : AbstractEftHttpController<JObjec
         }
 
         var sessionId = context.SessionId;
-        var profile = _eftOrm.GetActiveProfile(sessionId);
+        var profile = await _profiles.GetActiveProfileAsync(sessionId);
         var requestData = request.Value<JArray>("data");
         var itemEventResponse = new ItemEventResponse();
         /*{

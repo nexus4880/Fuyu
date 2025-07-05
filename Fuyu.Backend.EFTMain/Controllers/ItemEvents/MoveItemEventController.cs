@@ -4,35 +4,41 @@ using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class MoveItemEventController : AbstractItemEventController<MoveItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
+    private readonly ItemService _itemService;
+    private readonly ItemFactoryService _itemFactoryService;
 
-    public MoveItemEventController() : base("Move")
+    public MoveItemEventController(IProfileRepository profiles, ItemService itemService, ItemFactoryService itemFactoryService) : base("Move")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
+        _itemService = itemService;
+        _itemFactoryService = itemFactoryService;
     }
 
-    public override Task RunAsync(ItemEventContext context, MoveItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, MoveItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
-        var items = profile.Pmc.Inventory.GetItemAndChildren(ItemService.Instance, request.Item);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
+        var items = profile.Pmc.Inventory.GetItemAndChildren(_itemService, request.Item);
 
         if (items.Count == 0)
         {
             throw new Exception($"Failed to find {request.Item} in inventory");
         }
 
-        profile.Pmc.Inventory.MoveItem(
+
+        await profile.Pmc.Inventory.MoveItemAsync(
+            _itemService,
+            _itemFactoryService,
             items,
             request.To.Id,
             request.To.Container,
             request.To.Location
         );
-
-        return Task.CompletedTask;
     }
 }

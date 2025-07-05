@@ -11,14 +11,14 @@ public class FuyuGameRegisterController : AbstractEftHttpController<FuyuGameRegi
 {
     private readonly AccountService _accountService;
 
-    public FuyuGameRegisterController() : base("/fuyu/game/register")
+    public FuyuGameRegisterController(AccountService accountService) : base("/fuyu/game/register")
     {
-        _accountService = AccountService.Instance;
+        _accountService = accountService;
     }
 
-    public override Task RunAsync(EftHttpContext context, FuyuGameRegisterRequest request)
+    public override async Task RunAsync(EftHttpContext context, FuyuGameRegisterRequest request)
     {
-        var accountId = _accountService.RegisterAccount(request.Username, request.Edition);
+        var accountId = await _accountService.RegisterAccountAsync(request.Username, request.Edition);
         var response = new FuyuGameRegisterResponse()
         {
             AccountId = accountId
@@ -27,6 +27,6 @@ public class FuyuGameRegisterController : AbstractEftHttpController<FuyuGameRegi
         var text = Json.Stringify(response);
         // NOTE: no need for encryption, request runs internal
         // -- seionmoya, 2024-11-18
-        return context.SendJsonAsync(text, false, false);
+        await context.SendJsonAsync(text, false, false);
     }
 }

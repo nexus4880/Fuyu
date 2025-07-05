@@ -33,6 +33,17 @@ public static class VFS
         return DirectoryExists(filepath) || FileExists(filepath);
     }
 
+    public static bool DeleteFile(string filepath)
+    {
+        var result = FileExists(filepath);
+        if (result)
+        {
+            File.Delete(filepath);
+        }
+
+        return result;
+    }
+
     public static string[] GetFiles(string path)
     {
         if (!Directory.Exists(path))

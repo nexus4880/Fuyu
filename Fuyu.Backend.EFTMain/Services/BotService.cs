@@ -17,16 +17,13 @@ namespace Fuyu.Backend.EFTMain.Services;
 // -- seionmoya, 2024-10-21
 public class BotService
 {
-    public static BotService Instance => instance.Value;
-    private static readonly Lazy<BotService> instance = new(() => new BotService());
-
     private readonly Dictionary<EWildSpawnType, string> _profiles;
     private readonly InventoryService _inventoryService;
 
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
-    private BotService()
+    public BotService(InventoryService inventoryService)
     {
         _profiles = new Dictionary<EWildSpawnType, string>()
         {
@@ -92,7 +89,7 @@ public class BotService
             { EWildSpawnType.infectedTagilla,             string.Empty                                                        },    // TODO: missing
         };
 
-        _inventoryService = InventoryService.Instance;
+        _inventoryService = inventoryService;
     }
 
     public Profile[] GetBots(BotCondition[] conditions)

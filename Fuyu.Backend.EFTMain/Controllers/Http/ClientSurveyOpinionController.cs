@@ -5,25 +5,34 @@ using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Models.Survey;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.IO;
+using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class ClientSurveyOpinionController : AbstractEftHttpController<ClientSurveyOpinionRequest>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly ILogger<ClientSurveyOpinionController> _logger;
+    private readonly IProfileRepository _profiles;
+    private readonly IAccountRepository _accounts;
     private readonly SurveyOrm _surveyOrm;
 
-    public ClientSurveyOpinionController() : base("/client/survey/opinion")
+    public ClientSurveyOpinionController(
+        ILogger<ClientSurveyOpinionController> logger,
+        IProfileRepository profiles,
+        IAccountRepository accounts) : base("/client/survey/opinion")
     {
-        _eftOrm = EftOrm.Instance;
+        _logger = logger;
+        _accounts = accounts;
+        _profiles = profiles;
         _surveyOrm = SurveyOrm.Instance;
     }
 
-    public override Task RunAsync(EftHttpContext context, ClientSurveyOpinionRequest body)
+    public override async Task RunAsync(EftHttpContext context, ClientSurveyOpinionRequest body)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
-        var account = _eftOrm.GetAccount(profile.Pmc.aid);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
+        var account = await _accounts.GetByIdAsync(profile.Pmc.aid);
         var completionLog = new StringBuilder();
         completionLog.AppendLine($"{account.Username} has completed the survey");
         var surveyTemplate = _surveyOrm.GetSurveyTemplate();
@@ -46,7 +55,7 @@ public class ClientSurveyOpinionController : AbstractEftHttpController<ClientSur
                     }
                 case EAnswerType.Text:
                     {
-                        completionLog.AppendLine( $"Answer: {answer.Answers.Value.Value2.Trim()}");
+                        completionLog.AppendLine($"Answer: {answer.Answers.Value.Value2.Trim()}");
                         break;
                     }
                 case EAnswerType.SingleOption:
@@ -64,8 +73,6 @@ public class ClientSurveyOpinionController : AbstractEftHttpController<ClientSur
             }
         }
 
-        Terminal.WriteLine(completionLog.ToString());
-
-        return Task.CompletedTask;
+        _logger.LogInformation("{Log}", completionLog.ToString());
     }
 }

@@ -1,8 +1,12 @@
 using System;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Accounts;
+using Fuyu.Backend.BSG.Models.Customization;
 using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
+using Fuyu.Backend.EFTMain.Databases;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
@@ -11,22 +15,23 @@ namespace Fuyu.Backend.EFTMain.Services;
 
 public class ProfileService
 {
-    public static ProfileService Instance => instance.Value;
-    private static readonly Lazy<ProfileService> instance = new(() => new ProfileService());
-
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
+    private readonly IProfileRepository _profiles;
+    private readonly IAccountRepository _accounts;
 
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
-    private ProfileService()
+    public ProfileService(IGameDataRepository gameData, IProfileRepository profiles, IAccountRepository accounts)
     {
-        _eftOrm = EftOrm.Instance;
+        _gameData = gameData;
+        _profiles = profiles;
+        _accounts = accounts;
     }
 
-    public string CreateProfile(int accountId)
+    public async Task<string> CreateProfile(int accountId)
     {
-        var builds = _eftOrm.GetDefaultBuilds();
+        var builds = await _gameData.GetDefaultBuildsAsync();
         var profile = new EftProfile()
         {
             Pmc = new Profile(),
@@ -50,20 +55,20 @@ public class ProfileService
         profile.Savage.aid = accountId;
 
         // store profile
-        _eftOrm.SetOrAddProfile(profile);
-        WriteToDisk(profile);
+        await _profiles.AddOrUpdateAsync(profile);
 
         return pmcId;
     }
 
-    public string WipeProfile(EftAccount account, string side, string headId, string voiceId)
+    public async Task<string> WipeProfile(string sessionId, string side, string headId, string voiceId)
     {
-        var profile = _eftOrm.GetActiveProfile(account);
+        var account = await _accounts.GetBySessionAsync(sessionId);
+        var profile = await _profiles.GetActiveProfileAsync(sessionId);
         var pmcId = profile.Pmc._id;
         var savageId = profile.Savage._id;
 
         // create profiles
-        var edition = _eftOrm.GetWipeProfile(account.Edition);
+        var edition = await _gameData.GetWipeProfilesAsync(account.Edition);
 
         profile.Savage = edition[EPlayerSide.Savage].Clone();
 
@@ -88,7 +93,7 @@ public class ProfileService
         profile.Savage.aid = account.Id;
 
         // setup pmc
-        var voiceTemplate = _eftOrm.GetCustomization(voiceId);
+        var voiceTemplate = await _gameData.GetCustomizationAsync(voiceId);
 
         profile.Pmc._id = pmcId;
         profile.Pmc.savage = savageId;
@@ -102,8 +107,7 @@ public class ProfileService
         profile.ShouldWipe = false;
 
         // store profile
-        _eftOrm.SetOrAddProfile(profile);
-        WriteToDisk(profile);
+        await _profiles.AddOrUpdateAsync(profile);
 
         return profile.Pmc._id;
     }
@@ -128,12 +132,5 @@ public class ProfileService
         }
 
         return ENicknameChangeResult.Ok;
-    }
-
-    public void WriteToDisk(EftProfile profile)
-    {
-        VFS.WriteTextFile(
-            $"./Fuyu/Profiles/EFT/{profile.Pmc._id}.json",
-            Json.Stringify(profile));
     }
 }

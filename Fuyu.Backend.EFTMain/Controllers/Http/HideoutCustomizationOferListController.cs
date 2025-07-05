@@ -1,24 +1,25 @@
 using System.Threading.Tasks;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class HideoutCustomizationOfferListController : AbstractEftHttpController
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IGameDataRepository _gameData;
 
-    public HideoutCustomizationOfferListController() : base("/client/hideout/customization/offer/list")
+    public HideoutCustomizationOfferListController(IGameDataRepository gameData) : base("/client/hideout/customization/offer/list")
     {
-        _eftOrm = EftOrm.Instance;
+        _gameData = gameData;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
         // TODO: generate this
         // --seionmoya, 2025-01-04
-        var response = _eftOrm.GetHideoutCustomizationOffers();
+        var response = await _gameData.GetHideoutCustomizationOffersAsync();
         var text = response.ToString();
-        return context.SendJsonAsync(text, true, true);
+        await context.SendJsonAsync(text, true, true);
     }
 }

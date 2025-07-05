@@ -3,6 +3,7 @@ using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Serialization;
 
@@ -13,20 +14,19 @@ namespace Fuyu.Backend.EFTMain.Controllers.Http;
 // -- seionmoya, 2024/09/02
 public class GameProfileCreateController : AbstractEftHttpController<GameProfileCreateRequest>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IAccountRepository _accounts;
     private readonly ProfileService _profileService;
 
-    public GameProfileCreateController() : base("/client/game/profile/create")
+    public GameProfileCreateController(IAccountRepository accounts, ProfileService profileService) : base("/client/game/profile/create")
     {
-        _eftOrm = EftOrm.Instance;
-        _profileService = ProfileService.Instance;
+        _accounts = accounts;
+        _profileService = profileService;
     }
 
-    public override Task RunAsync(EftHttpContext context, GameProfileCreateRequest request)
+    public override async Task RunAsync(EftHttpContext context, GameProfileCreateRequest request)
     {
         var sessionId = context.SessionId;
-        var account = _eftOrm.GetAccount(sessionId);
-        var pmcId = _profileService.WipeProfile(account, request.side, request.headId, request.voiceId);
+        var pmcId = await _profileService.WipeProfile(sessionId, request.side, request.headId, request.voiceId);
 
         var response = new ResponseBody<GameProfileCreateResponse>()
         {
@@ -36,6 +36,6 @@ public class GameProfileCreateController : AbstractEftHttpController<GameProfile
             }
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

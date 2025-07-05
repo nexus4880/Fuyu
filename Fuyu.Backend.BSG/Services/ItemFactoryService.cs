@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Items;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.Serialization;
 using Newtonsoft.Json;
@@ -13,17 +15,14 @@ namespace Fuyu.Backend.BSG.Services;
 // TODO: split UPD factory and Item Factory
 public class ItemFactoryService
 {
-    public static ItemFactoryService Instance => instance.Value;
-    private static readonly Lazy<ItemFactoryService> instance = new(() => new ItemFactoryService());
-
-    private readonly ItemFactoryOrm _itemFactoryOrm;
+    private readonly IItemTemplateRepository _itemTemplates;
 
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
-    private ItemFactoryService()
+    public ItemFactoryService(IItemTemplateRepository itemTemplates)
     {
-        _itemFactoryOrm = ItemFactoryOrm.Instance;
+        _itemTemplates = itemTemplates;
     }
 
     /// <summary>
@@ -32,9 +31,9 @@ public class ItemFactoryService
     /// <typeparam name="T">The <see cref="ItemProperties"/> class to return</typeparam>
     /// <param name="templateId">The <see cref="MongoId"/> TemplateId to get the <see cref="ItemProperties"/> from</param>
     /// <returns>The <see cref="ItemProperties"/> class defined</returns>
-    public T GetItemProperties<T>(MongoId templateId) where T : ItemProperties
+    public async Task<T> GetItemPropertiesAsync<T>(MongoId templateId) where T : ItemProperties
     {
-        var itemTemplate = _itemFactoryOrm.GetItemTemplate(templateId);
+        var itemTemplate = await _itemTemplates.GetItemTemplateAsync(templateId);
 
         return GetItemProperties<T>(itemTemplate);
     }
@@ -53,7 +52,7 @@ public class ItemFactoryService
         return serializer.Deserialize<T>(reader);
     }
 
-    public List<ItemInstance> CreateItem(ItemTemplate template, int? count = null, MongoId? id = null, string parentId = null,
+    public async Task<List<ItemInstance>> CreateItemAsync(ItemTemplate template, int? count = null, MongoId? id = null, string parentId = null,
         string slotId = null)
     {
         var items = new List<ItemInstance>();
@@ -88,8 +87,8 @@ public class ItemFactoryService
                     }
 
                     var templateId = slot.Properties.Filters[0].Plate.Value;
-                    var childTemplate = _itemFactoryOrm.GetItemTemplate(templateId);
-                    var subItems = CreateItem(childTemplate, null, null, itemId, slot.Name);
+                    var childTemplate = await _itemTemplates.GetItemTemplateAsync(templateId);
+                    var subItems = await CreateItemAsync(childTemplate, null, null, itemId, slot.Name);
 
                     items.AddRange(subItems);
                 }
@@ -154,17 +153,19 @@ public class ItemFactoryService
         return result;
     }
 
-    public ItemUpdatable CreateItemUpdatable(MongoId tpl)
+    public async Task<ItemUpdatable> CreateItemUpdatableAsync(MongoId tpl)
     {
-        return CreateItemUpdatable(ItemFactoryOrm.Instance.GetItemTemplate(tpl));
+        var template = await _itemTemplates.GetItemTemplateAsync(tpl);
+        return CreateItemUpdatable(template);
     }
 
-    public object CreateItemComponent(MongoId tpl, Type componentType, bool createDefault)
+    public async Task<object> CreateItemComponentAsync(MongoId tpl, Type componentType, bool createDefault)
     {
-        return CreateItemComponent(ItemFactoryOrm.Instance.GetItemTemplate(tpl), componentType, createDefault);
+        var template = await _itemTemplates.GetItemTemplateAsync(tpl);
+        return CreateItemComponent(template, componentType, createDefault);
     }
 
-    public List<List<ItemInstance>> CreateItemsFromTradeRequest(List<ItemInstance> purchasedItem, int count)
+    public async Task<List<List<ItemInstance>>> CreateItemsFromTradeRequestAsync(List<ItemInstance> purchasedItem, int count)
     {
         if (purchasedItem == null)
         {
@@ -177,7 +178,7 @@ public class ItemFactoryService
         }
 
         var stacks = new List<List<ItemInstance>>();
-        var rootItemProperties = GetItemProperties<ItemProperties>(purchasedItem[0].TemplateId);
+        var rootItemProperties = await GetItemPropertiesAsync<ItemProperties>(purchasedItem[0].TemplateId);
         var maxCount = rootItemProperties.StackMaxSize;
         var fullStacks = count / maxCount;
         var remainingItems = count % maxCount;
@@ -191,7 +192,7 @@ public class ItemFactoryService
             }
 
             itemStack[0].Updatable.StackObjectsCount = maxCount;
-            ItemService.Instance.RegenerateItemIds(itemStack);
+            ItemService.RegenerateItemIds(itemStack);
             stacks.Add(itemStack);
         }
 
@@ -204,7 +205,7 @@ public class ItemFactoryService
             }
 
             itemStack[0].Updatable.StackObjectsCount = remainingItems;
-            ItemService.Instance.RegenerateItemIds(itemStack);
+            ItemService.RegenerateItemIds(itemStack);
             stacks.Add(itemStack);
         }
 

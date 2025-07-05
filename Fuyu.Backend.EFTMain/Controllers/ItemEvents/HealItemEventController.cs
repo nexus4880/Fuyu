@@ -5,40 +5,43 @@ using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.IO;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class HealItemEventController : AbstractItemEventController<HealItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
+    private readonly ItemService _itemService;
     private readonly ItemFactoryService _itemFactoryService;
 
-    public HealItemEventController() : base("Heal")
+    public HealItemEventController(IProfileRepository profiles, ItemService itemService, ItemFactoryService itemFactoryService) : base("Heal")
     {
-        _eftOrm = EftOrm.Instance;
-        _itemFactoryService = ItemFactoryService.Instance;
+        _profiles = profiles;
+        _itemService = itemService;
+        _itemFactoryService = itemFactoryService;
     }
 
-    public override Task RunAsync(ItemEventContext context, HealItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, HealItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
         var item = profile.Pmc.Inventory.FindItem(request.Item);
 
         if (item == null)
         {
             Terminal.WriteLine($"Failed to find item {request.Item}");
-            return Task.CompletedTask;
+            return;
         }
 
-        var medKit = item.GetOrCreateUpdatable<ItemMedKitComponent>();
+        var medKit = await item.GetOrCreateUpdatableAsync<ItemMedKitComponent>(_itemFactoryService);
 
         var bodyPart = profile.Pmc.Health.GetBodyPart(request.BodyPart);
         float toHeal = request.Count;
 
         if (profile.Pmc.Health.HasEffects)
         {
-            var itemProperties = _itemFactoryService.GetItemProperties<MedsItemProperties>(item.TemplateId);
+            var itemProperties = await _itemFactoryService.GetItemPropertiesAsync<MedsItemProperties>(item.TemplateId);
 
             if (itemProperties.DamageEffects.IsValue1)
             {
@@ -58,12 +61,11 @@ public class HealItemEventController : AbstractItemEventController<HealItemEvent
 
         if (medKit.HpResource <= 0)
         {
-            profile.Pmc.Inventory.RemoveItem(item);
+            await profile.Pmc.Inventory.RemoveItemAsync(_itemService, item);
         }
 
         // TODO:
         // Check BackendConfig for 'HealExperience' and add to PMC profile
 
-        return Task.CompletedTask;
     }
 }

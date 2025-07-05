@@ -21,13 +21,13 @@ public class DatabaseService : IHostedService
     {
         _logger.LogInformation("Loading database...");
 
-        CoreLoader.Instance.Load();
+        //CoreLoader.Instance.Load();
 
-        EftLoader.Instance.OnResxSet += ItemFactoryLoader.Instance.Load;
+        /*EftLoader.Instance.OnResxSet += ItemFactoryLoader.Instance.Load;
         EftLoader.Instance.OnLoadTraders += TraderLoader.Instance.Load;
-        EftLoader.Instance.OnResxSet += SurveyLoader.Instance.Load;
+        EftLoader.Instance.OnResxSet += SurveyLoader.Instance.Load;*/
 
-        EftLoader.Instance.Load();
+        //EftLoader.Instance.Load();
 
         _logger.LogInformation("Database loaded successfully");
         return Task.CompletedTask;

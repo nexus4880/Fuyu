@@ -2,24 +2,23 @@
 using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class BindItemEventController : AbstractItemEventController<BindItemEvent>
 {
-    private readonly EftOrm _eftOrm;
+    private readonly IProfileRepository _profiles;
 
-    public BindItemEventController() : base("Bind")
+    public BindItemEventController(IProfileRepository profiles) : base("Bind")
     {
-        _eftOrm = EftOrm.Instance;
+        _profiles = profiles;
     }
 
-    public override Task RunAsync(ItemEventContext context, BindItemEvent request)
+    public override async Task RunAsync(ItemEventContext context, BindItemEvent request)
     {
-        var profile = _eftOrm.GetActiveProfile(context.SessionId);
+        var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
 
         profile.Pmc.Inventory.FastPanel[request.Index] = request.Item;
-
-        return Task.CompletedTask;
     }
 }
