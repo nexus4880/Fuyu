@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Fuyu.Backend.Core.Models.Accounts;
 using Fuyu.Backend.Core.Models.Responses;
@@ -9,11 +8,8 @@ using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Backend.Models.Requests;
 using Fuyu.Common.Backend.Models.Responses;
 using Fuyu.Common.Hashing;
-using Fuyu.Common.IO;
 using Fuyu.Common.Networking;
-using Fuyu.Common.Serialization;
 using Fuyu.Common.Services;
-using Microsoft.AspNetCore.Http;
 
 namespace Fuyu.Backend.Core.Services;
 

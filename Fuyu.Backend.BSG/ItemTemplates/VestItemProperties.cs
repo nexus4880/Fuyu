@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.Serialization;
-using Fuyu.Backend.BSG.DTO.Common;
 using Fuyu.Backend.BSG.Models.Common;
 
 namespace Fuyu.Backend.BSG.ItemTemplates;

@@ -1,5 +1,4 @@
 using System.Runtime.Serialization;
-using Fuyu.Backend.BSG;
 using Newtonsoft.Json.Linq;
 
 namespace Fuyu.Backend.BSG.Models.Items;

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Accounts;
@@ -8,7 +7,6 @@ using Fuyu.Common.Backend.Configuration;
 using Fuyu.Common.Collections;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

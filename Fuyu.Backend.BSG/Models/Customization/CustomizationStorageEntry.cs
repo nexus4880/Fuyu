@@ -1,5 +1,4 @@
 using System.Runtime.Serialization;
-using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Common.Hashing;
 
 namespace Fuyu.Backend.BSG.Models.Customization;

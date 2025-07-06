@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Backend.EFTMain.Orms;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Newtonsoft.Json.Linq;
 

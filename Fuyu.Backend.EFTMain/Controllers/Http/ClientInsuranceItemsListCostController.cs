@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Backend.EFTMain.Orms;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
-using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 

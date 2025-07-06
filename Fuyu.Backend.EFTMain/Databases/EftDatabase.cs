@@ -1,16 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Fuyu.Backend.BSG.Models.Accounts;
-using Fuyu.Backend.BSG.Models.Customization;
-using Fuyu.Backend.BSG.Models.Locations;
-using Fuyu.Backend.BSG.Models.Profiles;
-using Fuyu.Backend.BSG.Models.Profiles.Info;
-using Fuyu.Backend.BSG.Models.Responses;
-using Fuyu.Backend.BSG.Models.Trading;
-using Fuyu.Common.Collections;
-using Fuyu.Common.IO;
-using Newtonsoft.Json.Linq;
-
 namespace Fuyu.Backend.EFTMain.Databases;
 
 // NOTE: The properties of this class should _NEVER_ be accessed from the

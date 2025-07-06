@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Requests;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Backend.EFTMain.Orms;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.IO;
 

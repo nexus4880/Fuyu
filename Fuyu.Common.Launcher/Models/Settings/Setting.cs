@@ -1,4 +1,3 @@
-using System.Configuration;
 using System.Runtime.Serialization;
 using Fuyu.Common.Launcher.Delegates;
 

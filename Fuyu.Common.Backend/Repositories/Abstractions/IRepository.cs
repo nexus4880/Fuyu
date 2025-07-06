@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Fuyu.Backend.EFTMain.Repositories.Abstractions;
+﻿namespace Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 public interface IRepository
 {

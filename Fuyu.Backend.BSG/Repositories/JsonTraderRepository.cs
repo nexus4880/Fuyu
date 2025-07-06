@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Common.Collections;

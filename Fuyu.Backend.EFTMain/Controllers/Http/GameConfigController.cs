@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Servers;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.ItemEvents;
 using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Backend.BSG.Networking;
-using Fuyu.Backend.EFTMain.Orms;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;

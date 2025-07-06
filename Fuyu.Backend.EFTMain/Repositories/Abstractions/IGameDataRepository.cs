@@ -5,7 +5,6 @@ using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
-using Fuyu.Common.Hashing;
 using Newtonsoft.Json.Linq;
 
 namespace Fuyu.Backend.EFTMain.Repositories.Abstractions;

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Customization;
 using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
@@ -10,7 +8,6 @@ using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Collections;
-using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
 using Newtonsoft.Json.Linq;
