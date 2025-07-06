@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using Fuyu.Common.IO;
 using Fuyu.Common.Launcher.Services;
@@ -41,7 +42,7 @@ public partial class MainWindow : Window
     // lazy initialize _webview
     async void InitializeAsync()
     {
-        Terminal.SetLogConfig("Fuyu/Logs/Launcher.log");
+        //Terminal.SetLogConfig("Fuyu/Logs/Launcher.log");
 
         // initialize webview
         await browser.EnsureCoreWebView2Async(null);
@@ -58,7 +59,7 @@ public partial class MainWindow : Window
         _contentService.SetOrAddLoader("favicon.ico", LoadContent);
 
         // load mods
-        Terminal.WriteLine("Loading mods...");
+        Debug.WriteLine("Loading mods...");
 
 #if DEBUG
         // NOTE: assumes running inside VSCode or VS2022+

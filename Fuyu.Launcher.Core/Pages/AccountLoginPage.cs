@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.Common.Launcher.Models.Messages;
@@ -69,7 +70,7 @@ public class AccountLoginPage : AbstractPage
         catch (Exception ex)
         {
             SendLoginErrorReply("There is a connection issue.");
-            Terminal.WriteLine(ex);
+            Debug.WriteLine(ex);
             return;
         }
 

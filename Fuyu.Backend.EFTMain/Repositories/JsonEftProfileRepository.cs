@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Accounts;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
+using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Backend.Configuration;
 using Fuyu.Common.Collections;
@@ -13,18 +16,22 @@ using Microsoft.Extensions.Options;
 
 namespace Fuyu.Backend.EFTMain.Repositories;
 
-public class JsonProfileRepository : IProfileRepository
+public class JsonEftProfileRepository : IProfileRepository
 {
     private readonly ThreadList<EftProfile> _profiles;
     private readonly EftConfiguration _config;
     private readonly IAccountRepository _accountRepository;
     private readonly ISessionRepository _sessionRepository;
 
-    public JsonProfileRepository(
-        ILogger<JsonProfileRepository> logger,
+    public JsonEftProfileRepository(
+        ILogger<JsonEftProfileRepository> logger,
         IOptions<EftConfiguration> config,
         IAccountRepository accountRepository,
-        ISessionRepository sessionRepository)
+        ISessionRepository sessionRepository,
+        ItemFactoryService itemFactoryService,
+        ItemService itemService,
+        IItemTemplateRepository itemTemplateRepository
+        )
     {
         _config = config.Value;
         _accountRepository = accountRepository;
@@ -42,6 +49,21 @@ public class JsonProfileRepository : IProfileRepository
             var json = VFS.ReadTextFile(filepath);
             var profile = Json.Parse<EftProfile>(json);
             _profiles.Add(profile);
+
+            if (profile.Pmc.Inventory is not null)
+            {
+                foreach (var item in profile.Pmc.Inventory.Items)
+                {
+                    var itemTemplate = itemTemplateRepository.GetItemTemplateAsync(item.TemplateId).GetAwaiter().GetResult();
+                    var props = itemFactoryService.GetItemProperties<CompoundItemItemProperties>(itemTemplate);
+
+                    if (props.Grids.Count > 0)
+                    {
+                        var items = itemService.GetItemAndChildren(profile.Pmc.Inventory.Items, item);
+                        item.InitializeMatrices(props.Grids, items);
+                    }
+                }
+            }
         }
     }
 

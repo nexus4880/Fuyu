@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Fuyu.Common.IO;
 using Microsoft.Web.WebView2.Core;
 
@@ -44,7 +45,7 @@ public class MessageService
     {
 #if DEBUG
         // show received message
-        Terminal.WriteLine($"[{path}]: {message}");
+        Debug.WriteLine($"[{path}]: {message}");
 #endif
 
         if (_messageCallbacks.TryGetValue(path, out var callback))
@@ -61,7 +62,7 @@ public class MessageService
     {
 #if DEBUG
         // show received message
-        Terminal.WriteLine($"Backend message: {text}");
+        Debug.WriteLine($"Backend message: {text}");
 #endif
 
         _webview.PostWebMessageAsString(text);

@@ -10,6 +10,7 @@ using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.Modding;
+using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Devtools.GenerateFleaMarketOffers;
 
@@ -19,20 +20,21 @@ public class Mod : AbstractMod
 
     public override string Name { get; } = "Fuyu-GenerateFleaMarketOffers";
 
+    private readonly ILogger _logger;
     private readonly IItemTemplateRepository _itemTemplates;
     private readonly HandbookService _handbookService;
-
     private readonly ItemFactoryService _itemFactoryService;
-
     private readonly RagfairService _ragfairService;
 
     public Mod(
+        ILoggerFactory loggerFactory,
         IItemTemplateRepository itemTemplates,
         HandbookService handbookService,
         ItemFactoryService itemFactoryService,
         RagfairService ragfairService
         )
     {
+        _logger = loggerFactory.CreateLogger("GenerateFleaMarketOffers");
         _itemTemplates = itemTemplates;
         _handbookService = handbookService;
         _itemFactoryService = itemFactoryService;
@@ -48,7 +50,7 @@ public class Mod : AbstractMod
     {
         var player = new RagfairPlayerUser(MongoId.Generate(), 301, EMemberCategory.Developer, EMemberCategory.Developer,
             "GenerateFleaMarketOffers", 1f, true);
-        Terminal.WriteLine("Generating offers...");
+        _logger.LogInformation("Generating offers...");
 
         var sw = Stopwatch.StartNew();
         var templates = await _itemTemplates.GetAllAsync();
@@ -98,7 +100,11 @@ public class Mod : AbstractMod
             }
         }
 
-        Terminal.WriteLine(
-            $"Done generating offers: {sw.ElapsedMilliseconds}ms, {success} succeeded and {failed} failed");
+        _logger.LogInformation(
+            "Done generating offers: {ElapsedMilliseconds}ms, {Success} succeeded and {Failed} failed",
+            sw.Elapsed.TotalMilliseconds,
+            success,
+            failed
+        );
     }
 }

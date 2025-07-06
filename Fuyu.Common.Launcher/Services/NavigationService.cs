@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Fuyu.Common.IO;
 using Microsoft.Web.WebView2.Core;
 
@@ -69,7 +70,7 @@ public class NavigationService
     {
 #if DEBUG
         // show received message
-        Terminal.WriteLine($"Backend redirect: {url}");
+        Debug.WriteLine($"Backend redirect: {url}");
 #endif
 
         _webview.Navigate(url);

@@ -28,6 +28,6 @@ public class ClientSurveyOpinionController : AbstractEftHttpController<ClientSur
     public override async Task RunAsync(EftHttpContext context, ClientSurveyOpinionRequest body)
     {
         var aid = await _sessions.GetAccountIdAsync(context.SessionId);
-        await _surveys.SurveyCompletedAsync(aid, body.SurveyId, body.Answers);
+        await _surveys.CompleteSurveyAsync(aid, body.SurveyId, body.Answers);
     }
 }

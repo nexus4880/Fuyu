@@ -16,19 +16,9 @@ public class JsonItemTemplateRepository : IItemTemplateRepository
 
     public JsonItemTemplateRepository()
     {
-        _itemTemplates = new ThreadDictionary<MongoId, ItemTemplate>();
-    }
-
-    public Task LoadAsync()
-    {
         var itemsText = Resx.GetText("eft", "database.client.items.json");
         var itemTemplates = Json.Parse<Dictionary<MongoId, ItemTemplate>>(itemsText);
-        foreach ((var id, var itemTemplate) in itemTemplates)
-        {
-            _itemTemplates.Set(id, itemTemplate);
-        }
-
-        return Task.CompletedTask;
+        _itemTemplates = new ThreadDictionary<MongoId, ItemTemplate>(itemTemplates);
     }
 
     public Task<Dictionary<MongoId, ItemTemplate>> GetAllAsync()

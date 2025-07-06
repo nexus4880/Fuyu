@@ -6,17 +6,25 @@ using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.IO;
+using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class HealItemEventController : AbstractItemEventController<HealItemEvent>
 {
+    private readonly ILogger<HealItemEventController> _logger;
     private readonly IProfileRepository _profiles;
     private readonly ItemService _itemService;
     private readonly ItemFactoryService _itemFactoryService;
 
-    public HealItemEventController(IProfileRepository profiles, ItemService itemService, ItemFactoryService itemFactoryService) : base("Heal")
+    public HealItemEventController(
+        ILogger<HealItemEventController> logger,
+        IProfileRepository profiles,
+        ItemService itemService,
+        ItemFactoryService itemFactoryService
+        ) : base("Heal")
     {
+        _logger = logger;
         _profiles = profiles;
         _itemService = itemService;
         _itemFactoryService = itemFactoryService;
@@ -29,12 +37,11 @@ public class HealItemEventController : AbstractItemEventController<HealItemEvent
 
         if (item == null)
         {
-            Terminal.WriteLine($"Failed to find item {request.Item}");
+            _logger.LogError("Failed to find item {ItemId}", request.Item);
             return;
         }
 
         var medKit = await item.GetOrCreateUpdatableAsync<ItemMedKitComponent>(_itemFactoryService);
-
         var bodyPart = profile.Pmc.Health.GetBodyPart(request.BodyPart);
         float toHeal = request.Count;
 

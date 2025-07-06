@@ -16,11 +16,13 @@ using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class ClientRagfairFindController : AbstractEftHttpController<RagfairFindRequest>
 {
+    private readonly ILogger<ClientRagfairFindController> _logger;
     private readonly IGameDataRepository _gameData;
     private readonly IItemTemplateRepository _itemTemplateRepository;
     private readonly RagfairService _ragfairService;
@@ -41,6 +43,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
     };
 
     public ClientRagfairFindController(
+        ILogger<ClientRagfairFindController> logger,
         IGameDataRepository gameData,
         RagfairService ragfairService,
         ItemService itemService,
@@ -48,6 +51,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
         IItemTemplateRepository itemTemplateRepository,
         HandbookService handbookService) : base("/client/ragfair/find")
     {
+        _logger = logger;
         _gameData = gameData;
         _ragfairService = ragfairService;
         _handbookService = handbookService;
@@ -58,7 +62,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
 
     public override async Task RunAsync(EftHttpContext context, RagfairFindRequest body)
     {
-        Terminal.WriteLine(Json.Stringify(body));
+        _logger.LogInformation("{Request}", Json.Stringify(body));
         var sw = Stopwatch.StartNew();
         var handbook = await _gameData.GetHandbookAsync();
 
@@ -214,7 +218,7 @@ public class ClientRagfairFindController : AbstractEftHttpController<RagfairFind
             }
         };
 
-        Terminal.WriteLine(sw.ElapsedMilliseconds);
+        _logger.LogInformation("Processing time: {ElapsedMilliseconds}ms", sw.Elapsed.TotalMilliseconds);
 
     sendResponse:
         await context.SendResponseAsync(responseBody, true, true);

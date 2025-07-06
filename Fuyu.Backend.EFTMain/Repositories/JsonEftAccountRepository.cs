@@ -12,15 +12,15 @@ using Microsoft.Extensions.Options;
 
 namespace Fuyu.Backend.EFTMain.Repositories;
 
-public class JsonAccountRepository : IAccountRepository
+public class JsonEftAccountRepository : IAccountRepository
 {
     private readonly ThreadList<EftAccount> _accounts;
     private readonly EftConfiguration _config;
     private readonly ISessionRepository _sessions;
 
-    public JsonAccountRepository(
+    public JsonEftAccountRepository(
         ISessionRepository sessions,
-        ILogger<JsonAccountRepository> logger,
+        ILogger<JsonEftAccountRepository> logger,
         IOptions<EftConfiguration> config)
     {
         _sessions = sessions;
@@ -38,6 +38,7 @@ public class JsonAccountRepository : IAccountRepository
             var json = VFS.ReadTextFile(filepath);
             var account = Json.Parse<EftAccount>(json);
             _accounts.Add(account);
+            logger.LogInformation("Loaded EFT account: {AccountName} ({AccountId})", account.Username, account.Id);
         }
     }
 

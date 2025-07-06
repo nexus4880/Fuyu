@@ -1,7 +1,7 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using Fuyu.Common.IO;
+using Microsoft.Extensions.Logging;
 using AspNetHttpContext = Microsoft.AspNetCore.Http.HttpContext;
 
 namespace Fuyu.Common.Backend.Networking;
@@ -11,12 +11,14 @@ public class FuyuServer
     public HttpRouter HttpRouter { get; protected set; }
     public WsRouter WsRouter { get; protected set; }
 
-    public readonly int Port;
-    public readonly string Name;
-    public readonly string SubProtocol;
+    private readonly ILogger _logger;
+    public int Port { get; }
+    public string Name { get; }
+    public string SubProtocol { get; }
 
-    public FuyuServer(string name, int port, string subprotocol = null)
+    public FuyuServer(ILogger logger, string name, int port, string subprotocol = null)
     {
+        _logger = logger;
         Port = port;
         Name = name;
         SubProtocol = subprotocol;
@@ -38,13 +40,13 @@ public class FuyuServer
     {
         if (HttpRouter is null)
         {
-            Terminal.WriteLine($"[{Name}] {nameof(HttpRouter)} is null, cannot handle {ctx.Request.Path}");
+            _logger.LogError("[{Name}] HttpRouter is null, cannot handle {ContextPath}", Name, ctx.Request.Path);
             return;
         }
 
         var context = new HttpContext(ctx.Request, ctx.Response);
 
-        Terminal.WriteLine($"[{Name}][HTTP] {context.Path}");
+        _logger.LogInformation("[{Name}][HTTP] {ContextPath}", Name, context.Path);
 
         try
         {
@@ -52,12 +54,12 @@ public class FuyuServer
         }
         catch (RouteNotFoundException ex)
         {
-            Terminal.WriteLine(ex.Message);
+            _logger.LogError("{Message}", ex.Message);
             await context.SendStatus(HttpStatusCode.NotFound);
         }
         catch (Exception ex)
         {
-            Terminal.WriteLine(ex.Message);
+            _logger.LogError("{Message}", ex.Message);
             context.Close();
         }
     }
@@ -66,7 +68,7 @@ public class FuyuServer
     {
         if (WsRouter is null)
         {
-            Terminal.WriteLine($"[{Name}] {nameof(WsRouter)} is null, cannot handle {ctx.Request.Path}");
+            _logger.LogError("[{Name}] WsRouter is null, cannot handle {ContextPath}", Name, ctx.Request.Path);
             return;
         }
 
@@ -76,12 +78,12 @@ public class FuyuServer
         {
             var context = new WsContext(ctx.Request, ctx.Response, ctx.RequestAborted, ws);
             var time = DateTime.UtcNow.ToString();
-            Terminal.WriteLine($"[{Name}][WS  ] {context.Path}");
+            _logger.LogInformation("[{Name}][WS  ] {ContextPath}", Name, context.Path);
             await WsRouter.RouteAsync(context);
         }
         catch (Exception ex)
         {
-            Terminal.WriteLine(ex.Message);
+            _logger.LogError("{Message}", ex.Message);
             // NOTE: no need to manually close, websocket will be disposed
             // -- seionmoya, 2024/09/09 
         }

@@ -7,6 +7,7 @@ using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Collections;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Fuyu.Backend.Core.Repositories;
@@ -17,6 +18,7 @@ public class JsonCoreAccountRepository : ICoreAccountRepository
     private readonly ICoreSessionRepository _sessions;
 
     public JsonCoreAccountRepository(
+        ILogger<JsonCoreAccountRepository> logger,
         IOptions<CoreConfiguration> config,
         ICoreSessionRepository sessions
         )
@@ -30,6 +32,7 @@ public class JsonCoreAccountRepository : ICoreAccountRepository
             var fileContents = VFS.ReadTextFile(file);
             var account = Json.Parse<Account>(fileContents);
             _accounts.Set(account.Id, account);
+            logger.LogInformation("Loaded core account: {Username} ({AccountId})", account.Username, account.Id);
         }
     }
 

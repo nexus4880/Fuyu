@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Fuyu.Common.IO;
 using Microsoft.Web.WebView2.Core;
 
@@ -50,7 +51,7 @@ public class WebViewService
         var url = args.Uri;
 
 #if DEBUG
-        Terminal.WriteLine($"Navigating to: {url}");
+        Debug.WriteLine($"Navigating to: {url}");
 #endif
 
         if (!_navigationService.IsInternalRequest(url))
@@ -70,7 +71,7 @@ public class WebViewService
         var url = args.Request.Uri;
 
 #if DEBUG
-        Terminal.WriteLine($"Requested resource: {url}");
+        Debug.WriteLine($"Requested resource: {url}");
 #endif
 
         if (_navigationService.IsInternalRequest(url))

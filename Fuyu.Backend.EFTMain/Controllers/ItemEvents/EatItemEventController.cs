@@ -5,17 +5,25 @@ using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.IO;
+using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class EatItemEventController : AbstractItemEventController<EatItemEvent>
 {
+    private readonly ILogger<EatItemEventController> _logger;
     private readonly IProfileRepository _profiles;
     private readonly ItemFactoryService _itemFactoryService;
     private readonly ItemService _itemService;
 
-    public EatItemEventController(IProfileRepository profiles, ItemFactoryService itemFactoryService, ItemService itemService) : base("Eat")
+    public EatItemEventController(
+        ILogger<EatItemEventController> logger,
+        IProfileRepository profiles,
+        ItemFactoryService itemFactoryService,
+        ItemService itemService
+        ) : base("Eat")
     {
+        _logger = logger;
         _profiles = profiles;
         _itemFactoryService = itemFactoryService;
         _itemService = itemService;
@@ -29,14 +37,14 @@ public class EatItemEventController : AbstractItemEventController<EatItemEvent>
 
         if (item == null)
         {
-            Terminal.WriteLine($"Failed to find item {request.Item}");
+            _logger.LogError("Failed to find item {Id}", request.Item);
             return;
         }
 
         var foodDrink = await item.GetOrCreateUpdatableAsync<ItemFoodDrinkComponent>(_itemFactoryService);
         if (foodDrink == null)
         {
-            Terminal.WriteLine("Could not find ItemFoodDrinkComponent on item: " + request.Item);
+            _logger.LogError("Could not find ItemFoodDrinkComponent on item: {Id}", request.Item);
             return;
         }
 

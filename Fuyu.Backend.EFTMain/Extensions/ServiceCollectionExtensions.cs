@@ -14,9 +14,9 @@ public static class ServiceCollectionExtensions
         services.Configure<EftConfiguration>(config => config.Load());
 
         // Repositories
-        services.AddSingleton<IAccountRepository, JsonAccountRepository>();
-        services.AddSingleton<ISessionRepository, JsonSessionRepository>();
-        services.AddSingleton<IProfileRepository, JsonProfileRepository>();
+        services.AddSingleton<IAccountRepository, JsonEftAccountRepository>();
+        services.AddSingleton<ISessionRepository, JsonEftSessionRepository>();
+        services.AddSingleton<IProfileRepository, JsonEftProfileRepository>();
         services.AddSingleton<IGameDataRepository, JsonGameDataRepository>();
         services.AddSingleton<ISurveyRepository, NullSurveyRepository>();
 

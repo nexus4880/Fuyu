@@ -7,18 +7,27 @@ using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.IO;
+using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 
 public class TradingConfirmEventController : AbstractItemEventController<TradingConfirmItemEvent>
 {
+    private readonly ILogger<TradingConfirmEventController> _logger;
     private readonly IProfileRepository _profiles;
     private readonly ItemService _itemService;
     private readonly RagfairService _ragfairService;
     private readonly ItemFactoryService _itemFactoryService;
 
-    public TradingConfirmEventController(IProfileRepository profiles, ItemService itemService, RagfairService ragfairService, ItemFactoryService itemFactoryService) : base("TradingConfirm")
+    public TradingConfirmEventController(
+        ILogger<TradingConfirmEventController> logger,
+        IProfileRepository profiles,
+        ItemService itemService,
+        RagfairService ragfairService,
+        ItemFactoryService itemFactoryService
+        ) : base("TradingConfirm")
     {
+        _logger = logger;
         _profiles = profiles;
         _itemService = itemService;
         _ragfairService = ragfairService;
@@ -27,7 +36,7 @@ public class TradingConfirmEventController : AbstractItemEventController<Trading
 
     public override Task RunAsync(ItemEventContext context, TradingConfirmItemEvent request)
     {
-        Terminal.WriteLine(context.Data.ToString());
+        _logger.LogInformation("{Data}", context.Data.ToString());
 
         switch (request.Type)
         {

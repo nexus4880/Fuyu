@@ -6,11 +6,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Backend.EFTMain.Repositories;
 
-public class JsonSessionRepository : ISessionRepository
+public class JsonEftSessionRepository : ISessionRepository
 {
     private readonly ThreadDictionary<string, int> _sessions;
 
-    public JsonSessionRepository(ILogger<JsonSessionRepository> logger)
+    public JsonEftSessionRepository(ILogger<JsonEftSessionRepository> logger)
     {
         _sessions = new ThreadDictionary<string, int>();
     }

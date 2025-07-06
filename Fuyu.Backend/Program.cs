@@ -31,7 +31,7 @@ public class Program
     {
         Resx.SetSource("fuyu-backend", typeof(Program).Assembly);
         Resx.SetSource("eft", typeof(EftDatabase).Assembly);
-        Terminal.SetLogConfig("Fuyu/Logs/Backend.log");
+        //Terminal.SetLogConfig("Fuyu/Logs/Backend.log");
     }
 
     private static void ConfigureServices(HostApplicationBuilder builder)

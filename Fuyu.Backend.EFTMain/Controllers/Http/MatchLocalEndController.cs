@@ -9,17 +9,20 @@ using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
+using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class MatchLocalEndController : AbstractEftHttpController<MatchLocalEndRequest>
 {
+    private readonly ILogger<MatchLocalEndController> _logger;
     private readonly IProfileRepository _profiles;
     private readonly ItemService _itemService;
     private readonly ResponseService _responseService;
 
-    public MatchLocalEndController(IProfileRepository profiles, ItemService itemService) : base("/client/match/local/end")
+    public MatchLocalEndController(ILogger<MatchLocalEndController> logger, IProfileRepository profiles, ItemService itemService) : base("/client/match/local/end")
     {
+        _logger = logger;
         _profiles = profiles;
         _itemService = itemService;
         _responseService = ResponseService.Instance;
@@ -85,7 +88,7 @@ public class MatchLocalEndController : AbstractEftHttpController<MatchLocalEndRe
                     // This shouldn't happen, leaving it here in case it does.
                     // I have yet to see it happen though so that's good.
                     // -- nexus4880, 2025-5-18
-                    Terminal.WriteLine($"{newItem.Id}'s parent {newItem.ParentId} is not in ItemsMap!");
+                    _logger.LogWarning("{NewItemId}'s parent {NewItemParentId} is not in the ItemsMap", newItem.Id, newItem.ParentId);
                 }
             }
         }
@@ -167,11 +170,11 @@ public class MatchLocalEndController : AbstractEftHttpController<MatchLocalEndRe
 
                 if (character.Inventory.ItemsMap.Remove(equipmentItem.Id))
                 {
-                    Terminal.WriteLine($"Removed {equipmentItem.Id}");
+                    _logger.LogInformation("Removed {Id}", equipmentItem.Id);
                 }
                 else
                 {
-                    Terminal.WriteLine($"Couldn't remove {equipmentItem.Id}, it must be a new item");
+                    _logger.LogWarning("Couldn't remove {Id}, it must be a new item", equipmentItem.Id);
                 }
             }
         }

@@ -7,5 +7,6 @@ namespace Fuyu.Backend.EFTMain.Repositories.Abstractions;
 public interface ISurveyRepository
 {
     Task<SurveyResponse> GetSurveyAsync(int accountId);
-    Task SurveyCompletedAsync(int aid, int surveyId, List<QuestionAnswer> answers);
+    Task ViewSurveyAsync(int aid, int surveyId);
+    Task CompleteSurveyAsync(int aid, int surveyId, List<QuestionAnswer> answers);
 }

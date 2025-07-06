@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Fuyu.Common.IO;
 using Fuyu.Common.Launcher.Models.Messages;
 using Fuyu.Common.Launcher.Models.Pages;
@@ -62,7 +63,7 @@ public class AccountRegisterPage : AbstractPage
         catch (Exception ex)
         {
             SendRegisterErrorReply("There is a connection issue.");
-            Terminal.WriteLine(ex);
+            Debug.WriteLine(ex);
             return;
         }
 
