@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ISessionRepository, JsonSessionRepository>();
         services.AddSingleton<IProfileRepository, JsonProfileRepository>();
         services.AddSingleton<IGameDataRepository, JsonGameDataRepository>();
+        services.AddSingleton<ISurveyRepository, NullSurveyRepository>();
 
         services.AddSingleton<AccountService>();
         services.AddSingleton<ProfileService>();

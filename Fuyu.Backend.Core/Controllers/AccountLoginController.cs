@@ -10,16 +10,15 @@ public class AccountLoginController : AbstractCoreHttpController<AccountLoginReq
 {
     private readonly AccountService _accountService;
 
-    public AccountLoginController() : base("/account/login")
+    public AccountLoginController(AccountService accountService) : base("/account/login")
     {
-        _accountService = AccountService.Instance;
+        _accountService = accountService;
     }
 
-    public override Task RunAsync(CoreHttpContext context, AccountLoginRequest body)
+    public override async Task RunAsync(CoreHttpContext context, AccountLoginRequest body)
     {
-        var response = _accountService.LoginAccount(body.Username, body.Password);
-
+        var response = await _accountService.LoginAccountAsync(body.Username, body.Password);
         var text = Json.Stringify(response);
-        return context.SendJsonAsync(text);
+        await context.SendJsonAsync(text);
     }
 }

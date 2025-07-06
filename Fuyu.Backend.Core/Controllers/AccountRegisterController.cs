@@ -11,20 +11,20 @@ public class AccountRegisterController : AbstractCoreHttpController<AccountRegis
 {
     private readonly AccountService _accountService;
 
-    public AccountRegisterController() : base("/account/register")
+    public AccountRegisterController(AccountService accountService) : base("/account/register")
     {
-        _accountService = AccountService.Instance;
+        _accountService = accountService;
     }
 
-    public override Task RunAsync(CoreHttpContext context, AccountRegisterRequest request)
+    public override async Task RunAsync(CoreHttpContext context, AccountRegisterRequest request)
     {
-        var result = _accountService.RegisterAccount(request.Username, request.Password);
+        var result = await _accountService.RegisterAccountAsync(request.Username, request.Password);
         var response = new AccountRegisterResponse()
         {
             Status = result
         };
 
         var text = Json.Stringify(response);
-        return context.SendJsonAsync(text);
+        await context.SendJsonAsync(text);
     }
 }

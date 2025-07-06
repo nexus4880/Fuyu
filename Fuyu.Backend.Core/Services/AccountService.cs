@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Fuyu.Backend.Core.Models.Accounts;
 using Fuyu.Backend.Core.Models.Responses;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Backend.Models.Requests;
 using Fuyu.Common.Backend.Models.Responses;
 using Fuyu.Common.Hashing;
@@ -11,6 +13,7 @@ using Fuyu.Common.IO;
 using Fuyu.Common.Networking;
 using Fuyu.Common.Serialization;
 using Fuyu.Common.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Fuyu.Backend.Core.Services;
 
@@ -20,27 +23,26 @@ public class AccountService
     // * account login state tracking
     // -- seionmoya, 2024/09/02
 
-    public static AccountService Instance => instance.Value;
-    private static readonly Lazy<AccountService> instance = new(() => new AccountService());
-
-    private readonly CoreOrm _coreOrm;
+    private readonly ICoreAccountRepository _accounts;
+    private readonly ICoreSessionRepository _sessions;
     private readonly RequestService _requestService;
 
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
-    private AccountService()
+    public AccountService(ICoreAccountRepository accounts, ICoreSessionRepository sessions)
     {
-        _coreOrm = CoreOrm.Instance;
+        _accounts = accounts;
+        _sessions = sessions;
         _requestService = RequestService.Instance;
         var eftHttpClient = new HttpClient("https://localhost:44301");
         _requestService.AddOrSetClient("eft", eftHttpClient);
     }
 
-    public int AccountExists(string username)
+    public async Task<int> AccountExistsAsync(string username)
     {
         var lowerUsername = username.ToLowerInvariant();
-        var accounts = _coreOrm.GetAccounts();
+        var accounts = await _accounts.GetAllAsync();
 
         // find account
         var found = new List<Account>();
@@ -65,10 +67,10 @@ public class AccountService
         }
     }
 
-    public AccountLoginResponse LoginAccount(string username, string password)
+    public async Task<AccountLoginResponse> LoginAccountAsync(string username, string password)
     {
         // find account
-        var accountId = AccountExists(username);
+        var accountId = await AccountExistsAsync(username);
 
         if (accountId == -1)
         {
@@ -81,7 +83,7 @@ public class AccountService
         }
 
         // validate password
-        var account = _coreOrm.GetAccount(accountId);
+        var account = await _accounts.GetByIdAsync(accountId);
 
         if (account.Password != password)
         {
@@ -105,7 +107,7 @@ public class AccountService
         }
 
         // find active account session
-        var sessions = _coreOrm.GetSessions();
+        var sessions = await _sessions.GetAllAsync();
 
         foreach (var kvp in sessions)
         {
@@ -125,7 +127,7 @@ public class AccountService
         // -- seionmoya, 2024/09/02
         var sessionId = new MongoId(accountId).ToString();
 
-        _coreOrm.SetOrAddSession(sessionId, accountId);
+        await _sessions.SetAsync(sessionId, accountId);
 
         return new AccountLoginResponse()
         {
@@ -134,9 +136,9 @@ public class AccountService
         };
     }
 
-    private int GetNewAccountId()
+    private async Task<int> GetNewAccountIdAsync()
     {
-        var accounts = _coreOrm.GetAccounts();
+        var accounts = await _accounts.GetAllAsync();
 
         // using linq because sorting otherwise takes up too much code
         var sorted = accounts.OrderBy(account => account.Id).ToArray();
@@ -164,10 +166,10 @@ public class AccountService
         }
     }
 
-    public ERegisterStatus RegisterAccount(string username, string password)
+    public async Task<ERegisterStatus> RegisterAccountAsync(string username, string password)
     {
         // validate username
-        if (AccountExists(username) != -1)
+        if (await AccountExistsAsync(username) != -1)
         {
             return ERegisterStatus.AlreadyExists;
         }
@@ -190,22 +192,21 @@ public class AccountService
         var hashedPassword = Sha256.Generate(password);
         var account = new Account()
         {
-            Id = GetNewAccountId(),
+            Id = await GetNewAccountIdAsync(),
             Username = username.ToLowerInvariant(),
             Password = hashedPassword,
             Games = [],
             IsBanned = false
         };
 
-        _coreOrm.SetOrAddAccount(account);
-        WriteToDisk(account);
+        await _accounts.AddOrUpdateAsync(account);
 
         return ERegisterStatus.Success;
     }
 
-    public AccountGameRegisterResponse RegisterGame(string sessionId, string game, string edition)
+    public async Task<AccountGameRegisterResponse> RegisterGameAsync(string sessionId, string game, string edition)
     {
-        var account = _coreOrm.GetAccount(sessionId);
+        var account = await _accounts.GetBySessionAsync(sessionId);
 
         // register game
         var request = new FuyuGameRegisterRequest()
@@ -227,8 +228,7 @@ public class AccountService
         }
 
         // store result
-        _coreOrm.SetOrAddAccount(account);
-        WriteToDisk(account);
+        await _accounts.AddOrUpdateAsync(account);
 
         return new AccountGameRegisterResponse()
         {
@@ -236,9 +236,9 @@ public class AccountService
         };
     }
 
-    public AccountGetResponse GetStrippedAccount(string sessionId)
+    public async Task<AccountGetResponse> GetStrippedAccountAsync(string sessionId)
     {
-        var account = _coreOrm.GetAccount(sessionId);
+        var account = await _accounts.GetBySessionAsync(sessionId);
 
         var strippedAccount = new AccountGetResponse()
         {
@@ -247,12 +247,5 @@ public class AccountService
         };
 
         return strippedAccount;
-    }
-
-    public void WriteToDisk(Account account)
-    {
-        VFS.WriteTextFile(
-            $"./Fuyu/Accounts/Core/{account.Id}.json",
-            Json.Stringify(account));
     }
 }

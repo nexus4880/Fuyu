@@ -13,7 +13,6 @@ public class JsonSessionRepository : ISessionRepository
     public JsonSessionRepository(ILogger<JsonSessionRepository> logger)
     {
         _sessions = new ThreadDictionary<string, int>();
-        logger.LogInformation("Session repository initialized");
     }
 
     public Task<Dictionary<string, int>> GetAllAsync()

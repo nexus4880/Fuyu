@@ -7,6 +7,7 @@ using Fuyu.Backend.BSG;
 using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
 using Fuyu.Backend.BSG.Models.Trading;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Services;
@@ -22,7 +23,7 @@ public class Mod : AbstractMod
 
     public override string Name { get; } = "Fuyu-GenerateFleaMarketOffers";
 
-    private readonly IGameDataRepository _gameDataRepository;
+    private readonly IItemTemplateRepository _itemTemplates;
     private readonly HandbookService _handbookService;
 
     private readonly ItemFactoryService _itemFactoryService;
@@ -30,13 +31,13 @@ public class Mod : AbstractMod
     private readonly RagfairService _ragfairService;
 
     public Mod(
-        IGameDataRepository gameDataRepository,
+        IItemTemplateRepository itemTemplates,
         HandbookService handbookService,
         ItemFactoryService itemFactoryService,
         RagfairService ragfairService
         )
     {
-        _gameDataRepository = gameDataRepository;
+        _itemTemplates = itemTemplates;
         _handbookService = handbookService;
         _itemFactoryService = itemFactoryService;
         _ragfairService = ragfairService;
@@ -54,7 +55,7 @@ public class Mod : AbstractMod
         Terminal.WriteLine("Generating offers...");
 
         var sw = Stopwatch.StartNew();
-        var templates = await _gameDataRepository.GetItemTemplatesAsync();
+        var templates = await _itemTemplates.GetAllAsync();
         var success = 0;
         var failed = 0;
 

@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Extensions;
 using Fuyu.Backend.Configuration;
+using Fuyu.Backend.Core.Extensions;
 using Fuyu.Backend.EFTMain.Databases;
 using Fuyu.Backend.EFTMain.Extensions;
 using Fuyu.Backend.Logging;
@@ -50,6 +51,7 @@ public class Program
         modManager.AddMods("./Fuyu/Mods/Backend", builder.Services);
 
         builder.Services.AddFuyuServices()
+            .AddCoreServices()
             .AddBSGServices()
             .AddEftServices();
     }

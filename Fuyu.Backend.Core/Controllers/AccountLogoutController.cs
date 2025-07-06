@@ -1,20 +1,22 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
 using Fuyu.Backend.Core.Networking;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.Core.Controllers;
 
 public class AccountLogoutController : AbstractCoreHttpController
 {
-    public AccountLogoutController() : base("/account/logout")
+    private readonly ICoreSessionRepository _sessions;
+
+    public AccountLogoutController(ICoreSessionRepository sessions) : base("/account/logout")
     {
+        _sessions = sessions;
     }
 
-    public override Task RunAsync(CoreHttpContext context)
+    public override async Task RunAsync(CoreHttpContext context)
     {
-        var sessionId = context.SessionId;
-        CoreOrm.Instance.RemoveSession(sessionId);
-
-        return context.SendStatus(HttpStatusCode.OK);
+        await _sessions.RemoveAsync(context.SessionId);
+        await context.SendStatus(HttpStatusCode.OK);
     }
 }

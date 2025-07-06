@@ -48,7 +48,8 @@ public static class VFS
     {
         if (!Directory.Exists(path))
         {
-            throw new DirectoryNotFoundException($"Directory {path} doesn't exist.");
+            Directory.CreateDirectory(path);
+            return [];
         }
 
         return Directory.GetFiles(path);
@@ -58,7 +59,8 @@ public static class VFS
     {
         if (!Directory.Exists(path))
         {
-            throw new DirectoryNotFoundException($"Directory {path} doesn't exist.");
+            Directory.CreateDirectory(path);
+            return [];
         }
 
         return Directory.GetFiles(path, pattern);
@@ -68,7 +70,8 @@ public static class VFS
     {
         if (!Directory.Exists(path))
         {
-            throw new DirectoryNotFoundException($"Directory {path} doesn't exist.");
+            Directory.CreateDirectory(path);
+            return [];
         }
 
         return Directory.GetFiles(path, pattern, search);

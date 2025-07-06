@@ -1,66 +1,31 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Survey;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Backend.EFTMain.Orms;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class SurveyController : AbstractEftHttpController
 {
-    private readonly SurveyOrm _surveyOrm;
+    private readonly ISessionRepository _sessions;
+    private readonly ISurveyRepository _surveys;
 
-    public SurveyController() : base("/client/survey")
+    public SurveyController(ISessionRepository sessions, ISurveyRepository surveys) : base("/client/survey")
     {
-        _surveyOrm = SurveyOrm.Instance;
+        _sessions = sessions;
+        _surveys = surveys;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
-        var activeSurvey = _surveyOrm.GetSurveyTemplate();
-        var response = CreateSurveyResponse(activeSurvey);
-
-        return context.SendResponseAsync(new ResponseBody<SurveyResponse> { data = response }, true, true);
-    }
-
-    private static SurveyResponse CreateSurveyResponse(SurveyTemplate template)
-    {
-
-        var locale = new Dictionary<string, Dictionary<string, string>>();
-        var enLocale = locale["en"] = [];
-
-        enLocale[template.WelcomePageData.TitleLocaleKey] = template.WelcomePageData.TitleLocaleKey;
-        enLocale[template.WelcomePageData.TimeLocaleKey] = template.WelcomePageData.TimeLocaleKey;
-        enLocale[template.WelcomePageData.DescriptionLocaleKey] = template.WelcomePageData.DescriptionLocaleKey;
-
-        enLocale[template.FarewellPageData.TextLocaleKey] = template.FarewellPageData.TextLocaleKey;
-
-        foreach (var question in template.Questions)
+        var aid = await _sessions.GetAccountIdAsync(context.SessionId);
+        var activeSurvey = await _surveys.GetSurveyAsync(aid);
+        var response = new ResponseBody<SurveyResponse>
         {
-            if (!string.IsNullOrEmpty(question.HintLocaleKey))
-            {
-                enLocale[question.HintLocaleKey] = question.HintLocaleKey;
-            }
-
-            if (!string.IsNullOrEmpty(question.TitleLocaleKey))
-            {
-                enLocale[question.TitleLocaleKey] = question.TitleLocaleKey;
-            }
-
-            foreach (var answer in question.Answers)
-            {
-                if (!string.IsNullOrEmpty(answer.LocaleKey))
-                {
-                    enLocale[answer.LocaleKey] = answer.LocaleKey;
-                }
-            }
-        }
-
-        return new SurveyResponse
-        {
-            Localization = locale,
-            Template = template
+            data = activeSurvey
         };
+
+        await context.SendResponseAsync(response, true, true);
     }
 }

@@ -9,10 +9,12 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddBSGServices(this IServiceCollection services)
     {
+        services.AddSingleton<IItemTemplateRepository, JsonItemTemplateRepository>();
+        services.AddSingleton<ITraderRepository, JsonTraderRepository>();
+
         services.AddSingleton<ItemService>();
         services.AddSingleton<ItemFactoryService>();
         services.AddSingleton<InventoryService>();
-        services.AddSingleton<IItemTemplateRepository, JsonItemTemplateRepository>();
 
         return services;
     }

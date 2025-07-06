@@ -11,5 +11,4 @@ public interface IProfileRepository : IRepository
     Task<EftProfile> GetActiveProfileAsync(string sessionId);
     Task AddOrUpdateAsync(EftProfile profile);
     Task RemoveAsync(EftProfile profile);
-    Task SaveAsync(EftProfile profile);
 }

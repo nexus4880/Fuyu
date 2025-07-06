@@ -10,17 +10,17 @@ public class AccountGameRegisterController : AbstractCoreHttpController<AccountG
 {
     private readonly AccountService _accountService;
 
-    public AccountGameRegisterController() : base("/account/game/register")
+    public AccountGameRegisterController(AccountService accountService) : base("/account/game/register")
     {
-        _accountService = AccountService.Instance;
+        _accountService = accountService;
     }
 
-    public override Task RunAsync(CoreHttpContext context, AccountGameRegisterRequest request)
+    public override async Task RunAsync(CoreHttpContext context, AccountGameRegisterRequest request)
     {
         var sessionId = context.SessionId;
-        var result = _accountService.RegisterGame(sessionId, request.Game, request.Edition);
+        var result = await _accountService.RegisterGameAsync(sessionId, request.Game, request.Edition);
 
         var text = Json.Stringify(result);
-        return context.SendJsonAsync(text);
+        await context.SendJsonAsync(text);
     }
 }

@@ -37,7 +37,6 @@ public class JsonGameDataRepository : IGameDataRepository
     private readonly ThreadObject<JObject> _hideoutProductionRecipes;
     private readonly ThreadObject<JArray> _hideoutQtes;
     private readonly ThreadObject<JObject> _settings;
-    private ThreadDictionary<MongoId, ItemTemplate> _itemTemplates;
     private readonly ThreadObject<JObject> _prestige;
     private readonly ThreadObject<JArray> _quests;
     private readonly ThreadObject<JArray> _traders;
@@ -63,7 +62,6 @@ public class JsonGameDataRepository : IGameDataRepository
         _hideoutProductionRecipes = new ThreadObject<JObject>(null);
         _hideoutQtes = new ThreadObject<JArray>(null);
         _settings = new ThreadObject<JObject>(null);
-        _itemTemplates = new ThreadDictionary<MongoId, ItemTemplate>();
         _prestige = new ThreadObject<JObject>(null);
         _quests = new ThreadObject<JArray>(null);
         _traders = new ThreadObject<JArray>(null);
@@ -92,7 +90,6 @@ public class JsonGameDataRepository : IGameDataRepository
         LoadHideoutCustomizationOffers();
         LoadHideoutProductionRecipes();
         LoadHideoutQtes();
-        LoadItemTemplates();
         LoadLocalWeather();
         LoadPrestige();
         LoadQuests();
@@ -149,11 +146,6 @@ public class JsonGameDataRepository : IGameDataRepository
     public Task<HideoutSettingsResponse> GetHideoutSettingsAsync()
     {
         return Task.FromResult(_hideoutSettings.Get());
-    }
-
-    public Task<Dictionary<MongoId, ItemTemplate>> GetItemTemplatesAsync()
-    {
-        return Task.FromResult(_itemTemplates.ToDictionary());
     }
 
     public Task<JObject> GetLocalWeatherAsync()
@@ -248,16 +240,6 @@ public class JsonGameDataRepository : IGameDataRepository
     public Task SetHideoutSettingsAsync(HideoutSettingsResponse settings)
     {
         _hideoutSettings.Set(settings);
-        return Task.CompletedTask;
-    }
-
-    public Task SetItemTemplatesAsync(Dictionary<MongoId, ItemTemplate> templates)
-    {
-        foreach ((var key, var itemTemplate) in templates)
-        {
-            _itemTemplates.Set(key, itemTemplate);
-        }
-
         return Task.CompletedTask;
     }
 
@@ -450,13 +432,6 @@ public class JsonGameDataRepository : IGameDataRepository
         var json = Resx.GetText("eft", "database.client.hideout.qte.list.json");
         var qtes = JArray.Parse(json);
         _hideoutQtes.Set(qtes);
-    }
-
-    private void LoadItemTemplates()
-    {
-        var json = Resx.GetText("eft", "database.client.items.json");
-        var dictionary = Json.Parse<Dictionary<MongoId, ItemTemplate>>(json);
-        _itemTemplates = new ThreadDictionary<MongoId, ItemTemplate>(dictionary);
     }
 
     private void LoadLocalWeather()

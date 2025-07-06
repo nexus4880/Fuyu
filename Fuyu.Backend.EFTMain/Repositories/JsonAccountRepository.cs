@@ -41,8 +41,6 @@ public class JsonAccountRepository : IAccountRepository
             var account = Json.Parse<EftAccount>(json);
             _accounts.Add(account);
         }
-
-        logger.LogInformation("Account repository initialized");
     }
 
     public Task<List<EftAccount>> GetAllAsync()

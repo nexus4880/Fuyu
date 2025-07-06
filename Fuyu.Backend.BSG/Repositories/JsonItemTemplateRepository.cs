@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.ItemTemplates;
-using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Common.Collections;
 using Fuyu.Common.Hashing;
@@ -17,9 +16,19 @@ public class JsonItemTemplateRepository : IItemTemplateRepository
 
     public JsonItemTemplateRepository()
     {
+        _itemTemplates = new ThreadDictionary<MongoId, ItemTemplate>();
+    }
+
+    public Task LoadAsync()
+    {
         var itemsText = Resx.GetText("eft", "database.client.items.json");
         var itemTemplates = Json.Parse<Dictionary<MongoId, ItemTemplate>>(itemsText);
-        _itemTemplates = new ThreadDictionary<MongoId, ItemTemplate>(itemTemplates);
+        foreach ((var id, var itemTemplate) in itemTemplates)
+        {
+            _itemTemplates.Set(id, itemTemplate);
+        }
+
+        return Task.CompletedTask;
     }
 
     public Task<Dictionary<MongoId, ItemTemplate>> GetAllAsync()

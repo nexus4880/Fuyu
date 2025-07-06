@@ -9,17 +9,17 @@ public class AccountGetController : AbstractCoreHttpController
 {
     private readonly AccountService _accountService;
 
-    public AccountGetController() : base("/account/get")
+    public AccountGetController(AccountService accountService) : base("/account/get")
     {
-        _accountService = AccountService.Instance;
+        _accountService = accountService;
     }
 
-    public override Task RunAsync(CoreHttpContext context)
+    public override async Task RunAsync(CoreHttpContext context)
     {
         var sessionId = context.SessionId;
-        var response = _accountService.GetStrippedAccount(sessionId);
+        var response = await _accountService.GetStrippedAccountAsync(sessionId);
 
         var text = Json.Stringify(response);
-        return context.SendJsonAsync(text);
+        await context.SendJsonAsync(text);
     }
 }

@@ -43,8 +43,6 @@ public class JsonProfileRepository : IProfileRepository
             var profile = Json.Parse<EftProfile>(json);
             _profiles.Add(profile);
         }
-
-        logger.LogInformation("Profile repository initialized");
     }
 
     public Task<List<EftProfile>> GetAllAsync()

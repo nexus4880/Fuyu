@@ -2,28 +2,28 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
-using Fuyu.Backend.EFTMain.Databases;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class TraderSettingsController : AbstractEftHttpController
 {
-    private readonly TraderDatabase _traderDatabase;
+    private readonly ITraderRepository _traders;
 
-    public TraderSettingsController() : base("/client/trading/api/traderSettings")
+    public TraderSettingsController(ITraderRepository traders) : base("/client/trading/api/traderSettings")
     {
-        _traderDatabase = TraderDatabase.Instance;
+        _traders = traders;
     }
 
-    public override Task RunAsync(EftHttpContext context)
+    public override async Task RunAsync(EftHttpContext context)
     {
+        var templates = await _traders.GetTraderTemplatesAsync();
         var response = new ResponseBody<IEnumerable<TraderTemplate>>
         {
-            data = _traderDatabase.GetTraderTemplates().Values
+            data = templates.Values
         };
 
-        return context.SendResponseAsync(response, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

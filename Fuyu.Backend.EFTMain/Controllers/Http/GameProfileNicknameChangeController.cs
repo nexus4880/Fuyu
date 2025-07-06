@@ -64,7 +64,6 @@ public class GameProfileNicknameChangeController : AbstractEftHttpController<Gam
             }
         };
 
-        var text = Json.Stringify(response);
-        await context.SendJsonAsync(text, true, true);
+        await context.SendResponseAsync(response, true, true);
     }
 }

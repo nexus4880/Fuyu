@@ -1,26 +1,27 @@
 using System.Threading.Tasks;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Backend.EFTMain.Orms;
-using Fuyu.Backend.EFTMain.Repositories.Abstractions;
+using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class ItemsController : AbstractEftHttpController
 {
-    private readonly IGameDataRepository _gameData;
+    private readonly IItemTemplateRepository _itemTemplates;
 
-    public ItemsController(IGameDataRepository gameData) : base("/client/items")
+    public ItemsController(IItemTemplateRepository itemTemplates) : base("/client/items")
     {
-        _gameData = gameData;
+        _itemTemplates = itemTemplates;
     }
 
     public override async Task RunAsync(EftHttpContext context)
     {
         // TODO: generate this
         // --seionmoya, 2024-11-18
-        var response = await _gameData.GetItemTemplatesAsync();
-        var text = Json.Stringify(response);
-        await context.SendJsonAsync(text, true, true);
+        var txt = Resx.GetText("eft", "database.client.items.json");
+        var data = JObject.Parse(txt);
+        await context.SendResponseAsync(new BSG.Models.Responses.ResponseBody<JObject> { data = data }, true, true);
     }
 }

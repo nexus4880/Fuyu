@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
+using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Orms;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
+using Newtonsoft.Json.Linq;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
@@ -20,6 +22,6 @@ public class PrestigeListController : AbstractEftHttpController
         // --seionmoya, 2025-01-04
         var response = await _gameData.GetPrestigeAsync();
         var text = response.ToString();
-        await context.SendJsonAsync(text, true, true);
+        await context.SendResponseAsync(new ResponseBody<JObject> { data = response }, true, true);
     }
 }

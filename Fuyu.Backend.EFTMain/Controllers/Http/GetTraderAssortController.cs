@@ -3,10 +3,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Networking;
-using Fuyu.Backend.EFTMain.Orms;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
-using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
@@ -17,19 +16,19 @@ public partial class GetTraderAssortController : AbstractEftHttpController
     private static partial Regex PathExpression();
 
     private readonly IProfileRepository _profiles;
-    private readonly TraderOrm _traderOrm;
+    private readonly ITraderRepository _traders;
 
-    public GetTraderAssortController(IProfileRepository profiles) : base(PathExpression())
+    public GetTraderAssortController(IProfileRepository profiles, ITraderRepository traders) : base(PathExpression())
     {
         _profiles = profiles;
-        _traderOrm = TraderOrm.Instance;
+        _traders = traders;
     }
 
     public override async Task RunAsync(EftHttpContext context)
     {
         var parameters = context.GetPathParameters(this);
         var traderId = parameters["traderId"];
-        var assort = _traderOrm.GetTraderAssort(traderId);
+        var assort = await _traders.GetTraderAssortAsync(traderId);
 
         if (assort == null)
         {
@@ -53,7 +52,7 @@ public partial class GetTraderAssortController : AbstractEftHttpController
             throw new Exception($"User has no trader info for {traderId}");
         }
 
-        var traderTemplate = _traderOrm.GetTraderTemplate(traderId);
+        var traderTemplate = await _traders.GetTraderTemplateAsync(traderId);
         var assortClone = Json.Clone<TraderAssort>(assort);
         var level = 0;
 

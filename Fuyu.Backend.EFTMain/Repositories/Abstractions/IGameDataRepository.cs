@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Customization;
 using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
@@ -29,7 +28,6 @@ public interface IGameDataRepository : IRepository
 
     Task<JObject> GetAchievementsAsync();
     Task<JObject> GetGlobalsAsync();
-    Task<Dictionary<MongoId, ItemTemplate>> GetItemTemplatesAsync();
     Task<JArray> GetQuestsAsync();
     Task<JArray> GetTradersAsync();
     Task<JObject> GetWeatherAsync();
@@ -48,7 +46,6 @@ public interface IGameDataRepository : IRepository
     Task SetHandbookAsync(HandbookTemplates handbook);
     Task SetAchievementsAsync(JObject achievements);
     Task SetGlobalsAsync(JObject globals);
-    Task SetItemTemplatesAsync(Dictionary<MongoId, ItemTemplate> templates);
     Task SetQuestsAsync(JArray quests);
     Task SetTradersAsync(JArray traders);
     Task SetWeatherAsync(JObject weather);

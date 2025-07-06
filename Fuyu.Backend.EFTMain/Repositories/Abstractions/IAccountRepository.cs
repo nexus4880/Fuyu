@@ -11,6 +11,5 @@ public interface IAccountRepository : IRepository
     Task<EftAccount> GetBySessionAsync(string sessionId);
     Task AddOrUpdateAsync(EftAccount account);
     Task RemoveAsync(EftAccount account);
-    Task SaveAsync(EftAccount account);
     Task<int> GetNewAccountIdAsync();
 }

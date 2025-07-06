@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Requests;
+using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Services;
+using Newtonsoft.Json.Linq;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
@@ -17,7 +19,7 @@ public class MatchLocalStartController : AbstractEftHttpController<MatchLocalSta
     public override Task RunAsync(EftHttpContext context, MatchLocalStartRequest request)
     {
         var location = request.location;
-        var text = _locationService.GetLoot(location);
-        return context.SendJsonAsync(text, true, true);
+        var response = _locationService.GetLoot(location);
+        return context.SendResponseAsync(new ResponseBody<JObject> { data = response }, true, true);
     }
 }
