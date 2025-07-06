@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Accounts;
+using Fuyu.Backend.EFTMain.Factories.Abstractions;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 
@@ -14,16 +15,16 @@ public class AccountService
 
     private readonly IAccountRepository _accounts;
     private readonly ISessionRepository _sessions;
-    private readonly ProfileService _profileService;
+    private readonly IProfileFactory _profileFactory;
 
     /// <summary>
     /// The construction of this class is handled in the <see cref="instance"/> (<see cref="Lazy{T}"/>)
     /// </summary>
-    public AccountService(IAccountRepository accounts, ISessionRepository sessions, ProfileService profileService)
+    public AccountService(IAccountRepository accounts, ISessionRepository sessions, IProfileFactory profileFactory)
     {
         _sessions = sessions;
         _accounts = accounts;
-        _profileService = profileService;
+        _profileFactory = profileFactory;
     }
 
     public async Task<string> LoginAccount(int accountId)
@@ -63,8 +64,8 @@ public class AccountService
         var accountId = await _accounts.GetNewAccountIdAsync();
 
         // create profiles
-        var pvpId = await _profileService.CreateProfile(accountId);
-        var pveId = await _profileService.CreateProfile(accountId);
+        var pvpProfile = await _profileFactory.CreateProfileAsync(accountId);
+        var pveProfile = await _profileFactory.CreateProfileAsync(accountId);
 
         // create account   
         var account = new EftAccount()
@@ -72,8 +73,8 @@ public class AccountService
             Id = accountId,
             Edition = edition,
             Username = username,
-            PvpId = pvpId,
-            PveId = pveId,
+            PvpId = pvpProfile.Pmc._id,
+            PveId = pveProfile.Pmc._id,
             CurrentSession = ESessionMode.Pve
         };
 

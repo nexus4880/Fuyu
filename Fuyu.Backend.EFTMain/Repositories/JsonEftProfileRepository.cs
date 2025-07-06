@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Fuyu.Backend.BSG.ItemTemplates;
 using Fuyu.Backend.BSG.Models.Accounts;
-using Fuyu.Backend.BSG.Repositories.Abstractions;
-using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
+using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Backend.Configuration;
 using Fuyu.Common.Collections;
 using Fuyu.Common.IO;
@@ -28,9 +26,7 @@ public class JsonEftProfileRepository : IProfileRepository
         IOptions<EftConfiguration> config,
         IAccountRepository accountRepository,
         ISessionRepository sessionRepository,
-        ItemFactoryService itemFactoryService,
-        ItemService itemService,
-        IItemTemplateRepository itemTemplateRepository
+        ProfileService profileService
         )
     {
         _config = config.Value;
@@ -50,19 +46,10 @@ public class JsonEftProfileRepository : IProfileRepository
             var profile = Json.Parse<EftProfile>(json);
             _profiles.Add(profile);
 
-            if (!profile.ShouldWipe && profile.Pmc.Inventory is not null)
+            if (!profile.ShouldWipe && profile.Pmc?.Inventory is not null)
             {
-                foreach (var item in profile.Pmc.Inventory.Items)
-                {
-                    var itemTemplate = itemTemplateRepository.GetItemTemplateAsync(item.TemplateId).GetAwaiter().GetResult();
-                    var props = itemFactoryService.GetItemProperties<CompoundItemItemProperties>(itemTemplate);
-
-                    if (props.Grids.Count > 0)
-                    {
-                        var items = itemService.GetItemAndChildren(profile.Pmc.Inventory.Items, item);
-                        item.InitializeMatrices(props.Grids, items);
-                    }
-                }
+                profileService.InitializeInventoryMatricesAsync(profile.Pmc).GetAwaiter().GetResult();
+                logger.LogInformation("Initialized PMC inventory matrices: {Username} ({Id})", profile.Pmc.Info.Nickname, profile.Pmc._id);
             }
         }
     }
