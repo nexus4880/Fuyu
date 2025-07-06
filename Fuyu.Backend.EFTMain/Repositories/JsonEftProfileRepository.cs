@@ -50,7 +50,7 @@ public class JsonEftProfileRepository : IProfileRepository
             var profile = Json.Parse<EftProfile>(json);
             _profiles.Add(profile);
 
-            if (profile.Pmc.Inventory is not null)
+            if (!profile.ShouldWipe && profile.Pmc.Inventory is not null)
             {
                 foreach (var item in profile.Pmc.Inventory.Items)
                 {
