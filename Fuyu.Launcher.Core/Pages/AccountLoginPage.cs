@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using Fuyu.Common.Hashing;
-using Fuyu.Common.IO;
 using Fuyu.Common.Launcher.Models.Messages;
 using Fuyu.Common.Launcher.Models.Pages;
 using Fuyu.Common.Launcher.Services;

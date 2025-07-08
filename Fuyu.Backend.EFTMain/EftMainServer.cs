@@ -7,8 +7,8 @@ namespace Fuyu.Backend.EFTMain;
 
 public class EftMainServer : FuyuServer
 {
-    public EftMainServer(ILogger<EftMainServer> logger, IEnumerable<AbstractEftHttpController> controllers) : base(logger, "eft-main", 44301)
+    public EftMainServer(ILogger<EftMainServer> logger, IEnumerable<AbstractEftHttpController> httpControllers) : base(logger, "eft-main", 44301)
     {
-        HttpRouter = new HttpRouter(controllers);
+        HttpRouter = new HttpRouter(httpControllers);
     }
 }

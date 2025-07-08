@@ -22,12 +22,14 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IProfileFactory, ProfileFactory>();
 
-        services.AddSingleton<AccountService>();
-        services.AddSingleton<ProfileService>();
-        services.AddSingleton<BotService>();
+        services.AddScoped<AccountService>();
+        services.AddScoped<ProfileService>();
+        services.AddScoped<ProfileInitializationService>();
+        services.AddScoped<ProfileStartupService>();
+        services.AddScoped<BotService>();
         services.AddSingleton<HandbookService>();
         services.AddSingleton<RagfairService>();
-        services.AddSingleton<LocationService>();
+        services.AddScoped<LocationService>();
 
         return services;
     }

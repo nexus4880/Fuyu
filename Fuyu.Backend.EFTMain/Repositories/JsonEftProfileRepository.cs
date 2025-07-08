@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Accounts;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
-using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Backend.Configuration;
 using Fuyu.Common.Collections;
 using Fuyu.Common.IO;
@@ -20,18 +19,19 @@ public class JsonEftProfileRepository : IProfileRepository
     private readonly EftConfiguration _config;
     private readonly IAccountRepository _accountRepository;
     private readonly ISessionRepository _sessionRepository;
+    private readonly ILogger<JsonEftProfileRepository> _logger;
 
     public JsonEftProfileRepository(
         ILogger<JsonEftProfileRepository> logger,
         IOptions<EftConfiguration> config,
         IAccountRepository accountRepository,
-        ISessionRepository sessionRepository,
-        ProfileService profileService
+        ISessionRepository sessionRepository
         )
     {
         _config = config.Value;
         _accountRepository = accountRepository;
         _sessionRepository = sessionRepository;
+        _logger = logger;
         _profiles = new ThreadList<EftProfile>();
 
         if (!VFS.DirectoryExists(_config.ProfilesPath))
@@ -39,18 +39,21 @@ public class JsonEftProfileRepository : IProfileRepository
             VFS.CreateDirectory(_config.ProfilesPath);
         }
 
+        LoadProfilesFromDisk();
+    }
+
+    private void LoadProfilesFromDisk()
+    {
         var files = VFS.GetFiles(_config.ProfilesPath);
         foreach (var filepath in files)
         {
             var json = VFS.ReadTextFile(filepath);
             var profile = Json.Parse<EftProfile>(json);
+
             _profiles.Add(profile);
 
-            if (!profile.ShouldWipe && profile.Pmc?.Inventory is not null)
-            {
-                profileService.InitializeInventoryMatricesAsync(profile.Pmc).GetAwaiter().GetResult();
-                logger.LogInformation("Initialized PMC inventory matrices: {Username} ({Id})", profile.Pmc.Info.Nickname, profile.Pmc._id);
-            }
+            _logger.LogInformation("Loaded profile: {Username} ({Id})",
+                profile.Pmc?.Info?.Nickname ?? "Unknown", profile.Pmc?._id ?? "Unknown");
         }
     }
 

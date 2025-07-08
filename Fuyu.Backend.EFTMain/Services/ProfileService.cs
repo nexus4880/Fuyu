@@ -46,20 +46,20 @@ public class ProfileService
         var savageId = profile.Savage._id;
 
         // create profiles
-        var edition = await _gameData.GetWipeProfilesAsync(account.Edition);
+        var wipeProfiles = await _gameData.GetWipeProfilesAsync(account.Edition);
 
-        profile.Savage = edition[EPlayerSide.Savage].Clone();
+        profile.Savage = wipeProfiles[EPlayerSide.Savage].Clone();
 
         // NOTE: Case-sensitive
         // -- seionmoya, 2024-10-13
         switch (side)
         {
             case "Bear":
-                profile.Pmc = edition[EPlayerSide.Bear].Clone();
+                profile.Pmc = wipeProfiles[EPlayerSide.Bear].Clone();
                 break;
 
             case "Usec":
-                profile.Pmc = edition[EPlayerSide.Usec].Clone();
+                profile.Pmc = wipeProfiles[EPlayerSide.Usec].Clone();
                 break;
 
             default:

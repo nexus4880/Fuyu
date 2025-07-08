@@ -10,12 +10,15 @@ namespace Fuyu.Backend.EFTMain.Factories;
 public class ProfileFactory : IProfileFactory
 {
     private readonly IGameDataRepository _gameData;
+    private readonly IProfileRepository _profiles;
 
     public ProfileFactory(
-        IGameDataRepository gameData
+        IGameDataRepository gameData,
+        IProfileRepository profiles
         )
     {
         _gameData = gameData;
+        _profiles = profiles;
     }
 
     public async Task<EftProfile> CreateProfileAsync(int accountId)
@@ -42,6 +45,8 @@ public class ProfileFactory : IProfileFactory
 
         profile.Savage._id = savageId;
         profile.Savage.aid = accountId;
+
+        await _profiles.AddOrUpdateAsync(profile);
 
         return profile;
     }

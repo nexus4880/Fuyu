@@ -4,6 +4,7 @@ using Fuyu.Backend.Configuration;
 using Fuyu.Backend.Core.Extensions;
 using Fuyu.Backend.EFTMain.Databases;
 using Fuyu.Backend.EFTMain.Extensions;
+using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Backend.Logging;
 using Fuyu.Backend.Services;
 using Fuyu.Common.IO;
@@ -24,6 +25,12 @@ public class Program
         ConfigureServices(builder);
 
         var host = builder.Build();
+        using (var scope = host.Services.CreateScope())
+        {
+            var profileStartupService = scope.ServiceProvider.GetRequiredService<ProfileStartupService>();
+            await profileStartupService.InitializeAllProfilesAsync();
+        }
+
         await host.RunAsync();
     }
 
