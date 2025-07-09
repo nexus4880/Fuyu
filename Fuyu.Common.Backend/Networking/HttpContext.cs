@@ -66,9 +66,9 @@ public class HttpContext : WebRouterContext
         return SendAsync(data, mime, HttpStatusCode.OK);
     }
 
-    public virtual Task SendJsonAsync(string text)
+    public virtual Task SendJsonAsync(string text, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         var encoded = Encoding.UTF8.GetBytes(text);
-        return SendAsync(encoded, "application/json; charset=utf-8", HttpStatusCode.OK);
+        return SendAsync(encoded, "application/json; charset=utf-8", statusCode);
     }
 }

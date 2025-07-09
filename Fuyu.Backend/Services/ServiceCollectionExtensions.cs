@@ -6,6 +6,7 @@ using Fuyu.Backend.EFT.Controllers.Http;
 using Fuyu.Backend.EFTMain;
 using Fuyu.Backend.EFTMain.Controllers.Http;
 using Fuyu.Backend.EFTMain.Controllers.ItemEvents;
+using Fuyu.Backend.EFTMain.Controllers.Websocket;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.Security;
 using Fuyu.Common.Backend.Networking;
@@ -21,6 +22,7 @@ public static class ServiceCollectionExtensions
         services.AddFuyuServers();
         services.AddCoreHttpControllers();
         services.AddEftHttpControllers();
+        services.AddEftWsControllers();
         services.AddItemEventControllers();
 
         return services;
@@ -141,6 +143,14 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<AbstractEftHttpController, ClientRagfairFindController>();
         services.AddSingleton<AbstractEftHttpController, ClientRagfairItemMarketPriceController>();
         services.AddSingleton<AbstractEftHttpController, ClientMatchingAvailableController>();
+
+        return services;
+    }
+
+    /// These get used by <see cref="EftMainServer"/>
+    private static IServiceCollection AddEftWsControllers(this IServiceCollection services)
+    {
+        services.AddSingleton<AbstractEftWsController, PushNotiferGetWebsocketController>();
 
         return services;
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.EFTMain.Networking;
@@ -16,6 +17,11 @@ public class NotifierChannelCreateController : AbstractEftHttpController
 
     public override Task RunAsync(EftHttpContext context)
     {
+        if (context.SessionId is null)
+        {
+            throw new Exception("Missing SessionID");
+        }
+
         // TODO: don't hardcode address
         // --seionmoya, 2024-11-18
         var address = "localhost:44301";

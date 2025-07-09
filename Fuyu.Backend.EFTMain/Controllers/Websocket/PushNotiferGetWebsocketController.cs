@@ -3,12 +3,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Fuyu.Backend.EFTMain.Controllers.Http;
+using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Common.Backend.Networking;
 using Fuyu.Common.Collections;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Websocket;
 
-public partial class PushNotiferGetWebsocketController : WsController
+public partial class PushNotiferGetWebsocketController : AbstractEftWsController
 {
     public static ThreadDictionary<string, WsContext> ActiveContexts { get; } = new ThreadDictionary<string, WsContext>();
 

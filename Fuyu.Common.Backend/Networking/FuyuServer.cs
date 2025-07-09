@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
+using Fuyu.Common.Serialization;
 using Microsoft.Extensions.Logging;
 using AspNetHttpContext = Microsoft.AspNetCore.Http.HttpContext;
 
@@ -60,7 +61,7 @@ public class FuyuServer
         catch (Exception ex)
         {
             _logger.LogError("{Message}", ex.Message);
-            context.Close();
+            await context.SendJsonAsync(Json.Stringify(new { error = ex.Message }), HttpStatusCode.InternalServerError);
         }
     }
 
