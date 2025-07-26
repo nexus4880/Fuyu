@@ -42,7 +42,6 @@ public class Program
 
     private static void InitializeApplication()
     {
-        Environment.CurrentDirectory = Path.Combine(Environment.CurrentDirectory, "bin");
         Resx.SetSource("fuyu-backend", typeof(Program).Assembly);
         Resx.SetSource("eft", typeof(EftDatabase).Assembly);
         //Terminal.SetLogConfig("Fuyu/Logs/Backend.log");
