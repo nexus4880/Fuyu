@@ -6,6 +6,7 @@ using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
+using Fuyu.Common.Hashing;
 using Fuyu.Common.Serialization;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
@@ -27,13 +28,20 @@ public partial class GetTraderAssortController : AbstractEftHttpController
     public override async Task RunAsync(EftHttpContext context)
     {
         var parameters = context.GetPathParameters(this);
-        var traderId = parameters["traderId"];
+        var traderIdString = parameters["traderId"];
+        if (!MongoId.TryParse(traderIdString, null, out var traderId))
+        {
+            throw new Exception($"Failed to parse trader ID to MongoId: '{traderIdString}'");
+        }
+
         var assort = await _traders.GetTraderAssortAsync(traderId);
 
         if (assort == null)
         {
             throw new Exception($"Failed to find assort for trader {traderId}");
         }
+
+        var listedItems = await _traders.GetTraderAssortAsync(traderId);
 
         var profile = await _profiles.GetActiveProfileAsync(context.SessionId);
 

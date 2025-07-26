@@ -4,15 +4,18 @@ using Fuyu.Backend.EFTMain.Services;
 using Fuyu.Common.Backend.Models.Requests;
 using Fuyu.Common.Backend.Models.Responses;
 using Fuyu.Common.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Backend.EFTMain.Controllers.Http;
 
 public class FuyuGameLoginController : AbstractEftHttpController<FuyuGameLoginRequest>
 {
     private readonly AccountService _accountService;
+    private readonly ILogger<FuyuGameLoginController> _logger;
 
-    public FuyuGameLoginController(AccountService accountService) : base("/fuyu/game/login")
+    public FuyuGameLoginController(ILogger<FuyuGameLoginController> logger, AccountService accountService) : base("/fuyu/game/login")
     {
+        _logger = logger;
         _accountService = accountService;
     }
 
@@ -24,6 +27,7 @@ public class FuyuGameLoginController : AbstractEftHttpController<FuyuGameLoginRe
             SessionId = sessionId
         };
 
+        _logger.LogInformation("Created session ID {SessionId}", sessionId);
         var text = Json.Stringify(response);
         // NOTE: no need for encryption, request runs internal
         // -- seionmoya, 2024-11-18

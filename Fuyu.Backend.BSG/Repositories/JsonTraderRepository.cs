@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Common.Collections;
@@ -9,6 +10,7 @@ using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace Fuyu.Backend.BSG.Repositories;
 
@@ -18,7 +20,7 @@ public class JsonTraderRepository : ITraderRepository
     private readonly ThreadDictionary<MongoId, TraderTemplate> _traderTemplates;
     private readonly ThreadDictionary<MongoId, TraderAssort> _traderAssort;
 
-    public JsonTraderRepository(ILogger<JsonTraderRepository> logger)
+    public JsonTraderRepository(ILogger<JsonTraderRepository> logger, RagfairService ragfairService, ItemService itemService)
     {
         _logger = logger;
         _traderTemplates = new ThreadDictionary<MongoId, TraderTemplate>();
@@ -47,6 +49,20 @@ public class JsonTraderRepository : ITraderRepository
             var traderAssort = Json.Parse<TraderAssort>(assortJson);
             _traderAssort.Set(traderTemplate.Id, traderAssort);
             _logger.LogInformation("Got assort for {TraderId}", traderTemplate.Id);
+            var traderUser = new RagfairTraderUser(traderTemplate.Id);
+            foreach (var (id, scheme) in traderAssort.BarterScheme)
+            {
+                var items = itemService.GetItemAndChildren(traderAssort.Items, id);
+                ragfairService.CreateAndAddOffer(traderUser, items, false, scheme.SelectMany(s =>
+                {
+                    return s.Select(h => new HandoverRequirement
+                    {
+                        TemplateId = h.Template,
+                        Count = (int)h.Count
+                    });
+                }).ToList(), TimeSpan.FromDays(1d), items[0].Updatable?.StackObjectsCount ?? 1, false, 1)
+                    .GetAwaiter().GetResult();
+            }
         }
     }
 

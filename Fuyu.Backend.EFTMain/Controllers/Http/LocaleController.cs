@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Responses;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Networking;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Common.Serialization;

@@ -6,7 +6,7 @@ using Fuyu.Backend.BSG.Models.Profiles;
 using Fuyu.Backend.BSG.Models.Profiles.Info;
 using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
-using Fuyu.Backend.EFTMain.Repositories.Abstractions;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Common.Collections;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;

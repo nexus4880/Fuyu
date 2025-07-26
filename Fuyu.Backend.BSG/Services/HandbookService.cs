@@ -2,10 +2,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Trading;
-using Fuyu.Backend.EFTMain.Repositories.Abstractions;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 
-namespace Fuyu.Backend.EFTMain.Services;
+namespace Fuyu.Backend.BSG.Services;
 
 public class HandbookService
 {

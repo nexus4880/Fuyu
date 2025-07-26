@@ -17,7 +17,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAccountRepository, JsonEftAccountRepository>();
         services.AddSingleton<ISessionRepository, JsonEftSessionRepository>();
         services.AddSingleton<IProfileRepository, JsonEftProfileRepository>();
-        services.AddSingleton<IGameDataRepository, JsonGameDataRepository>();
         services.AddSingleton<ISurveyRepository, NullSurveyRepository>();
 
         services.AddSingleton<IProfileFactory, ProfileFactory>();
@@ -27,8 +26,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ProfileInitializationService>();
         services.AddScoped<ProfileStartupService>();
         services.AddScoped<BotService>();
-        services.AddSingleton<HandbookService>();
-        services.AddSingleton<RagfairService>();
         services.AddScoped<LocationService>();
 
         return services;

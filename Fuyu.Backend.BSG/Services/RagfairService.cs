@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Models.Trading;
-using Fuyu.Backend.EFTMain.Repositories.Abstractions;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Common.Hashing;
 
-namespace Fuyu.Backend.EFTMain.Services;
+namespace Fuyu.Backend.BSG.Services;
 
 public class RagfairService
 {
@@ -93,6 +93,11 @@ public class RagfairService
         };
 
         return await AddOffer(offer);
+    }
+
+    public List<Offer> GetOffersFrom(MongoId ownerId)
+    {
+        return Offers.FindAll(offer => offer.User.Id == ownerId);
     }
 
     public Offer GetOffer(MongoId offerId)

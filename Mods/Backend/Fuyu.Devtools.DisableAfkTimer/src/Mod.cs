@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Fuyu.Backend.BSG.Repositories.Abstractions;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Modding;
 

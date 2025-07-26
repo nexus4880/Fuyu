@@ -4,7 +4,7 @@ using Fuyu.Backend.BSG.Models.Accounts;
 
 namespace Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
-public interface IAccountRepository : IRepository
+public interface IAccountRepository
 {
     Task<List<EftAccount>> GetAllAsync();
     Task<EftAccount> GetByIdAsync(int accountId);

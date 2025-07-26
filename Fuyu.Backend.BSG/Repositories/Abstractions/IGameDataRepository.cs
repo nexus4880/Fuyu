@@ -7,9 +7,9 @@ using Fuyu.Backend.BSG.Models.Responses;
 using Fuyu.Backend.BSG.Models.Trading;
 using Newtonsoft.Json.Linq;
 
-namespace Fuyu.Backend.EFTMain.Repositories.Abstractions;
+namespace Fuyu.Backend.BSG.Repositories.Abstractions;
 
-public interface IGameDataRepository : IRepository
+public interface IGameDataRepository
 {
     Task<Dictionary<string, string>> GetLanguagesAsync();
     Task<Dictionary<string, string>> GetGlobalLocaleAsync(string languageId);

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Fuyu.Backend.EFTMain.Repositories.Abstractions;
 
-public interface ISessionRepository : IRepository
+public interface ISessionRepository
 {
     Task<Dictionary<string, int>> GetAllAsync();
     Task<int> GetAccountIdAsync(string sessionId);
