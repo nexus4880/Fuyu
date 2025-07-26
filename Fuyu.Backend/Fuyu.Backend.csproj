@@ -10,7 +10,7 @@
         <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
         <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
         <PublishSingleFile>true</PublishSingleFile>
-        <SelfContained>false</SelfContained>
+        <SelfContained>true</SelfContained>
     </PropertyGroup>
 
     <ItemGroup>
