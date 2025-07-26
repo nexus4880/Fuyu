@@ -37,21 +37,21 @@ public abstract class AbstractCoreHttpController<TRequest> : AbstractCoreHttpCon
         // match static paths
     }
 
-    public override Task RunAsync(CoreHttpContext context)
+    public override async Task RunAsync(CoreHttpContext context)
     {
         if (!context.HasBody())
         {
             throw new RequestNoBodyException("Request does not contain body.");
         }
 
-        var body = context.GetJson<TRequest>();
+        var body = await context.GetJsonAsync<TRequest>();
 
         if (body == null)
         {
             throw new RequestBodyNotParsableException("Body could not be parsed as TRequest.");
         }
 
-        return RunAsync(context, body);
+        await RunAsync(context, body);
     }
 
     public abstract Task RunAsync(CoreHttpContext context, TRequest body);

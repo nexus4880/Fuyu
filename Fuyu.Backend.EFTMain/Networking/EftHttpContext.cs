@@ -17,11 +17,11 @@ public class EftHttpContext : FuyuHttpContext
     {
     }
 
-    public override byte[] GetBinary()
+    public override async Task<byte[]> GetBinaryAsync()
     {
         using (var ms = new MemoryStream())
         {
-            Request.Body.CopyTo(ms);
+            await Request.Body.CopyToAsync(ms);
 
             var body = ms.ToArray();
             var encryption = Encryption;

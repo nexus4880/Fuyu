@@ -1,13 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fuyu.Backend.Configuration;
 using Fuyu.Backend.Security;
 using Fuyu.Common.Backend.Networking;
+using Fuyu.Modding;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -22,6 +24,9 @@ public class FuyuBackgroundService : BackgroundService
     private readonly ICertificateService _certificateService;
     private readonly IServiceProvider _serviceProvider;
 
+    public delegate void ConfigureHttpServices(IServiceCollection services);
+    public delegate void ConfigureHttpApplication(WebApplication app);
+
     public FuyuBackgroundService(
         ILogger<FuyuBackgroundService> logger,
         IOptions<FuyuConfiguration> configuration,
@@ -34,7 +39,7 @@ public class FuyuBackgroundService : BackgroundService
         _serviceProvider = serviceProvider;
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         try
         {
@@ -45,40 +50,34 @@ public class FuyuBackgroundService : BackgroundService
                 _configuration.CertificatePath,
                 _configuration.CertificatePassword);
 
-            var builder = new WebHostBuilder();
-            ConfigureKestrel(builder, servers, certificate);
-            ConfigureApplication(builder, servers);
-
-            var webHost = builder.Build();
-            return webHost.RunAsync(stoppingToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex, "Fatal error occurred while running Fuyu servers");
-            throw;
-        }
-    }
-
-    private static void ConfigureKestrel(WebHostBuilder builder, List<FuyuServer> servers, System.Security.Cryptography.X509Certificates.X509Certificate2 certificate)
-    {
-        builder.UseKestrel(options =>
-        {
-            foreach (var server in servers)
+            var builder = WebApplication.CreateBuilder();
+            Dispatcher<ConfigureHttpServices>.Dispatch(builder.Services);
+            builder.Logging.ClearProviders();
+            builder.WebHost.ConfigureKestrel(options =>
             {
-                options.ListenAnyIP(server.Port, listenOptions =>
+                foreach (var server in servers)
                 {
-                    listenOptions.UseHttps(certificate);
-                });
-            }
-        });
-    }
+                    options.ListenAnyIP(server.Port, listenOptions =>
+                    {
+                        if (server.IsHTTPS)
+                        {
+                            listenOptions.UseHttps(certificate);
+                        }
 
-    private static void ConfigureApplication(WebHostBuilder builder, List<FuyuServer> servers)
-    {
-        builder.Configure(app =>
-        {
+                        _logger.LogInformation("Bound {ServerName} to {Port}", server.Name, server.Port);
+                    });
+                }
+            });
+            
+            var app = builder.Build();
+            Dispatcher<ConfigureHttpApplication>.Dispatch(app);
+            
             app.UseWebSockets();
-            app.Run(context =>
+            app.MapGet("/nexus", async (ctx) =>
+            {
+                await ctx.Response.WriteAsync($"nexus says the current time is: {DateTime.UtcNow}");
+            });
+            app.MapFallback((context) =>
             {
                 var requestPort = context.Connection.LocalPort;
                 var server = servers.FirstOrDefault(s => s.Port == requestPort);
@@ -90,6 +89,13 @@ public class FuyuBackgroundService : BackgroundService
 
                 return server.OnRequestAsync(context);
             });
-        });
+
+            await app.RunAsync(stoppingToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Fatal error occurred while running Fuyu servers");
+            throw;
+        }
     }
 }

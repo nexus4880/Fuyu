@@ -29,7 +29,7 @@ public abstract class HttpController<TRequest> : AbstractHttpController where TR
         // match static paths
     }
 
-    public override Task RunAsync(HttpContext context)
+    public override async Task RunAsync(HttpContext context)
     {
         // TODO:
         // - Use better exception type
@@ -39,7 +39,7 @@ public abstract class HttpController<TRequest> : AbstractHttpController where TR
             throw new Exception("Request does not contain body.");
         }
 
-        var body = context.GetJson<TRequest>();
+        var body = await context.GetJsonAsync<TRequest>();
 
         // TODO:
         // - Use better exception type
@@ -49,7 +49,7 @@ public abstract class HttpController<TRequest> : AbstractHttpController where TR
             throw new Exception("Body could not be parsed as TRequest.");
         }
 
-        return RunAsync(context, body);
+        await RunAsync(context, body);
     }
 
     public abstract Task RunAsync(HttpContext context, TRequest body);

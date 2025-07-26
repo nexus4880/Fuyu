@@ -13,6 +13,7 @@ public class JsonEftSessionRepository : ISessionRepository
     public JsonEftSessionRepository(ILogger<JsonEftSessionRepository> logger)
     {
         _sessions = new ThreadDictionary<string, int>();
+        logger.LogInformation("JsonEftSessionRepository created");
     }
 
     public Task<Dictionary<string, int>> GetAllAsync()

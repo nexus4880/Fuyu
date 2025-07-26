@@ -1,4 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Fuyu.Backend.BSG.Extensions;
 using Fuyu.Backend.Configuration;
 using Fuyu.Backend.Core.Extensions;
@@ -17,6 +21,8 @@ namespace Fuyu.Backend;
 
 public class Program
 {
+    public delegate void ConfigureBackendServices(IServiceCollection services);
+
     public static async Task Main(string[] args)
     {
         InitializeApplication();
@@ -36,6 +42,7 @@ public class Program
 
     private static void InitializeApplication()
     {
+        Environment.CurrentDirectory = Path.Combine(Environment.CurrentDirectory, "bin");
         Resx.SetSource("fuyu-backend", typeof(Program).Assembly);
         Resx.SetSource("eft", typeof(EftDatabase).Assembly);
         //Terminal.SetLogConfig("Fuyu/Logs/Backend.log");
@@ -54,12 +61,12 @@ public class Program
         var modManagerLogger = new Logger<ModManager>(loggerFactory);
         var modManager = new ModManager(modManagerLogger);
         builder.Services.AddSingleton(modManager);
-
         modManager.AddMods("./Fuyu/Mods/Backend", builder.Services);
-
         builder.Services.AddFuyuServices()
             .AddCoreServices()
             .AddBSGServices()
             .AddEftServices();
+
+        Dispatcher<ConfigureBackendServices>.Dispatch(builder.Services);
     }
 }

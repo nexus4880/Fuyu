@@ -13,24 +13,24 @@ public class HttpContext : WebRouterContext
     {
     }
 
-    public virtual byte[] GetBinary()
+    public virtual Task<byte[]> GetBinaryAsync()
     {
         using (var ms = new MemoryStream())
         {
             Request.Body.CopyTo(ms);
-            return ms.ToArray();
+            return Task.FromResult(ms.ToArray());
         }
     }
 
-    public virtual string GetText()
+    public virtual async Task<string> GetTextAsync()
     {
-        var body = GetBinary();
+        var body = await GetBinaryAsync();
         return Encoding.UTF8.GetString(body);
     }
 
-    public virtual T GetJson<T>()
+    public virtual async Task<T> GetJsonAsync<T>()
     {
-        var json = GetText();
+        var json = await GetTextAsync();
         return Json.Parse<T>(json);
     }
 

@@ -16,13 +16,15 @@ public class FuyuServer
     public int Port { get; }
     public string Name { get; }
     public string SubProtocol { get; }
+    public bool IsHTTPS { get; }
 
-    public FuyuServer(ILogger logger, string name, int port, string subprotocol = null)
+    public FuyuServer(ILogger logger, string name, int port, bool isHTTPS = true, string subprotocol = null)
     {
         _logger = logger;
         Port = port;
         Name = name;
         SubProtocol = subprotocol;
+        IsHTTPS = isHTTPS;
     }
 
     public virtual Task OnRequestAsync(AspNetHttpContext ctx)

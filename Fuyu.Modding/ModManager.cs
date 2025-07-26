@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -152,8 +153,9 @@ public class ModManager
         foreach (var modType in modTypes)
         {
             services.AddSingleton(typeof(AbstractMod), modType);
-            modType.ConfigureServices(services);
         }
+
+        RuntimeHelpers.RunModuleConstructor(assembly.ManifestModule.ModuleHandle);
     }
 
     public async Task Load(IServiceProvider provider)
