@@ -5,7 +5,6 @@ using Fuyu.Backend.BSG.Models.Items;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
-using Fuyu.Backend.EFTMain.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;

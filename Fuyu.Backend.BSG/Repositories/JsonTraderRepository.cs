@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Repositories.Abstractions;
+using Fuyu.Backend.BSG.Services;
 using Fuyu.Common.Collections;
 using Fuyu.Common.Hashing;
 using Fuyu.Common.IO;
 using Fuyu.Common.Serialization;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 
 namespace Fuyu.Backend.BSG.Repositories;
 
@@ -25,7 +25,7 @@ public class JsonTraderRepository : ITraderRepository
         _logger = logger;
         _traderTemplates = new ThreadDictionary<MongoId, TraderTemplate>();
         _traderAssort = new ThreadDictionary<MongoId, TraderAssort>();
-        
+
         var tradersJson = Resx.GetText("eft", "database.client.trading.api.traderSettings.json");
         var body = Json.Parse<TraderTemplate[]>(tradersJson);
 

@@ -7,7 +7,6 @@ using Fuyu.Backend.BSG.Models.Trading;
 using Fuyu.Backend.BSG.Networking;
 using Fuyu.Backend.BSG.Services;
 using Fuyu.Backend.EFTMain.Repositories.Abstractions;
-using Fuyu.Backend.EFTMain.Services;
 
 namespace Fuyu.Backend.EFTMain.Controllers.ItemEvents;
 

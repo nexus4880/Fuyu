@@ -7,7 +7,6 @@ using Fuyu.Backend.Security;
 using Fuyu.Common.Backend.Networking;
 using Fuyu.Modding;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,10 +67,10 @@ public class FuyuBackgroundService : BackgroundService
                     });
                 }
             });
-            
+
             var app = builder.Build();
             Dispatcher<ConfigureHttpApplication>.Dispatch(app);
-            
+
             app.UseWebSockets();
             app.MapGet("/nexus", async (ctx) =>
             {

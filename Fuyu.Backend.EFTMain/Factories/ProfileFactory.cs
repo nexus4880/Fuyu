@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
-using Fuyu.Backend.EFTMain.Factories.Abstractions;
 using Fuyu.Backend.BSG.Models.Accounts;
 using Fuyu.Backend.BSG.Models.Profiles;
-using Fuyu.Common.Hashing;
-using Fuyu.Backend.EFTMain.Repositories.Abstractions;
 using Fuyu.Backend.BSG.Repositories.Abstractions;
+using Fuyu.Backend.EFTMain.Factories.Abstractions;
+using Fuyu.Backend.EFTMain.Repositories.Abstractions;
+using Fuyu.Common.Hashing;
 
 namespace Fuyu.Backend.EFTMain.Factories;
 
